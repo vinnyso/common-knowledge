@@ -71,25 +71,26 @@ test("prints useful help without a command", async () => {
   assert.deepEqual(await readdir(cwd), []);
 });
 
-test("dispatches every supported command from an isolated working directory", async () => {
+test("dispatches every valid command shape from an isolated working directory", async () => {
   const cwd = await makeTestWorkingDirectory();
-  const commands = [
-    "init",
-    "search",
-    "read",
-    "add",
-    "update",
-    "retire",
-    "validate",
+  const invocations = [
+    ["init"],
+    ["search", "database migration"],
+    ["search", "P3006", "--path", "apps/api/index.ts", "--kind", "gotcha"],
+    ["read", "prisma-shadow-db"],
+    ["add", "entry.md"],
+    ["update", "entry.md"],
+    ["retire", "prisma-shadow-db", "--reason", "The migration changed"],
+    ["validate"],
   ];
 
-  for (const command of commands) {
-    const result = await invokeCli([command], cwd);
+  for (const invocation of invocations) {
+    const result = await invokeCli(invocation, cwd);
 
     assert.deepEqual(result, {
       exitCode: 0,
       signal: null,
-      stdout: `${command}: not implemented yet\n`,
+      stdout: `${invocation[0]}: not implemented yet\n`,
       stderr: "",
     });
   }
@@ -119,5 +120,100 @@ test("supports explicit help flags", async () => {
     assert.equal(result.stderr, "");
     assert.match(result.stdout, /^Usage: common-knowledge <command>/);
   }
+  assert.deepEqual(await readdir(cwd), []);
+});
+
+test("reports missing command operands with command usage", async () => {
+  const cwd = await makeTestWorkingDirectory();
+  const cases = [
+    { args: ["search"], expected: "missing required <query>" },
+    { args: ["read"], expected: "missing required <id>" },
+    { args: ["add"], expected: "missing required <entry-file>" },
+    { args: ["update"], expected: "missing required <entry-file>" },
+    { args: ["retire"], expected: "missing required <id>" },
+    {
+      args: ["retire", "prisma-shadow-db"],
+      expected: "missing required --reason <reason>",
+    },
+  ];
+
+  for (const { args, expected } of cases) {
+    const result = await invokeCli(args, cwd);
+
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, new RegExp(expected.replace(/[<>]/g, "\\$&")));
+    assert.match(result.stderr, new RegExp(`Usage: common-knowledge ${args[0]}`));
+  }
+  assert.deepEqual(await readdir(cwd), []);
+});
+
+test("rejects extra command arguments", async () => {
+  const cwd = await makeTestWorkingDirectory();
+  const cases = [
+    ["init", "unexpected"],
+    ["validate", "unexpected"],
+    ["read", "entry-id", "unexpected"],
+    ["retire", "entry-id", "--reason", "obsolete", "unexpected"],
+  ];
+
+  for (const args of cases) {
+    const result = await invokeCli(args, cwd);
+
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /unexpected argument "unexpected"/);
+    assert.match(result.stderr, new RegExp(`Usage: common-knowledge ${args[0]}`));
+  }
+  assert.deepEqual(await readdir(cwd), []);
+});
+
+test("rejects unsupported options and missing option values", async () => {
+  const cwd = await makeTestWorkingDirectory();
+  const cases = [
+    {
+      args: ["search", "query", "--bogus"],
+      expected: "unsupported option \"--bogus\"",
+    },
+    {
+      args: ["search", "query", "--path"],
+      expected: "missing value for option \"--path\"",
+    },
+    {
+      args: ["search", "query", "--kind", "gotcha", "--kind", "pattern"],
+      expected: "option \"--kind\" may only be specified once",
+    },
+    {
+      args: ["retire", "entry-id", "--bogus", "reason"],
+      expected: "unsupported option \"--bogus\"",
+    },
+    {
+      args: ["retire", "entry-id", "--reason"],
+      expected: "missing value for option \"--reason\"",
+    },
+  ];
+
+  for (const { args, expected } of cases) {
+    const result = await invokeCli(args, cwd);
+
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, new RegExp(expected.replace(/["-]/g, "\\$&")));
+    assert.match(result.stderr, new RegExp(`Usage: common-knowledge ${args[0]}`));
+  }
+  assert.deepEqual(await readdir(cwd), []);
+});
+
+test("shows command-specific usage help", async () => {
+  const cwd = await makeTestWorkingDirectory();
+
+  const result = await invokeCli(["retire", "--help"], cwd);
+
+  assert.deepEqual(result, {
+    exitCode: 0,
+    signal: null,
+    stdout: "Usage: common-knowledge retire <id> --reason <reason>\n",
+    stderr: "",
+  });
   assert.deepEqual(await readdir(cwd), []);
 });
