@@ -1,13 +1,14 @@
 # Common Knowledge
 
-A Git-native shared knowledge layer for software agents and developers.
+Shared project knowledge for coding agents.
 
-What one agent learns, every agent can use.
+What one coding agent learns, every agent can use.
 
 ## Status
 
-The prototype design is approved and ready for implementation planning.
+The prototype design and implementation plan are approved and ready for
+implementation.
 
 - Canonical design: [`docs/prototype-spec.md`](docs/prototype-spec.md)
-- Implementation PRD: [`.scratch/common-knowledge-prototype/PRD.md`](.scratch/common-knowledge-prototype/PRD.md)
+- Implementation PRD: [`docs/PRD.md`](docs/PRD.md)
 - Domain vocabulary: [`CONTEXT.md`](CONTEXT.md)

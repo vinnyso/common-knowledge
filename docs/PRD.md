@@ -4,7 +4,7 @@ Status: ready-for-agent
 
 Updated: 2026-08-22
 
-**Canonical design:** [Common Knowledge prototype specification](../../docs/prototype-spec.md).  
+**Canonical design:** [Common Knowledge prototype specification](prototype-spec.md).
 **This document:** implementation contract for the first prototype.
 
 ## Problem Statement
