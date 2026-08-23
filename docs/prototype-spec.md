@@ -5,11 +5,11 @@
 
 ## 1. Product thesis
 
-Common Knowledge is a Git-native shared knowledge layer for recurring engineering
-lessons. It lets software agents and developers preserve and reuse project-specific
-gotchas, patterns, anti-patterns, and debugging notes without placing the entire
-corpus in every agent's instructions or leaving knowledge stranded in one
-developer's local harness memory. What one agent learns, every agent can use.
+Common Knowledge is a Git-native shared project knowledge layer for coding agents.
+It lets software agents and developers preserve and reuse project-specific gotchas,
+patterns, anti-patterns, and debugging notes without placing the entire corpus in
+every agent's instructions or leaving knowledge stranded in one developer's local
+harness memory. What one coding agent learns, every agent can use.
 
 Static instruction files define *how agents use the knowledge system*. The
 repository corpus holds the accumulating project knowledge itself.

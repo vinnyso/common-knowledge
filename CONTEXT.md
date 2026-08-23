@@ -2,10 +2,10 @@
 
 ## Purpose
 
-Common Knowledge is a Git-native shared knowledge layer for recurring,
-project-specific engineering lessons. It lets software agents and developers
-preserve and reuse knowledge through the repository without bloating global
-agent instructions.
+Common Knowledge is a Git-native shared project knowledge layer for coding
+agents. It lets software agents and developers preserve and reuse recurring,
+project-specific engineering lessons through the repository without bloating
+global agent instructions. What one coding agent learns, every agent can use.
 
 ## Domain vocabulary
 

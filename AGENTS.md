@@ -4,7 +4,8 @@
 
 ### Issue tracker
 
-Issues and specifications use the repository-local Markdown tracker under `.scratch/`. See `docs/agents/issue-tracker.md`.
+GitHub Issues are the canonical implementation tracker. See
+`docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
