@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | `needs-triage` | `needs-triage` | Maintainer evaluation is needed. |
 | `needs-info` | `needs-info` | Reporter input is required before proceeding. |
-| `ready-for-agent` | `ready-for-agent` | Fully specified and ready for an autonomous agent. |
+| `ready-for-agent` | `ready-for-agent` | Fully specified for autonomous agent work; dependencies still gate its start. |
 | `ready-for-human` | `ready-for-human` | Requires human judgment or implementation. |
 | `wontfix` | `wontfix` | Intentionally will not be actioned. |
 

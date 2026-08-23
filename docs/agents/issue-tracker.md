@@ -16,8 +16,9 @@ planning view for issue lifecycle state.
   comments so the history remains visible to every contributor.
 - Express dependencies with GitHub issue references and do not start an issue
   until its dependencies are complete.
-- Leave dependency-blocked issues without a lifecycle status or
-  `ready-for-agent` label. Add both only when all dependencies are complete.
+- `Ready` and `ready-for-agent` mean an issue is fully specified for agent work;
+  they do not override its dependency list. Never claim a downstream issue until
+  every dependency is `Done`.
 
 When a workflow says to publish to the issue tracker, create or update the
 corresponding GitHub Issue and add it to the Common Knowledge Prototype Project.
@@ -30,7 +31,8 @@ Implementation issues move through these Project states:
 Ready -> In Progress -> In Review -> Done
 ```
 
-- `Ready`: specified and dependency-ready for an implementation agent.
+- `Ready`: fully specified and queued for an implementation agent; its
+  dependencies still govern when work may start.
 - `In Progress`: claimed by an agent and moving through implementation,
   independent agent review, and any required fix/re-review cycles.
 - `In Review`: the latest candidate has passed independent agent review and is
