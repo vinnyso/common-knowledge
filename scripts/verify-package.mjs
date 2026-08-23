@@ -57,6 +57,7 @@ try {
   const installedManifest = JSON.parse(
     await readFile(join(installRoot, "node_modules", "common-knowledge", "package.json"), "utf8"),
   );
+  assert.equal(installedManifest.license, "Apache-2.0");
   assert.equal(installedManifest.engines.node, ">=20");
   assert.equal(installedManifest.bin["common-knowledge"], "dist/cli.js");
 

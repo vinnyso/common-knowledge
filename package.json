@@ -2,7 +2,7 @@
   "name": "common-knowledge",
   "version": "0.1.0",
   "description": "Git-native shared project knowledge for coding agents",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
