@@ -40,14 +40,13 @@ This is a single-context project: use the root `CONTEXT.md` and `docs/adr/` for 
 - Send required findings back to the implementation task. The implementing agent
   makes fixes, reruns verification, commits the revised candidate, and returns it
   to the separate review task. Repeat until review has no required findings.
-- Keep the issue `in-progress` throughout the implementation and agent-review
-  loop. Move it to `in-review` only when the latest candidate is agent-approved
+- Keep the issue `In Progress` throughout the implementation and agent-review
+  loop. Move it to `In Review` only when the latest candidate is agent-approved
   and awaiting the driving human's approval.
-- When work has a pull request, use its human approval and merge as the approval
-  gate; do not require a duplicate Codex-task approval. Without a pull request,
-  record explicit human approval in the local issue.
-- Mark an issue `complete` only after its approved pull request is merged, or
-  after explicit local approval when no pull request exists.
+- Implementation must use a pull request. Use its human merge as the approval
+  gate; do not require a duplicate Codex-task approval.
+- Move an issue to `Done` and close it only after its approved pull request is
+  merged.
 
 ## Project boundaries
 

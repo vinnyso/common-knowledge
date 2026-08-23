@@ -16,6 +16,8 @@ planning view for issue lifecycle state.
   comments so the history remains visible to every contributor.
 - Express dependencies with GitHub issue references and do not start an issue
   until its dependencies are complete.
+- Leave dependency-blocked issues without a lifecycle status or
+  `ready-for-agent` label. Add both only when all dependencies are complete.
 
 When a workflow says to publish to the issue tracker, create or update the
 corresponding GitHub Issue and add it to the Common Knowledge Prototype Project.
@@ -33,8 +35,7 @@ Ready -> In Progress -> In Review -> Done
   independent agent review, and any required fix/re-review cycles.
 - `In Review`: the latest candidate has passed independent agent review and is
   awaiting human approval.
-- `Done`: independent review has passed and the approved pull request is merged,
-  or explicit human approval is recorded when no pull request exists.
+- `Done`: independent review has passed and the approved pull request is merged.
 
 Before coding, move the issue to `In Progress`. At each implementation handoff,
 comment with the candidate commit, commands run, and results. Keep the issue in
@@ -51,7 +52,6 @@ Repeat the implementation-review loop until the review reports no required
 findings. Then comment with the agent-review approval and move the issue to `In
 Review`. A commit or unresolved review never advances the issue to `In Review`.
 
-When a pull request exists, its human approval and merge are the approval gate;
-no separate Codex-task approval is required. Link the pull request to its issue;
-after approval and merge, move the issue to `Done` and close it. When no pull
-request exists, add an explicit human-approval comment before closing the issue.
+Implementation must use a pull request. Its human merge is the approval gate; no
+separate Codex-task approval is required. Link the pull request to its issue;
+after approval and merge, move the issue to `Done` and close it.

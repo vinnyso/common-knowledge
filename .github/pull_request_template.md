@@ -30,7 +30,7 @@ Closes #
 
 ## Common Knowledge impact
 
-<!-- State what repository knowledge was searched and whether an Entry was added, updated, superseded, or not needed. -->
+<!-- Optional during v1. State what repository knowledge was searched and whether an Entry was added, updated, superseded, or not needed. Use N/A while this repository does not self-host Common Knowledge. -->
 
 - Search performed:
 - Entry change:
