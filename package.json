@@ -1,0 +1,35 @@
+{
+  "name": "common-knowledge",
+  "version": "0.1.0",
+  "description": "Git-native shared project knowledge for coding agents",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "common-knowledge": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test:focused": "npm run build && node --test test/cli.test.mjs",
+    "test": "npm run build && node --test",
+    "verify:package": "npm run build && node scripts/verify-package.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.9.0"
+  }
+}

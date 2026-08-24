@@ -59,6 +59,10 @@ This is a single-context project: use the root `CONTEXT.md` and `docs/adr/` for 
 
 ## Commands
 
-Issue 01 establishes the executable build, type-check, test, and package commands.
-Update this section with those verified commands as part of that issue; do not
-invent commands before they exist.
+- Install reproducibly: `npm ci`
+- Build the CLI and library: `npm run build`
+- Type-check without emitting files: `npm run typecheck`
+- Run the focused CLI/filesystem seam tests: `npm run test:focused`
+- Run the complete test suite: `npm test`
+- Build, pack, install, and execute the local package in isolation:
+  `npm run verify:package`
