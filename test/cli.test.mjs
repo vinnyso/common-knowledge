@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import {
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -71,10 +77,143 @@ test("prints useful help without a command", async () => {
   assert.deepEqual(await readdir(cwd), []);
 });
 
-test("dispatches every valid command shape from an isolated working directory", async () => {
+test("initializes the exact Corpus layout in the explicit working directory", async () => {
+  const cwd = await makeTestWorkingDirectory();
+
+  const result = await invokeCli(["init"], cwd);
+
+  assert.deepEqual(result, {
+    exitCode: 0,
+    signal: null,
+    stdout: "Initialized Common Knowledge corpus at .repo-memory.\n",
+    stderr: "",
+  });
+  assert.deepEqual((await readdir(cwd)).sort(), [".repo-memory"]);
+
+  const corpusPath = join(cwd, ".repo-memory");
+  assert.deepEqual((await readdir(corpusPath)).sort(), [
+    "README.md",
+    "entries",
+    "log.md",
+    "schema.json",
+  ]);
+  assert.deepEqual(await readdir(join(corpusPath, "entries")), []);
+
+  const readme = await readFile(join(corpusPath, "README.md"), "utf8");
+  assert.match(readme, /repository-local source of truth/);
+  assert.match(readme, /repository-level knowledge protocol/);
+  assert.match(readme, /AGENTS\.md/);
+  assert.match(readme, /Do not copy Entries into this file/);
+  assert.doesNotMatch(readme, /^---$/m);
+
+  assert.equal(
+    await readFile(join(corpusPath, "log.md"), "utf8"),
+    "# Common Knowledge Activity Log\n\n" +
+      "Entry activity is appended below, grouped by UTC date. Git remains the authoritative audit trail.\n",
+  );
+});
+
+test("generates the normative version 1 Entry front-matter schema", async () => {
+  const cwd = await makeTestWorkingDirectory();
+  await invokeCli(["init"], cwd);
+
+  const schema = JSON.parse(
+    await readFile(join(cwd, ".repo-memory", "schema.json"), "utf8"),
+  );
+
+  assert.equal(schema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(schema.type, "object");
+  assert.equal(schema.additionalProperties, false);
+  assert.deepEqual(schema.required, [
+    "schema_version",
+    "id",
+    "kind",
+    "title",
+    "triggers",
+    "status",
+    "created_at",
+    "created_by",
+  ]);
+  assert.deepEqual(Object.keys(schema.properties).sort(), [
+    "created_at",
+    "created_by",
+    "id",
+    "kind",
+    "schema_version",
+    "scope",
+    "sources",
+    "status",
+    "supersedes",
+    "title",
+    "triggers",
+    "updated_at",
+  ]);
+  assert.deepEqual(schema.properties.schema_version, {
+    type: "integer",
+    const: 1,
+    description: "Entry schema version. The prototype uses version 1.",
+  });
+  assert.equal(schema.properties.id.pattern, "^[a-z0-9]+(?:-[a-z0-9]+)*$");
+  assert.deepEqual(schema.properties.kind.enum, [
+    "gotcha",
+    "pattern",
+    "anti-pattern",
+    "debugging-note",
+  ]);
+  assert.equal(schema.properties.title.minLength, 1);
+  assert.equal(schema.properties.triggers.minItems, 1);
+  assert.deepEqual(schema.properties.status.enum, [
+    "active",
+    "superseded",
+    "retired",
+  ]);
+  assert.equal(schema.properties.created_at.format, "date-time");
+  assert.match(schema.properties.created_at.pattern, /Z\$$/);
+  assert.equal(schema.properties.created_by.minLength, 1);
+  assert.deepEqual(schema.properties.scope.required, ["paths"]);
+  assert.equal(schema.properties.scope.additionalProperties, false);
+  assert.equal(schema.properties.scope.properties.paths.type, "array");
+  assert.equal(schema.properties.sources.minItems, 1);
+  assert.equal(schema.properties.updated_at.format, "date-time");
+  assert.equal(schema.properties.supersedes.pattern, schema.properties.id.pattern);
+});
+
+test("refuses to overwrite an existing Corpus without altering any contents", async () => {
+  const cwd = await makeTestWorkingDirectory();
+  const corpusPath = join(cwd, ".repo-memory");
+  const firstResult = await invokeCli(["init"], cwd);
+  assert.equal(firstResult.exitCode, 0);
+  await writeFile(join(corpusPath, "entries", "existing.md"), "existing entry\n");
+
+  const before = {
+    root: (await readdir(corpusPath)).sort(),
+    readme: await readFile(join(corpusPath, "README.md"), "utf8"),
+    schema: await readFile(join(corpusPath, "schema.json"), "utf8"),
+    log: await readFile(join(corpusPath, "log.md"), "utf8"),
+    entry: await readFile(join(corpusPath, "entries", "existing.md"), "utf8"),
+  };
+  const result = await invokeCli(["init"], cwd);
+
+  assert.deepEqual(result, {
+    exitCode: 1,
+    signal: null,
+    stdout: "",
+    stderr: "Cannot initialize Common Knowledge corpus: .repo-memory already exists.\n",
+  });
+  assert.deepEqual((await readdir(cwd)).sort(), [".repo-memory"]);
+  assert.deepEqual((await readdir(corpusPath)).sort(), before.root);
+  assert.equal(await readFile(join(corpusPath, "README.md"), "utf8"), before.readme);
+  assert.equal(await readFile(join(corpusPath, "schema.json"), "utf8"), before.schema);
+  assert.equal(await readFile(join(corpusPath, "log.md"), "utf8"), before.log);
+  assert.equal(
+    await readFile(join(corpusPath, "entries", "existing.md"), "utf8"),
+    before.entry,
+  );
+});
+
+test("dispatches every remaining valid command shape from an isolated working directory", async () => {
   const cwd = await makeTestWorkingDirectory();
   const invocations = [
-    ["init"],
     ["search", "database migration"],
     ["search", "P3006", "--path", "apps/api/index.ts", "--kind", "gotcha"],
     ["read", "prisma-shadow-db"],
