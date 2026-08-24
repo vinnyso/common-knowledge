@@ -211,16 +211,11 @@ test("refuses to overwrite an existing Corpus without altering any contents", as
   );
 });
 
-test("dispatches every remaining valid command shape from an isolated working directory", async () => {
+test("dispatches the remaining search placeholder from an isolated working directory", async () => {
   const cwd = await makeTestWorkingDirectory();
   const invocations = [
     ["search", "database migration"],
     ["search", "P3006", "--path", "apps/api/index.ts", "--kind", "gotcha"],
-    ["read", "prisma-shadow-db"],
-    ["add", "entry.md"],
-    ["update", "entry.md"],
-    ["retire", "prisma-shadow-db", "--reason", "The migration changed"],
-    ["validate"],
   ];
 
   for (const invocation of invocations) {

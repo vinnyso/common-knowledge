@@ -239,6 +239,26 @@ approach is insufficient.
 The CLI reads and writes the working tree. It does not commit, push, or bypass a
 repository's review practices.
 
+### Working-tree process model
+
+V1 uses a cooperative single-writer model per working tree. Every Common
+Knowledge command that reads or mutates the Corpus acquires a transient exclusive
+`.repo-memory.lock` at the checkout root. If another command holds the lock, the
+second command fails with an actionable retry diagnostic; `read` and `validate`
+therefore cannot observe an in-progress lifecycle transaction. The lock is
+removed after normal success and command failure. After a process crash, a
+developer must verify that no Common Knowledge process remains, remove the stale
+lock named by the diagnostic, and retry.
+
+Mutation commands prevalidate their complete candidate, stage direct per-file
+working-tree changes, and restore byte-identical originals after ordinary
+staging or installation failure. Recovery evidence is retained outside the
+Corpus only when rollback or cleanup cannot complete. A post-commit cleanup
+failure returns a diagnostic that distinguishes the applied Corpus change from
+the retained recovery evidence. Concurrent external
+filesystem writes from processes that do not honor the lock are outside the v1
+process model; Common Knowledge does not promise linearizability against them.
+
 ## 9. Demonstration scenario
 
 1. The demo builds the CLI as a local npm package artifact and installs that same

@@ -5,6 +5,15 @@ import {
   corpusDirectoryName,
   initializeCorpus,
 } from "./corpus.js";
+import {
+  addEntry,
+  EntryCommandError,
+  readEntry,
+  retireEntry,
+  updateEntry,
+  validateCorpus,
+} from "./entries.js";
+import { withCheckoutLock } from "./lock.js";
 
 export const commandNames = [
   "init",
@@ -210,7 +219,7 @@ export function runCli(args: readonly string[], context: CliContext): number {
 
   if (command === "init") {
     try {
-      initializeCorpus(context.cwd);
+      withCheckoutLock(context.cwd, command, () => initializeCorpus(context.cwd));
       context.stdout.write(
         `Initialized Common Knowledge corpus at ${corpusDirectoryName}.\n`,
       );
@@ -231,8 +240,57 @@ export function runCli(args: readonly string[], context: CliContext): number {
     }
   }
 
-  // Later issues replace the remaining placeholders with command implementations
-  // that use context.cwd as their explicit filesystem root.
+  try {
+    switch (command) {
+      case "read": {
+        const id = commandArguments[0];
+        if (id === undefined) throw new Error("unreachable missing read ID");
+        context.stdout.write(withCheckoutLock(context.cwd, command, () => readEntry(context.cwd, id)));
+        return 0;
+      }
+      case "add": {
+        const file = commandArguments[0];
+        if (file === undefined) throw new Error("unreachable missing add file");
+        const id = withCheckoutLock(context.cwd, command, () => addEntry(context.cwd, file));
+        context.stdout.write(`Added Entry ${id}.\n`);
+        return 0;
+      }
+      case "update": {
+        const file = commandArguments[0];
+        if (file === undefined) throw new Error("unreachable missing update file");
+        const id = withCheckoutLock(context.cwd, command, () => updateEntry(context.cwd, file));
+        context.stdout.write(`Updated Entry ${id}.\n`);
+        return 0;
+      }
+      case "retire": {
+        const id = commandArguments[0];
+        const reason = commandArguments[2];
+        if (id === undefined || reason === undefined) {
+          throw new Error("unreachable missing retire arguments");
+        }
+        withCheckoutLock(context.cwd, command, () => retireEntry(context.cwd, id, reason));
+        context.stdout.write(`Retired Entry ${id}.\n`);
+        return 0;
+      }
+      case "validate": {
+        const count = withCheckoutLock(context.cwd, command, () => validateCorpus(context.cwd));
+        context.stdout.write(`Corpus is valid (${count} Entries).\n`);
+        return 0;
+      }
+      case "search":
+        break;
+    }
+  } catch (error) {
+    if (error instanceof EntryCommandError) {
+      context.stderr.write(`${error.message}.\n`);
+      return 1;
+    }
+    const detail = error instanceof Error ? error.message : String(error);
+    context.stderr.write(`Failed to ${command}: ${detail}\n`);
+    return 1;
+  }
+
+  // Search is implemented by its dedicated issue.
   context.stdout.write(`${command}: not implemented yet\n`);
   return 0;
 }
