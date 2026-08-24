@@ -14,6 +14,8 @@ planning view for issue lifecycle state.
   implementation lifecycle state.
 - Record candidate commits, verification, review findings, and handoffs as issue
   comments so the history remains visible to every contributor.
+- Follow `docs/agents/review-policy.md` for finding traceability, review budgets,
+  and escalation.
 - Express dependencies with GitHub issue references and do not start an issue
   until its dependencies are complete.
 - `Ready` and `ready-for-agent` mean an issue is fully specified for agent work;
@@ -50,9 +52,20 @@ agent applies fixes, reruns verification, commits a revised candidate, and sends
 it back for another independent review. The review task does not implement its
 own fixes.
 
-Repeat the implementation-review loop until the review reports no required
-findings. Then comment with the agent-review approval and move the issue to `In
-Review`. A commit or unresolved review never advances the issue to `In Review`.
+The autonomous review budget is two complete rounds: the initial review and one
+fix/re-review. If round two still reports required findings, keep the issue `In
+Progress`, publish the unresolved evidence and options, and stop for the driving
+human. Do not begin a third review or another architectural redesign without
+explicit approval.
+
+Only findings traceable to the issue, canonical specification, or a directly
+applicable repository standard block approval. Out-of-scope robustness ideas are
+advisories or follow-up issues. The coordinating agent, not the review task,
+enforces this boundary.
+
+When review reports no required findings, comment with the agent-review approval
+and move the issue to `In Review`. A commit or unresolved review never advances
+the issue to `In Review`.
 
 Implementation must use a pull request. Its human merge is the approval gate; no
 separate Codex-task approval is required. Link the pull request to its issue;
