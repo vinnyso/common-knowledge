@@ -24,6 +24,9 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint:repo": "node scripts/lint-repository.mjs",
+    "lint": "npm run typecheck && npm run lint:repo",
+    "preflight": "npm run lint && npm run test:focused",
     "test:focused": "npm run build && node --test test/cli.test.mjs",
     "test": "npm run build && node --test",
     "verify:package": "npm run build && node scripts/verify-package.mjs"

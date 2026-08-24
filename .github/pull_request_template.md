@@ -41,6 +41,7 @@ Closes #
 <!-- Identify the review fixed point, noteworthy risks, tradeoffs, and follow-up work. -->
 
 - Fixed point:
+- Review rounds used:
 - Risks:
 - Follow-ups:
 
@@ -48,6 +49,7 @@ Closes #
 
 - [ ] The change matches the linked issue and canonical specification.
 - [ ] Relevant tests and checks pass.
+- [ ] `npm run preflight` passes.
 - [ ] Documentation and agent instructions are aligned.
 - [ ] No secrets, personal data, prompts, or task transcripts were added.
 - [ ] Independent agent review is complete, or the PR is explicitly awaiting it.
