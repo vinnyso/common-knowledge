@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
@@ -69,6 +69,24 @@ try {
   assert.equal(cliResult.exitCode, 0, cliResult.stderr);
   assert.equal(cliResult.stderr, "");
   assert.match(cliResult.stdout, /^Usage: common-knowledge <command>/);
+
+  const initResult = await run(
+    join(installRoot, "node_modules", ".bin", "common-knowledge"),
+    ["init"],
+    { cwd: installRoot },
+  );
+  assert.deepEqual(initResult, {
+    exitCode: 0,
+    signal: null,
+    stdout: "Initialized Common Knowledge corpus at .repo-memory.\n",
+    stderr: "",
+  });
+  assert.deepEqual((await readdir(join(installRoot, ".repo-memory"))).sort(), [
+    "README.md",
+    "entries",
+    "log.md",
+    "schema.json",
+  ]);
 
   process.stdout.write(`Verified ${filename}: packed, installed, and executed in isolation.\n`);
 } finally {

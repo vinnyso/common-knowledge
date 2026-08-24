@@ -1,5 +1,11 @@
 import type { Writable } from "node:stream";
 
+import {
+  CorpusAlreadyExistsError,
+  corpusDirectoryName,
+  initializeCorpus,
+} from "./corpus.js";
+
 export const commandNames = [
   "init",
   "search",
@@ -202,8 +208,31 @@ export function runCli(args: readonly string[], context: CliContext): number {
     return 1;
   }
 
-  // Later issues replace these placeholders with command implementations that
-  // use context.cwd as their explicit filesystem root.
+  if (command === "init") {
+    try {
+      initializeCorpus(context.cwd);
+      context.stdout.write(
+        `Initialized Common Knowledge corpus at ${corpusDirectoryName}.\n`,
+      );
+      return 0;
+    } catch (error) {
+      if (error instanceof CorpusAlreadyExistsError) {
+        context.stderr.write(
+          `Cannot initialize Common Knowledge corpus: ${corpusDirectoryName} already exists.\n`,
+        );
+        return 1;
+      }
+
+      const detail = error instanceof Error ? error.message : String(error);
+      context.stderr.write(
+        `Failed to initialize Common Knowledge corpus: ${detail}\n`,
+      );
+      return 1;
+    }
+  }
+
+  // Later issues replace the remaining placeholders with command implementations
+  // that use context.cwd as their explicit filesystem root.
   context.stdout.write(`${command}: not implemented yet\n`);
   return 0;
 }
