@@ -174,6 +174,18 @@ test("add, read, validate, and activity logging round trip at the CLI seam", asy
   assert.ok(event.split(" | ")[4].length <= 160);
 });
 
+test("validate rejects a lone carriage return inside an activity field", async () => {
+  const cwd = await makeRepository();
+  assert.equal((await add(cwd)).exitCode, 0);
+  const logPath = join(cwd, ".repo-memory", "log.md");
+  const log = await readFile(logPath, "utf8");
+  await writeFile(logPath, log.replace("| agent-a |", "| agent\rname |"), "utf8");
+
+  const result = await invoke(["validate"], cwd);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /activity fields may not contain newlines/);
+});
+
 test("add rejects schema errors, malformed YAML, missing sections, and duplicate IDs concisely", async () => {
   const cwd = await makeRepository();
   const cases = [

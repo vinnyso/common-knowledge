@@ -696,8 +696,8 @@ function validateActivityLog(contents: string, entryIds: ReadonlySet<string>): s
       errors.push(`log.md:${lineNumber}: activity event must contain exactly five fields separated by " | "`);
       continue;
     }
-    if (fields.some((field) => field.includes("|"))) {
-      errors.push(`log.md:${lineNumber}: activity fields may not contain the "|" delimiter`);
+    if (fields.some((field) => /[|\r\n]/.test(field))) {
+      errors.push(`log.md:${lineNumber}: activity fields may not contain newlines or the "|" delimiter`);
       continue;
     }
     const [timestamp, event, id, actor, eventSummary] = fields as [string, string, string, string, string];
