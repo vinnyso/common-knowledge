@@ -111,7 +111,7 @@ export function validateActivityLog(
       previousHeading = heading;
       continue;
     }
-    if (/^[ \t]*##(?:[ \t]|$)/.test(line)) {
+    if (/^[ \\t]*##(?:[ \\t]|$)/.test(line)) {
       errors.push(`log.md:${lineNumber}: invalid UTC date heading ${JSON.stringify(line)}`);
       heading = undefined;
       continue;
