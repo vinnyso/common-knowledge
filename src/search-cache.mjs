@@ -81,4 +81,13 @@ export function scopeMatches(pattern, path) {
   return re.test(path);
 }
 
-export const __testing = { compileScopePattern, scopeMatches, tokens, globCharacterClass, normalizeText };
+export function invalidateScopeRegex(pattern) {
+  scopeRegexCache.delete(pattern);
+}
+
+export function invalidateScopeRegexMany(patterns) {
+  if (!patterns) return;
+  for (const p of patterns) scopeRegexCache.delete(p);
+}
+
+export const __testing = { compileScopePattern, scopeMatches, tokens, globCharacterClass, normalizeText, invalidateScopeRegexMany };
