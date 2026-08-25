@@ -59,6 +59,8 @@ Markdown Entries and never takes ownership of commits, pushes, or review.
 - The public interface consists of initialization, search, read, add, update, retire, and validation commands. Adding an Entry with `supersedes` atomically supersedes its predecessor.
 - Search filters active Entries by optional kind and Scope applicability, then deterministically ranks exact Trigger phrases, matching Scope, Trigger-token overlap, and title-token overlap. It returns at most five results, uses Entry ID as the stable tie-breaker, and reports match reasons. Embeddings and LLM-based retrieval are explicitly deferred.
 - The CLI writes Entries directly into the working tree as part of the current unit of work. The resulting Git diff is the proposal; the CLI does not stage, commit, push, or alter review policy.
+- Corpus commands use a transient exclusive `.repo-memory.lock` at the checkout root. This provides one cooperative Common Knowledge operation per working tree, makes competing mutations fail with a retry diagnostic, and prevents `read` or `validate` from observing a cooperating mutation's partial transaction. A stale lock is removed manually only after confirming that no Common Knowledge process owns it.
+- Lifecycle commands prevalidate and stage their complete per-file change, restore byte-identical originals after ordinary installation failure, and retain external recovery evidence only when rollback or cleanup cannot complete. Concurrent non-cooperating filesystem writes during a command are outside the v1 process model.
 - The prototype has no repository configuration file. Conventions, the Entry schema, and operating instructions define its behavior.
 - The agent operating instructions explain when to search, write, and maintain the Corpus; they do not become a duplicate store for Entries.
 - The prototype supplies a mock repository that contains a realistic but deliberately planted sharp edge, a minimal repository-level knowledge protocol, and a repeatable two-agent handoff scenario.
@@ -73,6 +75,7 @@ Markdown Entries and never takes ownership of commits, pushes, or review.
 - Initialization tests verify that a new mock repository receives a valid, discoverable Corpus layout.
 - Add, read, and validation tests verify valid Entry round-tripping; malformed metadata, unsupported kinds, missing required fields, and duplicate identifiers must fail with actionable diagnostics.
 - Update, supersede, and retire tests verify file changes, immutable creation provenance, timestamps, atomic predecessor updates, and corresponding activity events.
+- Coordination tests run competing CLI processes, verify lock diagnostics for mutation, read, and validation commands, exercise documented stale-lock recovery, and prove rollback and recovery behavior through the CLI/filesystem seam.
 - Validation tests verify conformance to the versioned Entry schema and reject malformed, incomplete, overly verbose, or invalid activity-log events.
 - Search tests use a mock Corpus with multiple Entries and assert exact Trigger, token, kind-filter, and affected-path Scope behavior; stable ordering and match explanations; the five-result limit; and exclusion of superseded, retired, or path-inapplicable Entries.
 - The end-to-end demonstration test uses a mock repository with a planted sharp edge and a minimal `AGENTS.md` knowledge protocol. It must show that a fresh Agent B can follow that protocol, retrieve Agent A's committed lesson through the CLI, and act on the documented resolution without agent-local memory.
@@ -89,6 +92,7 @@ Markdown Entries and never takes ownership of commits, pushes, or review.
 - Importing full chat transcripts or replacing source documentation, issue trackers, code comments, or runbooks.
 - Harness-specific integrations before the CLI and mock-repository demonstration prove the core model.
 - Approval-gated write modes and repository-specific configuration.
+- Linearizability against external processes that mutate Corpus paths without honoring the checkout lock.
 
 ## Further Notes
 

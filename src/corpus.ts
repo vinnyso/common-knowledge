@@ -30,6 +30,7 @@ Entry activity is appended below, grouped by UTC date. Git remains the authorita
 `;
 
 const nonBlankSingleLine = "^(?=.*\\S)[^\\r\\n]+$";
+const activityActor = "^(?=\\S)(?=.*\\S$)[^|\\r\\n]+$";
 const utcTimestamp =
   "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]+)?Z$";
 const entryId = "^[a-z0-9]+(?:-[a-z0-9]+)*$";
@@ -95,8 +96,8 @@ export const entrySchema = {
     created_by: {
       type: "string",
       minLength: 1,
-      pattern: nonBlankSingleLine,
-      description: "Non-empty agent or human identifier.",
+      pattern: activityActor,
+      description: "Non-empty, unpadded, single-line agent or human identifier without the activity-log delimiter.",
     },
     scope: {
       type: "object",
