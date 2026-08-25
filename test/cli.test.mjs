@@ -418,7 +418,7 @@ test("search keeps repeated Scope patterns equivalent and isolates corpora in on
   assert.equal((await invokeCli(["init"], secondCorpus)).exitCode, 0);
 
   await addEntry(firstCorpus, {
-    id: "first-alpha",
+    id: "shared-entry",
     kind: "gotcha",
     title: "First corpus cache workflow",
     triggers: ["cache workflow"],
@@ -432,11 +432,11 @@ test("search keeps repeated Scope patterns equivalent and isolates corpora in on
     scope: { paths: ["src/**"] },
   });
   await addEntry(secondCorpus, {
-    id: "second-only",
+    id: "shared-entry",
     kind: "pattern",
-    title: "Second corpus cache workflow",
+    title: "Second corpus fresh cache workflow",
     triggers: ["cache workflow"],
-    scope: { paths: ["src/**"] },
+    scope: { paths: ["src/cache.*"] },
   });
 
   const first = invokeCliInProcess(
@@ -446,7 +446,7 @@ test("search keeps repeated Scope patterns equivalent and isolates corpora in on
   assert.deepEqual(first, {
     exitCode: 0,
     stdout:
-      "first-alpha | gotcha | First corpus cache workflow\n" +
+      "shared-entry | gotcha | First corpus cache workflow\n" +
       "  - exact triggers: cache workflow\n" +
       "  - matching scope: src/**, src/**\n" +
       "  - trigger tokens: cache, workflow\n" +
@@ -466,13 +466,14 @@ test("search keeps repeated Scope patterns equivalent and isolates corpora in on
   assert.deepEqual(second, {
     exitCode: 0,
     stdout:
-      "second-only | pattern | Second corpus cache workflow\n" +
+      "shared-entry | pattern | Second corpus fresh cache workflow\n" +
       "  - exact triggers: cache workflow\n" +
-      "  - matching scope: src/**\n" +
+      "  - matching scope: src/cache.*\n" +
       "  - trigger tokens: cache, workflow\n" +
       "  - title tokens: cache, workflow\n",
     stderr: "",
   });
+  assert.doesNotMatch(second.stdout, /First corpus/);
 });
 
 test("reports unsupported commands on standard error", async () => {

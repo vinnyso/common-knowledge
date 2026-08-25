@@ -57,13 +57,14 @@ function createFixture() {
 }
 
 function measure(cwd, cachePatterns) {
-  let compilations = 0;
-  const compiler = (pattern) => {
-    compilations += 1;
-    return compileSearchScopePattern(pattern);
-  };
   const started = performance.now();
-  for (const options of queries) {
+  const searches = queries.map((options) => {
+    let compilations = 0;
+    const compiler = (pattern) => {
+      compilations += 1;
+      return compileSearchScopePattern(pattern);
+    };
+    const searchStarted = performance.now();
     searchEntriesWithScopePatternCompiler(
       cwd,
       options.query,
@@ -71,8 +72,16 @@ function measure(cwd, cachePatterns) {
       compiler,
       cachePatterns,
     );
-  }
-  return { elapsedMilliseconds: performance.now() - started, compilations };
+    return {
+      elapsedMilliseconds: performance.now() - searchStarted,
+      compilations,
+    };
+  });
+  return {
+    elapsedMilliseconds: performance.now() - started,
+    compilations: searches.reduce((total, search) => total + search.compilations, 0),
+    searches,
+  };
 }
 
 function median(values) {
@@ -95,17 +104,21 @@ try {
   }
 
   const uniquePatternsPerSearch = patterns.length;
-  for (const sample of reconstructed) {
-    assert.ok(
-      sample.compilations <= uniquePatternsPerSearch * queries.length,
-      "reconstructed strategy compiled a pattern more than once in a candidate search",
-    );
-  }
-  for (const [index, sample] of reconstructed.entries()) {
-    assert.ok(
-      sample.compilations < (baseline[index]?.compilations ?? 0),
-      "reconstructed strategy did not reduce Scope-pattern compilation work",
-    );
+  for (const [sampleIndex, sample] of reconstructed.entries()) {
+    const baselineSample = baseline[sampleIndex];
+    assert.ok(baselineSample !== undefined, "benchmark samples must remain paired");
+    for (const [searchIndex, search] of sample.searches.entries()) {
+      const baselineSearch = baselineSample.searches[searchIndex];
+      assert.ok(baselineSearch !== undefined, "benchmark searches must remain paired");
+      assert.ok(
+        search.compilations <= uniquePatternsPerSearch,
+        "reconstructed strategy compiled a pattern more than once in a candidate search",
+      );
+      assert.ok(
+        search.compilations < baselineSearch.compilations,
+        "reconstructed strategy did not reduce Scope-pattern compilation work for a candidate search",
+      );
+    }
   }
 
   console.log("Search benchmark (non-gating explanatory evidence)");
