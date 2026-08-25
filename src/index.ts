@@ -10,6 +10,7 @@ import {
   EntryCommandError,
   readEntry,
   retireEntry,
+  searchEntries,
   updateEntry,
   validateCorpus,
 } from "./entries.js";
@@ -186,6 +187,28 @@ function validateInvocation(
   }
 }
 
+function searchOptions(args: readonly string[]): { path?: string; kind?: string } {
+  const options: { path?: string; kind?: string } = {};
+  for (let index = 1; index < args.length; index += 2) {
+    const option = args[index];
+    const value = args[index + 1];
+    if (option === "--path" && value !== undefined) options.path = value;
+    if (option === "--kind" && value !== undefined) options.kind = value;
+  }
+  return options;
+}
+
+function formatSearchResults(
+  results: ReturnType<typeof searchEntries>,
+): string {
+  return results
+    .map((result) =>
+      `${result.id} | ${result.kind} | ${result.title}\n` +
+      result.reasons.map((reason) => `  - ${reason}\n`).join(""),
+    )
+    .join("");
+}
+
 export function runCli(args: readonly string[], context: CliContext): number {
   const command = args[0];
 
@@ -277,8 +300,15 @@ export function runCli(args: readonly string[], context: CliContext): number {
         context.stdout.write(`Corpus is valid (${count} Entries).\n`);
         return 0;
       }
-      case "search":
-        break;
+      case "search": {
+        const query = commandArguments[0];
+        if (query === undefined) throw new Error("unreachable missing search query");
+        const results = withCheckoutLock(context.cwd, command, () =>
+          searchEntries(context.cwd, query, searchOptions(commandArguments)),
+        );
+        context.stdout.write(formatSearchResults(results));
+        return 0;
+      }
     }
   } catch (error) {
     if (error instanceof EntryCommandError) {
@@ -290,7 +320,5 @@ export function runCli(args: readonly string[], context: CliContext): number {
     return 1;
   }
 
-  // Search is implemented by its dedicated issue.
-  context.stdout.write(`${command}: not implemented yet\n`);
-  return 0;
+  throw new Error("unreachable command dispatch");
 }

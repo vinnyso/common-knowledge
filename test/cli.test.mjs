@@ -54,6 +54,30 @@ function invokeCli(args, cwd) {
   });
 }
 
+function entrySource(overrides = {}) {
+  const metadata = {
+    schema_version: 1,
+    id: "database-startup",
+    kind: "gotcha",
+    title: "Start the database before migrations",
+    triggers: ["P3006", "migrate dev"],
+    status: "active",
+    created_at: "2026-08-25T12:00:00Z",
+    created_by: "agent-a",
+    ...overrides,
+  };
+  return `---\n${Object.entries(metadata)
+    .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+    .join("\n")}\n---\n## Situation\n\nA recurring problem.\n\n## Resolution\n\nApply the documented resolution.\n`;
+}
+
+async function addEntry(cwd, overrides) {
+  const name = `${overrides.id}.md`;
+  await writeFile(join(cwd, name), entrySource(overrides), "utf8");
+  const result = await invokeCli(["add", name], cwd);
+  assert.equal(result.exitCode, 0, result.stderr);
+}
+
 test("prints useful help without a command", async () => {
   const cwd = await makeTestWorkingDirectory();
 
@@ -211,24 +235,105 @@ test("refuses to overwrite an existing Corpus without altering any contents", as
   );
 });
 
-test("dispatches the remaining search placeholder from an isolated working directory", async () => {
+test("search deterministically filters and explains active Entry matches at the CLI seam", async () => {
   const cwd = await makeTestWorkingDirectory();
-  const invocations = [
-    ["search", "database migration"],
-    ["search", "P3006", "--path", "apps/api/index.ts", "--kind", "gotcha"],
-  ];
-
-  for (const invocation of invocations) {
-    const result = await invokeCli(invocation, cwd);
-
-    assert.deepEqual(result, {
-      exitCode: 0,
-      signal: null,
-      stdout: `${invocation[0]}: not implemented yet\n`,
-      stderr: "",
+  assert.equal((await invokeCli(["init"], cwd)).exitCode, 0);
+  await addEntry(cwd, {
+    id: "database-startup",
+    kind: "gotcha",
+    title: "Start the database before migrations",
+    triggers: ["P3006", "migrate dev"],
+    scope: { paths: ["apps/api/**"] },
+  });
+  await addEntry(cwd, {
+    id: "web-migration",
+    kind: "pattern",
+    title: "Use the web migration pattern",
+    triggers: ["database migration"],
+    scope: { paths: ["apps/web/**"] },
+  });
+  await addEntry(cwd, {
+    id: "maven-wrapper",
+    kind: "debugging-note",
+    title: "Run the Maven wrapper from the repository root",
+    triggers: ["mvnw"],
+  });
+  await addEntry(cwd, {
+    id: "kind-only",
+    kind: "anti-pattern",
+    title: "Avoid shared shortcut state",
+    triggers: ["shared cue"],
+  });
+  await addEntry(cwd, {
+    id: "retired-shared",
+    kind: "gotcha",
+    title: "Retired shared shortcut",
+    triggers: ["shared cue"],
+  });
+  assert.equal(
+    (await invokeCli(["retire", "retired-shared", "--reason", "No longer applies"], cwd)).exitCode,
+    0,
+  );
+  for (const id of ["tie-f", "tie-e", "tie-d", "tie-c", "tie-b", "tie-a"]) {
+    await addEntry(cwd, {
+      id,
+      kind: "gotcha",
+      title: `Shared result ${id}`,
+      triggers: ["shared cue"],
     });
   }
-  assert.deepEqual(await readdir(cwd), []);
+
+  const exact = await invokeCli(
+    ["search", "  p3006   MIGRATE dev  ", "--path", "apps/api/routes/index.ts", "--kind", "gotcha"],
+    cwd,
+  );
+  assert.deepEqual(exact, {
+    exitCode: 0,
+    signal: null,
+    stdout:
+      "database-startup | gotcha | Start the database before migrations\n" +
+      "  - exact triggers: P3006, migrate dev\n" +
+      "  - matching scope: apps/api/**\n" +
+      "  - trigger tokens: dev, migrate, p3006\n",
+    stderr: "",
+  });
+
+  const scopeOnly = await invokeCli(
+    ["search", "unrelated words", "--path", "apps/api/routes/index.ts"],
+    cwd,
+  );
+  assert.deepEqual(scopeOnly, {
+    exitCode: 0,
+    signal: null,
+    stdout:
+      "database-startup | gotcha | Start the database before migrations\n" +
+      "  - matching scope: apps/api/**\n",
+    stderr: "",
+  });
+
+  const titleToken = await invokeCli(["search", "WRAPPER"], cwd);
+  assert.deepEqual(titleToken, {
+    exitCode: 0,
+    signal: null,
+    stdout:
+      "maven-wrapper | debugging-note | Run the Maven wrapper from the repository root\n" +
+      "  - title tokens: wrapper\n",
+    stderr: "",
+  });
+
+  const ties = await invokeCli(["search", "shared cue", "--kind", "gotcha"], cwd);
+  assert.deepEqual(
+    ties.stdout.match(/^tie-[a-z] \|/gm),
+    ["tie-a |", "tie-b |", "tie-c |", "tie-d |", "tie-e |"],
+  );
+  assert.doesNotMatch(ties.stdout, /retired-shared/);
+  assert.doesNotMatch(ties.stdout, /kind-only/);
+  assert.equal(ties.stderr, "");
+  assert.equal(ties.exitCode, 0);
+  assert.deepEqual(await invokeCli(["search", "shared cue", "--kind", "gotcha"], cwd), ties);
+
+  const noMatch = await invokeCli(["search", "not present", "--path", "outside/file.ts"], cwd);
+  assert.deepEqual(noMatch, { exitCode: 0, signal: null, stdout: "", stderr: "" });
 });
 
 test("reports unsupported commands on standard error", async () => {
