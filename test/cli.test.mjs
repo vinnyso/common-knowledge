@@ -11,6 +11,9 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, test } from "node:test";
 import { spawn } from "node:child_process";
+import { Writable } from "node:stream";
+
+import { runCli } from "../dist/index.js";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const cliPath = join(projectRoot, "dist", "cli.js");
@@ -52,6 +55,25 @@ function invokeCli(args, cwd) {
       resolveResult({ exitCode, signal, stdout, stderr });
     });
   });
+}
+
+function invokeCliInProcess(args, cwd) {
+  let stdout = "";
+  let stderr = "";
+  const stdoutCapture = new Writable({
+    write(chunk, _encoding, callback) {
+      stdout += chunk.toString();
+      callback();
+    },
+  });
+  const stderrCapture = new Writable({
+    write(chunk, _encoding, callback) {
+      stderr += chunk.toString();
+      callback();
+    },
+  });
+  const exitCode = runCli(args, { cwd, stdout: stdoutCapture, stderr: stderrCapture });
+  return { exitCode, stdout, stderr };
 }
 
 function entrySource(overrides = {}) {
@@ -387,6 +409,70 @@ test("search deterministically filters and explains active Entry matches at the 
 
   const noMatch = await invokeCli(["search", "not present", "--path", "outside/file.ts"], cwd);
   assert.deepEqual(noMatch, { exitCode: 0, signal: null, stdout: "", stderr: "" });
+});
+
+test("search keeps repeated Scope patterns equivalent and isolates corpora in one CLI process", async () => {
+  const firstCorpus = await makeTestWorkingDirectory();
+  const secondCorpus = await makeTestWorkingDirectory();
+  assert.equal((await invokeCli(["init"], firstCorpus)).exitCode, 0);
+  assert.equal((await invokeCli(["init"], secondCorpus)).exitCode, 0);
+
+  await addEntry(firstCorpus, {
+    id: "first-alpha",
+    kind: "gotcha",
+    title: "First corpus cache workflow",
+    triggers: ["cache workflow"],
+    scope: { paths: ["src/**", "src/**"] },
+  });
+  await addEntry(firstCorpus, {
+    id: "first-beta",
+    kind: "gotcha",
+    title: "First corpus cache fallback",
+    triggers: ["cache workflow"],
+    scope: { paths: ["src/**"] },
+  });
+  await addEntry(secondCorpus, {
+    id: "second-only",
+    kind: "pattern",
+    title: "Second corpus cache workflow",
+    triggers: ["cache workflow"],
+    scope: { paths: ["src/**"] },
+  });
+
+  const first = invokeCliInProcess(
+    ["search", "cache workflow", "--path", "src/cache.ts"],
+    firstCorpus,
+  );
+  assert.deepEqual(first, {
+    exitCode: 0,
+    stdout:
+      "first-alpha | gotcha | First corpus cache workflow\n" +
+      "  - exact triggers: cache workflow\n" +
+      "  - matching scope: src/**, src/**\n" +
+      "  - trigger tokens: cache, workflow\n" +
+      "  - title tokens: cache, workflow\n" +
+      "first-beta | gotcha | First corpus cache fallback\n" +
+      "  - exact triggers: cache workflow\n" +
+      "  - matching scope: src/**\n" +
+      "  - trigger tokens: cache, workflow\n" +
+      "  - title tokens: cache\n",
+    stderr: "",
+  });
+
+  const second = invokeCliInProcess(
+    ["search", "cache workflow", "--path", "src/cache.ts"],
+    secondCorpus,
+  );
+  assert.deepEqual(second, {
+    exitCode: 0,
+    stdout:
+      "second-only | pattern | Second corpus cache workflow\n" +
+      "  - exact triggers: cache workflow\n" +
+      "  - matching scope: src/**\n" +
+      "  - trigger tokens: cache, workflow\n" +
+      "  - title tokens: cache, workflow\n",
+    stderr: "",
+  });
 });
 
 test("reports unsupported commands on standard error", async () => {
