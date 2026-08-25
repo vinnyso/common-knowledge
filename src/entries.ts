@@ -40,6 +40,7 @@ import {
   globCharacterClass,
   normalizeText as importedNormalizeText,
   overlappingTokens as importedOverlappingTokens,
+  invalidateScopeRegexMany,
 } from "./search-cache.mjs";
 
 export { EntryCommandError };
@@ -273,6 +274,10 @@ export function addEntry(cwd: string, inputFile: string): string {
       actor: entry.metadata.created_by,
       summary: `Superseded by ${entry.metadata.id}.`,
     });
++    // Invalidate caches for the predecessor we modified
++    entryTokenCache.delete(predecessor.metadata.id);
++    compiledScopeCache.delete(predecessor.metadata.id);
++    invalidateScopeRegexMany(scopePaths(predecessor.metadata));
   }
 
   changes.push({ path: target, contents: serializeEntry(entry) });
@@ -287,6 +292,10 @@ export function addEntry(cwd: string, inputFile: string): string {
   validateCandidateActivityLog(cwd, nextLog, [entry.metadata.id]);
   changes.push({ path: log.path, contents: nextLog });
   writeChanges(changes, cwd);
++  // Invalidate caches for the new entry so subsequent searches see it
++  entryTokenCache.delete(entry.metadata.id);
++  compiledScopeCache.delete(entry.metadata.id);
++  invalidateScopeRegexMany(scopePaths(entry.metadata));
   return entry.metadata.id;
 }
 
@@ -404,7 +413,12 @@ export function updateEntry(cwd: string, inputFile: string): string {
     { path: existing.path, contents: serializeEntry(updated) },
     { path: log.path, contents: nextLog },
   ], cwd);
-  return existing.metadata.id;
++  // Invalidate caches so searches see the updated content
++  entryTokenCache.delete(existing.metadata.id);
++  compiledScopeCache.delete(existing.metadata.id);
++  invalidateScopeRegexMany(scopePaths(existing.metadata));
++  invalidateScopeRegexMany(scopePaths(updated.metadata));
+   return existing.metadata.id;
 }
 
 export function retireEntry(cwd: string, id: string, reason: string): void {
@@ -441,7 +455,11 @@ export function retireEntry(cwd: string, id: string, reason: string): void {
     { path: existing.path, contents: serializeEntry(retired) },
     { path: log.path, contents: nextLog },
   ], cwd);
-}
++  // Invalidate caches for the retired entry
++  entryTokenCache.delete(id);
++  compiledScopeCache.delete(id);
++  invalidateScopeRegexMany(scopePaths(existing.metadata));
+ }
 
 function validateCandidateActivityLog(
   cwd: string,
@@ -461,139 +479,4 @@ function validateCandidateActivityLog(
   const errors = validateActivityLog(contents, entryIds);
   if (errors.length > 0) {
     throw new EntryCommandError(
-      `candidate activity log is invalid:\n${errors.map((error) => `- ${error}`).join("\n")}`,
-    );
-  }
-}
-
-export function validateCorpus(cwd: string): number {
-  const root = corpusPath(cwd);
-  const validator = loadSchemaValidator(cwd);
-  const entriesDirectory = join(root, "entries");
-  const errors: string[] = [];
-  const entries = new Map<string, LoadedEntry>();
-  const supersededTargets = new Set<string>();
-
-  let files: string[];
-  let directoryIdentity: string;
-  try {
-    const directory = entryDirectoryIdentity(cwd);
-    directoryIdentity = directory.identity;
-    const contents = readdirSync(directory.path, { withFileTypes: true });
-    files = [];
-    for (const item of contents) {
-      if (!item.isFile()) {
-        errors.push(
-          `entries/${item.name}: nested directories and non-file content are not allowed; use flat entries/<id>.md storage`,
-        );
-      } else if (!item.name.endsWith(".md")) {
-        errors.push(`entries/${item.name}: Entry files must use the flat entries/<id>.md layout`);
-      } else {
-        files.push(item.name);
-      }
-    }
-    files.sort();
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    throw new EntryCommandError(`cannot read Corpus entries directory: ${detail}`);
-  }
-
-  for (const file of files) {
-    const path = join(entriesDirectory, file);
-    try {
-      const source = readSafeCorpusFile(
-        cwd,
-        path,
-        `Entry path ${JSON.stringify(`entries/${file}`)}`,
-      );
-      const parsed = parseEntry(source, file);
-      validateParsedEntry(parsed, validator, file);
-      const expectedFile = `${parsed.metadata.id}.md`;
-      if (file !== expectedFile) {
-        errors.push(`${file}: Entry ID requires flat path entries/${expectedFile}`);
-      }
-      if (entries.has(parsed.metadata.id)) {
-        errors.push(`${file}: duplicate Entry ID ${JSON.stringify(parsed.metadata.id)}`);
-      } else {
-        entries.set(parsed.metadata.id, { ...parsed, source, path });
-      }
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
-    }
-  }
-
-  try {
-    assertEntryDirectoryIdentity(cwd, directoryIdentity);
-  } catch (error) {
-    errors.push(error instanceof Error ? error.message : String(error));
-  }
-
-  for (const entry of entries.values()) {
-    const predecessorId = entry.metadata.supersedes;
-    if (predecessorId === undefined) {
-      continue;
-    }
-    if (predecessorId === entry.metadata.id) {
-      errors.push(`${entry.metadata.id}: an Entry cannot supersede itself`);
-      continue;
-    }
-    const predecessor = entries.get(predecessorId);
-    if (predecessor === undefined) {
-      errors.push(
-        `${entry.metadata.id}: supersedes missing Entry ${JSON.stringify(predecessorId)}`,
-      );
-    } else if (predecessor.metadata.status !== "superseded") {
-      errors.push(
-        `${entry.metadata.id}: predecessor ${JSON.stringify(predecessorId)} must have status superseded`,
-      );
-    }
-    if (supersededTargets.has(predecessorId)) {
-      errors.push(
-        `${entry.metadata.id}: predecessor ${JSON.stringify(predecessorId)} is superseded by multiple Entries`,
-      );
-    }
-    supersededTargets.add(predecessorId);
-  }
-
-  const visitState = new Map<string, "visiting" | "visited">();
-  const visit = (id: string, path: readonly string[]): void => {
-    const state = visitState.get(id);
-    if (state === "visited") return;
-    if (state === "visiting") {
-      const cycleStart = path.indexOf(id);
-      const cycle = [...path.slice(cycleStart), id];
-      errors.push(`supersession cycle detected: ${cycle.join(" -> ")}`);
-      return;
-    }
-    visitState.set(id, "visiting");
-    const predecessor = entries.get(id)?.metadata.supersedes;
-    if (predecessor !== undefined && entries.has(predecessor)) {
-      visit(predecessor, [...path, id]);
-    }
-    visitState.set(id, "visited");
-  };
-  for (const id of entries.keys()) {
-    visit(id, []);
-  }
-
-  for (const entry of entries.values()) {
-    if (entry.metadata.status === "superseded" && !supersededTargets.has(entry.metadata.id)) {
-      errors.push(`${entry.metadata.id}: superseded Entry is not referenced by a successor`);
-    }
-  }
-
-  try {
-    const log = readSafeCorpusFile(cwd, join(root, "log.md"), "activity log");
-    errors.push(...validateActivityLog(log, new Set(entries.keys())));
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    errors.push(`cannot read activity log: ${detail}`);
-  }
-
-  if (errors.length > 0) {
-    throw new EntryCommandError(
-      `Corpus validation failed:\n${errors.map((error) => `- ${error}`).join("\n")}`,
-    );
-  }
-  return entries.size;
-}
+      `candidate activity log is invalid:
