@@ -62,6 +62,38 @@ function overlappingTokens(left: readonly string[], right: readonly string[]): r
   return [...new Set(left.filter((token) => rightSet.has(token)))].sort();
 }
 
+function globCharacterClass(
+  segment: string,
+  start: number,
+): { readonly expression: string; readonly end: number } | undefined {
+  const end = segment.indexOf("]", start + 1);
+  if (end === -1) return undefined;
+  let contents = segment.slice(start + 1, end);
+  const negated = contents.startsWith("!");
+  if (negated) contents = contents.slice(1);
+  if (contents.length === 0 || contents.includes("[")) return undefined;
+
+  let expression = "";
+  for (let index = 0; index < contents.length; index += 1) {
+    const character = contents[index] ?? "";
+    const rangeEnd = contents[index + 2] ?? "";
+    if (
+      character !== undefined &&
+      contents[index + 1] === "-" &&
+      rangeEnd !== undefined &&
+      /^[A-Za-z0-9]$/.test(character) &&
+      /^[A-Za-z0-9]$/.test(rangeEnd)
+    ) {
+      if (character.charCodeAt(0) > rangeEnd.charCodeAt(0)) return undefined;
+      expression += `${character}-${rangeEnd}`;
+      index += 2;
+    } else {
+      expression += character?.replace(/[\\\]^\-]/g, "\\$&") ?? "";
+    }
+  }
+  return { expression: `[${negated ? "^" : ""}${expression}]`, end };
+}
+
 function scopeMatches(pattern: string, path: string): boolean {
   const segments = pattern.split("/");
   let expression = "^";
@@ -70,10 +102,19 @@ function scopeMatches(pattern: string, path: string): boolean {
       expression += index === segments.length - 1 ? ".*" : "(?:[^/]+/)*";
       continue;
     }
-    for (const character of segment) {
+    for (let characterIndex = 0; characterIndex < segment.length; characterIndex += 1) {
+      const character = segment[characterIndex];
       if (character === "*") expression += "[^/]*";
       else if (character === "?") expression += "[^/]";
-      else expression += character.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+      else if (character === "[") {
+        const characterClass = globCharacterClass(segment, characterIndex);
+        if (characterClass === undefined) expression += "\\[";
+        else {
+          expression += characterClass.expression;
+          characterIndex = characterClass.end;
+        }
+      }
+      else expression += (character ?? "").replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
     }
     if (index < segments.length - 1) expression += "/";
   }

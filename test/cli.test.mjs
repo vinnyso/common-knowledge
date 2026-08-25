@@ -265,6 +265,38 @@ test("search deterministically filters and explains active Entry matches at the 
     triggers: ["shared cue"],
   });
   await addEntry(cwd, {
+    id: "ordinary-token-top",
+    kind: "gotcha",
+    title: "Operations playbook",
+    triggers: ["cache server down"],
+  });
+  await addEntry(cwd, {
+    id: "ordinary-token-low",
+    kind: "gotcha",
+    title: "Server operations guidance",
+    triggers: ["cache restart"],
+  });
+  await addEntry(cwd, {
+    id: "bracket-scope",
+    kind: "gotcha",
+    title: "Use the bracket scoped workflow",
+    triggers: ["class lookup"],
+    scope: { paths: ["src/[ab].ts"] },
+  });
+  await addEntry(cwd, {
+    id: "old-lifecycle",
+    kind: "gotcha",
+    title: "Use the legacy bootstrap startup",
+    triggers: ["legacy-bootstrap"],
+  });
+  await addEntry(cwd, {
+    id: "new-lifecycle",
+    kind: "gotcha",
+    title: "Use the current startup procedure",
+    triggers: ["current-startup"],
+    supersedes: "old-lifecycle",
+  });
+  await addEntry(cwd, {
     id: "retired-shared",
     kind: "gotcha",
     title: "Retired shared shortcut",
@@ -320,6 +352,27 @@ test("search deterministically filters and explains active Entry matches at the 
       "  - title tokens: wrapper\n",
     stderr: "",
   });
+
+  const tokenRanked = await invokeCli(["search", "cache server operations"], cwd);
+  assert.deepEqual(
+    tokenRanked.stdout.match(/^ordinary-token-(?:top|low) \|/gm),
+    ["ordinary-token-top |", "ordinary-token-low |"],
+  );
+
+  const bracketScope = await invokeCli(
+    ["search", "class lookup", "--path", "src/a.ts"],
+    cwd,
+  );
+  assert.match(bracketScope.stdout, /^bracket-scope \| gotcha \| Use the bracket scoped workflow/m);
+  assert.match(bracketScope.stdout, /matching scope: src\/\[ab\]\.ts/);
+  const scopeMismatch = await invokeCli(
+    ["search", "class lookup", "--path", "src/c.ts"],
+    cwd,
+  );
+  assert.deepEqual(scopeMismatch, { exitCode: 0, signal: null, stdout: "", stderr: "" });
+
+  const superseded = await invokeCli(["search", "legacy-bootstrap"], cwd);
+  assert.deepEqual(superseded, { exitCode: 0, signal: null, stdout: "", stderr: "" });
 
   const ties = await invokeCli(["search", "shared cue", "--kind", "gotcha"], cwd);
   assert.deepEqual(
