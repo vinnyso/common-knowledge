@@ -20,6 +20,7 @@ import {
 } from "./entry-format.js";
 import {
   EntryCommandError,
+  type EntryMetadata,
   type LoadedEntry,
   type ParsedEntry,
 } from "./entry-model.js";
@@ -34,15 +35,140 @@ import { writeChanges } from "./transaction.js";
 
 import {
   compileScopePattern,
-  scopeMatches,
-  tokens,
+  scopeMatches as importedScopeMatches,
+  tokens as importedTokens,
   globCharacterClass,
-  normalizeText,
+  normalizeText as importedNormalizeText,
+  overlappingTokens as importedOverlappingTokens,
 } from "./search-cache.mjs";
 
 export { EntryCommandError };
 
-export const __testing = { compileScopePattern, scopeMatches, tokens, globCharacterClass, normalizeText };
+export interface SearchResult {
+  readonly id: string;
+  readonly title: string;
+  readonly kind: string;
+  readonly reasons: readonly string[];
+}
+
+interface SearchScore {
+  readonly exactTriggers: readonly string[];
+  readonly scopePatterns: readonly string[];
+  readonly triggerTokens: readonly string[];
+  readonly titleTokens: readonly string[];
+}
+
+// Per-entry and per-pattern caches to avoid repeated work on repeated searches.
+const compiledScopeCache = new Map<string, { pattern: string; regex: RegExp }[] | undefined>();
+const entryTokenCache = new Map<string, {
+  triggerTokensFlat: readonly string[];
+  titleTokens: readonly string[];
+  normalizedTriggers: readonly string[];
+}>();
+
+// Re-export testing hooks from the search cache module.
+export const __testing = {
+  compileScopePattern,
+  scopeMatches: importedScopeMatches,
+  tokens: importedTokens,
+  globCharacterClass,
+  normalizeText: importedNormalizeText,
+};
+
+function tokens(value: string): readonly string[] {
+  return importedTokens(value);
+}
+
+function normalizeText(value: string): string {
+  return importedNormalizeText(value);
+}
+
+function overlappingTokens(left: readonly string[], right: readonly string[]): readonly string[] {
+  return importedOverlappingTokens(left, right);
+}
+
+function globCharacterClassWrapper(
+  segment: string,
+  start: number,
+): { readonly expression: string; readonly end: number } | undefined {
+  return globCharacterClass(segment, start) as { readonly expression: string; readonly end: number } | undefined;
+}
+
+function scopeMatches(pattern: string, path: string): boolean {
+  // Use the imported cached compiler
+  return importedScopeMatches(pattern, path);
+}
+
+function scopePaths(metadata: EntryMetadata): readonly string[] | undefined {
+  const scope = metadata.scope;
+  if (scope === null || typeof scope !== "object" || Array.isArray(scope)) return undefined;
+  const paths = (scope as { paths?: unknown }).paths;
+  return Array.isArray(paths) && paths.every((path) => typeof path === "string")
+    ? paths
+    : undefined;
+}
+
+function scoreEntry(entry: LoadedEntry, query: string, path: string | undefined): SearchScore {
+  const id = entry.metadata.id;
+  const queryTokens = tokens(query);
+
+  // Tokenization cache per-entry
+  let tokenCache = entryTokenCache.get(id);
+  if (!tokenCache) {
+    const triggers = (entry.metadata.triggers as readonly string[]) ?? [];
+    const normalizedTriggers = triggers.map((t) => normalizeText(t));
+    const triggerTokensFlat = triggers.flatMap(tokens);
+    const titleTokens = tokens(entry.metadata.title);
+    tokenCache = { triggerTokensFlat, titleTokens, normalizedTriggers };
+    entryTokenCache.set(id, tokenCache);
+  }
+
+  const exactTriggers = tokenCache.normalizedTriggers.filter((trigger) => {
+    return trigger.length > 0 && query.includes(trigger);
+  });
+
+  const paths = scopePaths(entry.metadata);
+
+  // Per-entry compiled scope cache (pattern -> RegExp)
+  let compiled = compiledScopeCache.get(id);
+  if (compiled === undefined) {
+    compiled = paths?.map((p) => ({ pattern: p, regex: compileScopePattern(p) })) ?? undefined;
+    compiledScopeCache.set(id, compiled);
+  }
+
+  const scopePatterns =
+    path === undefined || compiled === undefined
+      ? []
+      : compiled.filter((c) => c.regex.test(path)).map((c) => c.pattern);
+
+  return {
+    exactTriggers,
+    scopePatterns,
+    triggerTokens: overlappingTokens(tokenCache.triggerTokensFlat, queryTokens),
+    titleTokens: overlappingTokens(tokenCache.titleTokens, queryTokens),
+  };
+}
+
+function compareScores(left: SearchScore, right: SearchScore): number {
+  for (const [leftValue, rightValue] of [
+    [left.exactTriggers.length, right.exactTriggers.length],
+    [Number(left.scopePatterns.length > 0), Number(right.scopePatterns.length > 0)],
+    [left.triggerTokens.length, right.triggerTokens.length],
+    [left.titleTokens.length, right.titleTokens.length],
+  ] as const) {
+    if (leftValue !== rightValue) return rightValue - leftValue;
+  }
+  return 0;
+}
+
+function reasons(score: SearchScore): readonly string[] {
+  const result: string[] = [];
+  if (score.exactTriggers.length > 0) result.push(`exact triggers: ${score.exactTriggers.join(", ")}`);
+  if (score.scopePatterns.length > 0) result.push(`matching scope: ${score.scopePatterns.join(", ")}`);
+  if (score.triggerTokens.length > 0) result.push(`trigger tokens: ${score.triggerTokens.join(", ")}`);
+  if (score.titleTokens.length > 0) result.push(`title tokens: ${score.titleTokens.join(", ")}`);
+  return result;
+}
 
 function loadEntry(cwd: string, id: string, validator: ValidateFunction): LoadedEntry {
   requireEntryId(id);
@@ -167,6 +293,70 @@ export function addEntry(cwd: string, inputFile: string): string {
 export function readEntry(cwd: string, id: string): string {
   const validator = loadSchemaValidator(cwd);
   return loadEntry(cwd, id, validator).source;
+}
+
+export function searchEntries(
+  cwd: string,
+  query: string,
+  options: { readonly path?: string; readonly kind?: string } = {},
+): readonly SearchResult[] {
+  const normalizedQuery = normalizeText(query);
+  const validator = loadSchemaValidator(cwd);
+  const directory = entryDirectoryIdentity(cwd);
+  let files: string[];
+  try {
+    files = readdirSync(directory.path, { withFileTypes: true })
+      .filter((item) => item.isFile() && item.name.endsWith(".md"))
+      .map((item) => item.name)
+      .sort();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new EntryCommandError(`cannot read Corpus entries directory: ${detail}`);
+  }
+
+  const matched: { entry: LoadedEntry; score: SearchScore }[] = [];
+  for (const file of files) {
+    const id = file.slice(0, -3);
+    const entry = loadEntry(cwd, id, validator);
+    if (entry.metadata.status !== "active") continue;
+    if (options.kind !== undefined && entry.metadata.kind !== options.kind) continue;
+    const paths = scopePaths(entry.metadata);
+    if (
+      options.path !== undefined &&
+      paths !== undefined &&
+      !paths.some((pattern) => scopeMatches(pattern, options.path ?? ""))
+    ) {
+      continue;
+    }
+    const score = scoreEntry(entry, normalizedQuery, options.path);
+    if (
+      score.exactTriggers.length === 0 &&
+      score.scopePatterns.length === 0 &&
+      score.triggerTokens.length === 0 &&
+      score.titleTokens.length === 0
+    ) {
+      continue;
+    }
+    matched.push({ entry, score });
+  }
+  assertEntryDirectoryIdentity(cwd, directory.identity);
+
+  return matched
+    .sort((left, right) =>
+      compareScores(left.score, right.score) ||
+      (left.entry.metadata.id < right.entry.metadata.id
+        ? -1
+        : left.entry.metadata.id > right.entry.metadata.id
+          ? 1
+          : 0),
+    )
+    .slice(0, 5)
+    .map(({ entry, score }) => ({
+      id: entry.metadata.id,
+      title: entry.metadata.title,
+      kind: entry.metadata.kind as string,
+      reasons: reasons(score),
+    }));
 }
 
 export function updateEntry(cwd: string, inputFile: string): string {
