@@ -41,6 +41,13 @@ Required findings, review budgets, and escalation rules are defined in
 - Run `npm run preflight` before every implementation handoff. Run the broader
   package verification only when the issue or changed package surface requires
   it.
+- Push each candidate commit to its implementation pull request and wait for the
+  `CI / Required checks` check to pass for that exact commit before beginning a
+  complete independent review or re-review. Keep the pull request in draft until
+  the candidate is agent-approved.
+- A required CI failure returns the candidate to implementation and does not use
+  an autonomous agent-review round. After fixing the failure, push the revised
+  candidate and wait for its fresh required check to pass.
 - Preserve unrelated working-tree changes.
 - Run `code-review` in a separate Codex task from implementation, using the
   pre-implementation fixed point and candidate commit. This separation keeps the

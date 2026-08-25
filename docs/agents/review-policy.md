@@ -71,6 +71,13 @@ Stop earlier and escalate when a proposed review fix would:
 Implementation runs `npm run preflight` before every handoff. It runs full tests
 and package verification when required by the issue or affected surface.
 
+Each candidate commit must pass the `CI / Required checks` GitHub Actions check
+before a complete independent review begins. The check must belong to the exact
+candidate commit under review; a successful check for an earlier commit does not
+carry forward. A CI failure returns the candidate to implementation and does not
+consume either autonomous review round. The revised candidate must receive a
+fresh successful required check before review or re-review.
+
 The initial independent review runs the documented baseline plus targeted checks
 derived from acceptance criteria and changed risk surfaces. Independent probes
 must be finite and named in the review report; open-ended fault discovery is not
