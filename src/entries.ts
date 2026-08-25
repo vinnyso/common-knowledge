@@ -32,7 +32,17 @@ import {
 } from "./safe-corpus-fs.js";
 import { writeChanges } from "./transaction.js";
 
+import {
+  compileScopePattern,
+  scopeMatches,
+  tokens,
+  globCharacterClass,
+  normalizeText,
+} from "./search-cache.mjs";
+
 export { EntryCommandError };
+
+export const __testing = { compileScopePattern, scopeMatches, tokens, globCharacterClass, normalizeText };
 
 function loadEntry(cwd: string, id: string, validator: ValidateFunction): LoadedEntry {
   requireEntryId(id);
