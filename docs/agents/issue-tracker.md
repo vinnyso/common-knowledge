@@ -42,8 +42,15 @@ Ready -> In Progress -> In Review -> Done
 - `Done`: independent review has passed and the approved pull request is merged.
 
 Before coding, move the issue to `In Progress`. At each implementation handoff,
-comment with the candidate commit, commands run, and results. Keep the issue in
-`In Progress` while agent review is pending.
+comment with the candidate commit, commands run, and results. Push the candidate
+to its implementation pull request and keep that pull request in draft while
+agent review is pending. Keep the issue in `In Progress` during this work.
+
+Before a complete independent review or re-review begins, the exact candidate
+commit must pass the `CI / Required checks` GitHub Actions check. A CI failure
+returns the candidate to implementation and does not consume an autonomous
+agent-review round. Every revised candidate must receive a fresh successful
+required check; a passing result from an earlier commit is not sufficient.
 
 Implementation and `code-review` run in separate Codex tasks. The review task uses
 the pre-implementation fixed point and latest candidate commit and comments its
@@ -63,9 +70,9 @@ applicable repository standard block approval. Out-of-scope robustness ideas are
 advisories or follow-up issues. The coordinating agent, not the review task,
 enforces this boundary.
 
-When review reports no required findings, comment with the agent-review approval
-and move the issue to `In Review`. A commit or unresolved review never advances
-the issue to `In Review`.
+When review reports no required findings, comment with the agent-review approval,
+mark the pull request ready for human review, and move the issue to `In Review`.
+A commit or unresolved review never advances the issue to `In Review`.
 
 Implementation must use a pull request. Its human merge is the approval gate; no
 separate Codex-task approval is required. Link the pull request to its issue;
