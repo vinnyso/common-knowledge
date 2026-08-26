@@ -29,7 +29,8 @@
     "preflight": "npm run lint && npm run test:focused",
     "test:focused": "npm run build && node --test test/cli.test.mjs test/entry-lifecycle.test.mjs",
     "test": "npm run build && node --test",
-    "verify:package": "npm run build && node scripts/verify-package.mjs"
+    "verify:package": "npm run build && node scripts/verify-package.mjs",
+    "benchmark:search": "npm run build && node scripts/benchmark-search.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",

@@ -49,6 +49,15 @@ interface SearchScore {
   readonly titleTokens: readonly string[];
 }
 
+type ScopePatternCompiler = (pattern: string) => RegExp;
+
+interface SearchContext {
+  readonly normalizedQuery: string;
+  readonly queryTokens: readonly string[];
+  readonly scopePatterns: Map<string, RegExp> | undefined;
+  readonly compileScopePattern: ScopePatternCompiler;
+}
+
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/\s+/g, " ").trim();
 }
@@ -94,7 +103,7 @@ function globCharacterClass(
   return { expression: `[${negated ? "^" : ""}${expression}]`, end };
 }
 
-function scopeMatches(pattern: string, path: string): boolean {
+export function compileSearchScopePattern(pattern: string): RegExp {
   const segments = pattern.split("/");
   let expression = "^";
   for (const [index, segment] of segments.entries()) {
@@ -118,7 +127,31 @@ function scopeMatches(pattern: string, path: string): boolean {
     }
     if (index < segments.length - 1) expression += "/";
   }
-  return new RegExp(`${expression}$`).test(path);
+  return new RegExp(`${expression}$`);
+}
+
+function createSearchContext(
+  query: string,
+  compilePattern: ScopePatternCompiler,
+  reuseScopePatterns: boolean,
+): SearchContext {
+  const normalizedQuery = normalizeText(query);
+  return {
+    normalizedQuery,
+    queryTokens: normalizedQuery.match(/[\p{L}\p{N}]+/gu) ?? [],
+    scopePatterns: reuseScopePatterns ? new Map() : undefined,
+    compileScopePattern: compilePattern,
+  };
+}
+
+function scopeMatches(context: SearchContext, pattern: string, path: string): boolean {
+  const cache = context.scopePatterns;
+  let expression = cache?.get(pattern);
+  if (expression === undefined) {
+    expression = context.compileScopePattern(pattern);
+    cache?.set(pattern, expression);
+  }
+  return expression.test(path);
 }
 
 function scopePaths(metadata: EntryMetadata): readonly string[] | undefined {
@@ -130,25 +163,24 @@ function scopePaths(metadata: EntryMetadata): readonly string[] | undefined {
     : undefined;
 }
 
-function scoreEntry(entry: LoadedEntry, query: string, path: string | undefined): SearchScore {
-  const queryTokens = tokens(query);
+function scoreEntry(
+  entry: LoadedEntry,
+  context: SearchContext,
+  matchingScopePatterns: readonly string[],
+): SearchScore {
   const triggers = entry.metadata.triggers as readonly string[];
   const exactTriggers = triggers.filter((trigger) => {
     const normalized = normalizeText(trigger);
-    return normalized.length > 0 && query.includes(normalized);
+    return normalized.length > 0 && context.normalizedQuery.includes(normalized);
   });
-  const paths = scopePaths(entry.metadata);
-  const scopePatterns = path === undefined || paths === undefined
-    ? []
-    : paths.filter((pattern) => scopeMatches(pattern, path));
   return {
     exactTriggers,
-    scopePatterns,
+    scopePatterns: matchingScopePatterns,
     triggerTokens: overlappingTokens(
       triggers.flatMap(tokens),
-      queryTokens,
+      context.queryTokens,
     ),
-    titleTokens: overlappingTokens(tokens(entry.metadata.title), queryTokens),
+    titleTokens: overlappingTokens(tokens(entry.metadata.title), context.queryTokens),
   };
 }
 
@@ -303,7 +335,17 @@ export function searchEntries(
   query: string,
   options: { readonly path?: string; readonly kind?: string } = {},
 ): readonly SearchResult[] {
-  const normalizedQuery = normalizeText(query);
+  return searchEntriesWithScopePatternCompiler(cwd, query, options, compileSearchScopePattern);
+}
+
+export function searchEntriesWithScopePatternCompiler(
+  cwd: string,
+  query: string,
+  options: { readonly path?: string; readonly kind?: string },
+  compiler: ScopePatternCompiler,
+  reuseScopePatterns = true,
+): readonly SearchResult[] {
+  const context = createSearchContext(query, compiler, reuseScopePatterns);
   const validator = loadSchemaValidator(cwd);
   const directory = entryDirectoryIdentity(cwd);
   let files: string[];
@@ -324,14 +366,13 @@ export function searchEntries(
     if (entry.metadata.status !== "active") continue;
     if (options.kind !== undefined && entry.metadata.kind !== options.kind) continue;
     const paths = scopePaths(entry.metadata);
-    if (
-      options.path !== undefined &&
-      paths !== undefined &&
-      !paths.some((pattern) => scopeMatches(pattern, options.path ?? ""))
-    ) {
+    const matchingScopePatterns = options.path === undefined || paths === undefined
+      ? []
+      : paths.filter((pattern) => scopeMatches(context, pattern, options.path ?? ""));
+    if (options.path !== undefined && paths !== undefined && matchingScopePatterns.length === 0) {
       continue;
     }
-    const score = scoreEntry(entry, normalizedQuery, options.path);
+    const score = scoreEntry(entry, context, matchingScopePatterns);
     if (
       score.exactTriggers.length === 0 &&
       score.scopePatterns.length === 0 &&
