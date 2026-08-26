@@ -17,6 +17,7 @@
       .title, .heading { fill: #f8fafc; }
       .subtitle, .body { fill: #cbd5e1; }
       .card { fill: #172033; stroke: #475569; }
+      .command, .question { fill: #5eead4; }
       .note { fill: #94a3b8; }
     }
   </style>
