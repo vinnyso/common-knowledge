@@ -1,8 +1,8 @@
 # Common Knowledge prototype
 
-Status: ready-for-agent
+Status: implementation in progress
 
-Updated: 2026-08-22
+Updated: 2026-08-25
 
 **Canonical design:** [Common Knowledge prototype specification](prototype-spec.md).
 **This document:** implementation contract for the first prototype.
