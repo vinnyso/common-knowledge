@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 540" role="img" aria-labelledby="title description">
+  <title id="title">Common Knowledge agent workflow</title>
+  <desc id="description">An agent retrieves targeted project knowledge, applies and verifies it, then contributes a reusable lesson through normal Git review for the next agent to retrieve.</desc>
+  <style>
+    .title { fill: #0f172a; font: 600 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .subtitle { fill: #475569; font: 400 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+    .step { fill: #0f766e; }
+    .step-text { fill: #ffffff; font: 600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; text-anchor: middle; }
+    .heading { fill: #0f172a; font: 600 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .body { fill: #334155; font: 400 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .command { fill: #0f766e; font: 600 17px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .arrow { fill: none; stroke: #0f766e; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+    .question { fill: #115e59; font: 600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; text-anchor: middle; }
+    .note { fill: #64748b; font: 400 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; text-anchor: middle; }
+    @media (prefers-color-scheme: dark) {
+      .title, .heading { fill: #f8fafc; }
+      .subtitle, .body { fill: #cbd5e1; }
+      .card { fill: #172033; stroke: #475569; }
+      .note { fill: #94a3b8; }
+    }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e" />
+    </marker>
+  </defs>
+
+  <text x="48" y="58" class="title">The shared knowledge loop</text>
+  <text x="48" y="90" class="subtitle">Targeted retrieval keeps instructions small; Git keeps lessons visible and reviewable.</text>
+
+  <rect x="48" y="140" width="320" height="238" rx="18" class="card" />
+  <circle cx="88" cy="184" r="24" class="step" />
+  <text x="88" y="190" class="step-text">1</text>
+  <text x="126" y="192" class="heading">Retrieve</text>
+  <text x="80" y="240" class="body">Search by task, error, technology,</text>
+  <text x="80" y="268" class="body">or affected path.</text>
+  <text x="80" y="326" class="command">common-knowledge search</text>
+
+  <rect x="440" y="140" width="320" height="238" rx="18" class="card" />
+  <circle cx="480" cy="184" r="24" class="step" />
+  <text x="480" y="190" class="step-text">2</text>
+  <text x="518" y="192" class="heading">Apply</text>
+  <text x="472" y="240" class="body">Read the small matching set,</text>
+  <text x="472" y="268" class="body">then verify it still fits the code.</text>
+  <text x="472" y="326" class="command">common-knowledge read</text>
+
+  <rect x="832" y="140" width="320" height="238" rx="18" class="card" />
+  <circle cx="872" cy="184" r="24" class="step" />
+  <text x="872" y="190" class="step-text">3</text>
+  <text x="910" y="192" class="heading">Contribute</text>
+  <text x="864" y="240" class="body">Record a specific, reusable lesson</text>
+  <text x="864" y="268" class="body">in the current Git change.</text>
+  <text x="864" y="326" class="command">add · update · retire</text>
+
+  <path d="M 368 259 H 420" class="arrow" marker-end="url(#arrowhead)" />
+  <text x="796" y="126" class="question">New reusable lesson?</text>
+  <path d="M 760 259 H 812" class="arrow" marker-end="url(#arrowhead)" />
+  <text x="786" y="247" class="note">yes</text>
+  <text x="796" y="408" class="note">no → finish work</text>
+
+  <path d="M 992 438 C 992 510, 208 510, 208 438" class="arrow" marker-end="url(#arrowhead)" />
+  <text x="600" y="506" class="note">The next agent begins with the shared, reviewed lesson.</text>
+</svg>
