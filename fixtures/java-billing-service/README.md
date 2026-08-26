@@ -1,8 +1,8 @@
 # Billing service fixture
 
 This small Java 21 Maven project is the cross-language fixture for the Common
-Knowledge prototype. It models customer billing periods and intentionally starts
-with an unresolved behavior for a later agent exercise.
+Knowledge prototype. It models customer billing periods and includes later agent
+exercises based on realistic maintenance reports.
 
 Run the fixture tests from this directory:
 
@@ -10,10 +10,8 @@ Run the fixture tests from this directory:
 ./mvnw test
 ```
 
-The untouched fixture has one failing behavior test. That failure is deliberate:
-it is the starting point for the Agent A task, not a CI requirement for this
-repository. The test forces its own environments, so its result does not depend
-on the developer machine's timezone.
+The untouched fixture is a healthy baseline: this command passes before either
+later exercise begins.
 
 ## Domain
 
