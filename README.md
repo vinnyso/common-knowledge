@@ -1,5 +1,7 @@
 # Common Knowledge
 
+<img src="docs/assets/common-knowledge-banner-compact.png" alt="Abstract teal and blue shared knowledge structure connecting project artifacts on a midnight-indigo background." width="100%">
+
 Common Knowledge is a Git-native shared project knowledge layer for coding
 agents and developers.
 
@@ -19,19 +21,7 @@ demonstration; see the [GitHub issue tracker](https://github.com/vinnyso/common-
 
 ## How it works
 
-```mermaid
-flowchart LR
-  A[Agent starts relevant work] --> B[Search by task, error, technology, or path]
-  B --> C{Relevant active Entry?}
-  C -- Yes --> D[Read the small matching set]
-  D --> E[Apply and verify the guidance]
-  C -- No --> E
-  E --> F{New reusable lesson?}
-  F -- Yes --> G[Add, update, supersede, or retire an Entry]
-  G --> H[Review the Markdown and code change in Git]
-  F -- No --> I[Finish the work]
-  H --> I
-```
+<img src="docs/assets/common-knowledge-workflow.svg" alt="Common Knowledge workflow: an agent retrieves targeted project knowledge, applies and verifies it, then contributes a reusable lesson through normal Git review for the next agent to retrieve." width="100%">
 
 The repository is the source of truth. Common Knowledge writes working-tree
 files only; it never stages, commits, pushes, or bypasses the repository's
