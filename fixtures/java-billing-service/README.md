@@ -24,5 +24,6 @@ dependencies.
 
 - [Agent A task](tasks/agent-a.md)
 - [Agent B task](tasks/agent-b.md)
+- [Clean-clone two-agent handoff runbook](../../docs/two-agent-handoff.md)
 
 Follow this repository's `AGENTS.md` before starting either task.
