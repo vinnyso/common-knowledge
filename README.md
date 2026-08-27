@@ -58,10 +58,11 @@ Keep the repository-level agent instructions short. They should tell an agent
 when to query the Corpus, not duplicate the Corpus itself.
 
 ```md
-For relevant work, search Common Knowledge using the task, affected paths,
-technologies, commands, and observed errors. Read only relevant active Entries
-and verify that they still apply. After resolving a specific, reusable lesson,
-add, update, supersede, or retire an Entry in the current Git change.
+For relevant work, run `common-knowledge search` against the repository’s
+`.repo-memory/` Corpus before changing code. Search using the task, affected
+paths, technologies, commands, and observed errors. Read only relevant active
+Entries and verify that they still apply. After resolving a specific, reusable
+lesson, add, update, supersede, or retire an Entry in the current Git change.
 ```
 
 Search first, then read the returned Entry when it looks applicable:
