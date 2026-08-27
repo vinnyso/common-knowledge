@@ -138,16 +138,46 @@ search returned that Entry with trigger-token reasons
 valid Entry, and Maven passed 2 tests. Agent A committed and pushed
 `7783ccca56351ce9cabe3d00944e16803d8e012d`.
 
-Agent B was dispatched later as the distinct empty-context session
-`issue6_agent_b`. Its prompt named only its fresh clone, installed executable,
-repository protocol, and `tasks/agent-b.md`, plus verification, commit, and
-reporting instructions. Context inheritance was disabled. The prompt contained
-no Agent A conversation, local memory, Entry text, implementation note,
-diagnosis, command output, or commit identifier.
+Agent B was dispatched later as a new orchestration child task with this
+manifest:
+
+- Parent implementation task: `01a03f9d-4362-70d1-9d15-de53fc7293af`.
+- Canonical child task name: `/root/issue6_agent_b`.
+- Child session ID: `01a03fa6-a4d5-70b3-8d2b-eaa55fe85c79`.
+- Spawn setting: `fork_turns: "none"`; no parent conversation turns were
+  inherited.
+- Repository working directory:
+  `/private/tmp/common-knowledge-issue-6.EQprMw/agent-b/repo`.
+- Allowed task information: the installed CLI path, `AGENTS.md`,
+  `tasks/agent-b.md`, and verification, commit, push, and reporting directions.
+
+The exact Agent B task payload was:
+
+```text
+Work only in the isolated repository /private/tmp/common-knowledge-issue-6.EQprMw/agent-b/repo. Do not inspect or use any parent repository, prior conversation, Codex memory, external issue, or files outside that repository except the installed executable named below. Your complete assignment is the repository protocol in AGENTS.md and the repository task in tasks/agent-b.md; read those files and follow them. The already-installed Common Knowledge CLI for this environment is /private/tmp/common-knowledge-issue-6.EQprMw/agent-b/tool/node_modules/.bin/common-knowledge. Use that real CLI at the repository/filesystem seam. Complete the task, run the documented Java verification and Common Knowledge validation, commit all intended code and test changes with a concise commit message, and push the commit to this repository's existing origin/main. Do not reveal chain-of-thought; return a concise evidence report listing the exact initial Common Knowledge search command and its complete observable explanation/output, any Entry read command, exact Maven/validation commands and summarized outputs, changed files, commit SHA, and push result.
+```
+
+The payload contains no Agent A conversation, harness-local memory, Entry
+content, diagnostic outcome, implementation note, command output, or commit ID.
+Standard Codex system, developer, and runtime metadata still applied; this
+manifest establishes the task-payload and conversation-fork boundary, not the
+absence of all harness metadata.
+
+While retained on the original host, the child event trace can be inspected at
+`/Users/vinnysorrentino/.codex/sessions/2026/08/26/rollout-2026-08-26T15-58-00-01a03fa6-a4d5-70b3-8d2b-eaa55fe85c79.jsonl`, and the parent implementation task records the plaintext spawn request. The child trace encrypts the task payload, and these host-local session files can be pruned or become unavailable. This committed manifest is therefore the durable review record, not a cryptographic attestation or a promise of permanent transcript retention.
 
 Before Agent B started, a new clone reported both `HEAD` and `origin/main` as
 `7783ccca56351ce9cabe3d00944e16803d8e012d` and had a clean status. Agent B's
-first Common Knowledge command and complete output were:
+first installed-CLI command was the following interface check:
+
+```sh
+/private/tmp/common-knowledge-issue-6.EQprMw/agent-b/tool/node_modules/.bin/common-knowledge \
+  --help
+```
+
+It printed `Usage: common-knowledge <command> [options]`, the command list, and
+the `-h, --help` option. Agent B's first retrieval/search command and complete
+output were:
 
 ```sh
 /private/tmp/common-knowledge-issue-6.EQprMw/agent-b/tool/node_modules/.bin/common-knowledge \
@@ -159,6 +189,11 @@ billing-clock-zone-determinism | gotcha | Derive billing dates from the injected
   - trigger tokens: boundary, close, date
   - title tokens: billing
 ```
+
+The retained command order is: read `AGENTS.md` and `tasks/agent-b.md`, run
+`--help`, search, read `billing-clock-zone-determinism`, inspect source code, and
+then implement. The search and Entry read therefore preceded source-code
+inspection and implementation.
 
 Agent B then ran:
 
