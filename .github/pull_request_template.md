@@ -42,6 +42,7 @@ Closes #
 
 - Fixed point:
 - Review rounds used:
+- Review tier / rationale / timebox:
 - Risks:
 - Follow-ups:
 

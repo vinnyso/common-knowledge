@@ -52,8 +52,10 @@ returns the candidate to implementation and does not consume an autonomous
 agent-review round. Every revised candidate must receive a fresh successful
 required check; a passing result from an earlier commit is not sufficient.
 
-Implementation and `code-review` run in separate Codex tasks. The review task uses
-the pre-implementation fixed point and latest candidate commit and comments its
+Implementation and review run in separate Codex tasks. Select and record the
+review tier, rationale, candidate commit, required verification, and timebox as
+defined in `docs/agents/review-policy.md`. The review task uses the
+pre-implementation fixed point and latest candidate commit and comments its
 outcome on the issue. Send required findings to the implementation task; that
 agent applies fixes, reruns verification, commits a revised candidate, and sends
 it back for another independent review. The review task does not implement its
