@@ -49,9 +49,12 @@ Required findings, review budgets, and escalation rules are defined in
   an autonomous agent-review round. After fixing the failure, push the revised
   candidate and wait for its fresh required check to pass.
 - Preserve unrelated working-tree changes.
-- Run `code-review` in a separate Codex task from implementation, using the
-  pre-implementation fixed point and candidate commit. This separation keeps the
-  reviewer independent of the implementation conversation.
+- Select and record the review tier, rationale, candidate commit, required
+  verification, and timebox under `docs/agents/review-policy.md` before review.
+  Every tier uses a separate Codex task from implementation and inspects the
+  complete fixed-point-to-candidate diff. Tier 3 uses `code-review` with
+  independent Standards and Spec reviewers; Tier 1 and Tier 2 may use one
+  independent reviewer that reports the two axes separately.
 - The coordinating agent classifies review findings under
   `docs/agents/review-policy.md`; a reviewer does not expand the issue contract.
 - Send in-scope required findings back to the implementation task. The
@@ -59,7 +62,9 @@ Required findings, review budgets, and escalation rules are defined in
   candidate, and returns it to the separate review task.
 - Autonomously run at most an initial review and one fix/re-review round. If the
   second review still has required findings, stop and ask the driving human for
-  direction. A third review requires explicit human approval.
+  direction. A fresh full re-review means full-diff inspection at the selected
+  tier, not automatic repetition of unchanged expensive checks. A third review
+  requires explicit human approval.
 - Stop before a review-driven change would replace an architecture, alter public
   behavior, add a runtime guarantee, or modify the canonical specification.
   Present the finding and options to the driving human instead.

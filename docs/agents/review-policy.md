@@ -42,6 +42,30 @@ or a robustness improvement unrelated to the originating issue.
 The coordinating agent must reject or downgrade an untraceable finding instead
 of automatically sending it to implementation.
 
+## Review tier selection
+
+Before dispatching a review, the coordinating agent selects and records the
+review tier, rationale, candidate commit, required verification, and timebox in
+the issue or pull-request handoff. The tier controls review depth, not diff
+coverage: every tier inspects the complete fixed-point-to-candidate diff and
+reports Standards and Spec conclusions separately.
+
+| Tier | Use when the candidate changes | Default review profile | Default timebox |
+| --- | --- | --- | --- |
+| 1 — low | Documentation, evidence, runbooks, or metadata with no runtime or CLI behavior change | One independent reviewer using Terra at low effort | 3 minutes |
+| 2 — routine | Typed implementation or local observable behavior without a high-risk surface | One independent reviewer using Terra at medium effort | 5 minutes |
+| 3 — high | Filesystem or transaction behavior, concurrency, security or privacy, parser or diagnostic compatibility, public API or runtime contracts, or canonical design | Separate Standards and Spec reviewers using Sol at medium effort | 10 minutes |
+
+A Tier 1 or Tier 2 reviewer may cover both axes in one independent task, but
+must report them as separate conclusions. Tier 3 uses the `code-review` skill in
+a separate task so its Standards and Spec axes remain independently reviewed.
+
+Elevate to the higher tier before approval when the diff or verification reveals
+a higher-risk surface. Do not downgrade a candidate merely because its diff is
+small. If a review reaches its timebox without enough evidence, stop and report
+the proof gap; do not retry or poll indefinitely. The driving human may direct
+an escalation or a longer review.
+
 ## Review budget and stop-loss
 
 Each issue has an autonomous budget of two complete review rounds:
@@ -50,8 +74,9 @@ Each issue has an autonomous budget of two complete review rounds:
 2. One fresh full re-review after required fixes.
 
 Fresh full re-review means inspecting the complete fixed-point-to-candidate diff
-for regressions. It does not reopen product scope or require every unchanged,
-previously passing expensive check to run again.
+for regressions at the tier selected for the corrected candidate. It does not
+reopen product scope or require every unchanged, previously passing expensive
+check to run again.
 
 If the second review reports required findings, stop with the issue `In
 Progress`. Comment with the unresolved findings, completed verification, and
@@ -89,7 +114,9 @@ On re-review:
 - rerun `npm run preflight` and tests relevant to every required fix;
 - rerun the complete test suite when shared behavior changed;
 - rerun package, license, or alternate-runtime checks only when their inputs
-  changed or the prior result is no longer trustworthy.
+  changed or the prior result is no longer trustworthy;
+- reuse exact-candidate CI and unchanged verification evidence rather than
+  repeating checks whose inputs did not change.
 
 ## Review report
 
@@ -98,6 +125,7 @@ first, advisories second, and verification evidence last. Include:
 
 - fixed point and candidate commit;
 - review round number (`1 of 2` or `2 of 2`);
+- review tier, rationale, review profile, and timebox outcome;
 - exact required-finding citations;
 - commands run and summarized results;
 - whether the candidate is agent-approved;
