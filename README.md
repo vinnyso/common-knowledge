@@ -14,10 +14,11 @@ any harness can use the same CLI.
 
 ## Current status
 
-The core v1 CLI is implemented: it initializes a Corpus and supports searching,
-reading, adding, updating, retiring, and validating Entries. The remaining
-prototype work is the Java 21 mock-repository and clean-clone two-agent
-demonstration; see the [GitHub issue tracker](https://github.com/vinnyso/common-knowledge/issues) for the live plan.
+The v1 prototype is complete. The CLI initializes a Corpus and supports
+searching, reading, adding, updating, retiring, and validating Entries. The Java
+21 mock repository and [clean-clone two-agent demonstration](docs/two-agent-handoff.md)
+show that one agent can record a lesson and a later independent agent can
+retrieve and apply it through the same packaged CLI and repository filesystem.
 
 ## How it works
 
@@ -152,6 +153,7 @@ to the same lesson; use supersession when a new Entry replaces an older lesson.
 - Canonical design: [`docs/prototype-spec.md`](docs/prototype-spec.md)
 - Implementation contract: [`docs/PRD.md`](docs/PRD.md)
 - Domain vocabulary and principles: [`CONTEXT.md`](CONTEXT.md)
+- Architecture decisions: [`docs/adr/`](docs/adr/)
 - Agent/issue/review workflow: [`AGENTS.md`](AGENTS.md) and
   [`docs/agents/`](docs/agents/)
 

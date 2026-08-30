@@ -316,6 +316,12 @@ scores or autonomous code changes.
 
 ## 12. Future goals (not part of the prototype)
 
+[ADR-0003](adr/0003-bound-common-knowledge-to-repository-knowledge.md) bounds
+future Common Knowledge work to problems intrinsic to storing, retrieving,
+validating, or maintaining repository knowledge. Agent orchestration, session
+observation, outcome evaluation, autonomous improvement, and repository
+governance belong to broader systems that may consume Common Knowledge as a tool.
+
 ### Automated maintenance
 
 Common Knowledge may later provide a GitHub Action, linter, or equivalent CI
@@ -335,30 +341,9 @@ than create duplicates on every run. That issue records the Entry ID, triggering
 date, reason, and recommended resolution; an explicit reviewed, superseded, or
 retired change remains necessary.
 
-### Entry promotion
-
-Common Knowledge may later promote an Entry into a more prescriptive instruction when
-its severity, breadth of applicability, recurrence, confidence, and supporting
-evidence justify giving it default agent attention. Promotion is a
-materialization, not a move: the Entry remains the canonical detailed record in
-the Corpus, while the instruction contains a short rule or pointer.
-
-Promotion must be governed by an explicit repository policy, be reviewable,
-support scopes such as a path or tool, and permit demotion when the condition no
-longer applies. This prevents the promotion mechanism from recreating the
-unbounded instruction-file bloat that Common Knowledge is intended to avoid.
-
-### Write approval policy
-
-Some repositories may require the driving user to approve an Entry before it is
-written into the Corpus. A future policy may support preview, patch, or
-approval-gated write modes. The prototype uses direct working-tree writes because
-they already remain visible and reviewable in the current unit of work.
-
 ### Repository configuration
 
-A future configuration file may control repository-specific policy such as write
-approval, search limits or ranking weights, custom Entry kinds, ignored paths,
-maintenance timing, promotion thresholds, and harness behavior. Configuration is
-introduced only when the first real repository needs to vary a default; it is
-not required by the prototype.
+A future configuration file may control Corpus-specific behavior such as search
+limits or ranking weights, custom Entry kinds, ignored paths, and maintenance
+timing. Configuration is introduced only when the first real repository needs
+to vary a default; it is not required by the prototype.
