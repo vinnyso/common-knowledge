@@ -17,6 +17,7 @@ global agent instructions. What one coding agent learns, every agent can use.
 | **Scope** | The paths, tools, or contexts in which an entry applies. |
 | **Provenance** | The source and authoring information that supports an entry. |
 | **Lifecycle** | An entry's state: active, superseded, or retired. |
+| **Promotion** | A reviewable process for representing an entry's lesson in a more prescriptive repository mechanism while preserving its provenance and relationship to the entry. |
 
 ## Product principles
 

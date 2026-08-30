@@ -341,9 +341,26 @@ than create duplicates on every run. That issue records the Entry ID, triggering
 date, reason, and recommended resolution; an explicit reviewed, superseded, or
 retired change remains necessary.
 
+### Entry promotion
+
+Common Knowledge may later guide a human or agent in deciding whether an Entry's
+lesson belongs in a more prescriptive repository mechanism, such as an
+always-on or scoped instruction, reusable skill, deterministic rule, test,
+linter, or CI control. Promotion is a reviewable knowledge-maintenance process,
+not an Entry Lifecycle state and not an automatic move or duplication of the
+Entry.
+
+The smallest Promotion capability should produce a recommendation containing
+the Entry identifier, proposed destination category, scope, and concise
+rationale. It may also record an explicit relationship to a destination artifact
+after that artifact is adopted. Common Knowledge must not modify or approve the
+destination, bypass normal Git review, or claim that a referenced artifact
+semantically enforces the lesson. If an adopted artifact replaces the need for
+the Entry, retiring the Entry remains a separate explicit Lifecycle operation.
+
 ### Repository configuration
 
 A future configuration file may control Corpus-specific behavior such as search
-limits or ranking weights, custom Entry kinds, ignored paths, and maintenance
-timing. Configuration is introduced only when the first real repository needs
-to vary a default; it is not required by the prototype.
+limits or ranking weights, custom Entry kinds, ignored paths, maintenance timing,
+and Promotion guidance. Configuration is introduced only when the first real
+repository needs to vary a default; it is not required by the prototype.

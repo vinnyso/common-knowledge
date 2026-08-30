@@ -100,7 +100,8 @@ The Corpus directory name `.repo-memory/` is a prototype convention, not a
 claimed standard. Consult the canonical design specification for the complete
 repository format and domain rationale. Future Common Knowledge work must remain
 intrinsic to storing, retrieving, validating, or maintaining repository
-knowledge, as recorded in
+knowledge. That may include reviewable Entry Promotion guidance without taking
+ownership of the destination artifact or its approval, as recorded in
 [ADR-0003](adr/0003-bound-common-knowledge-to-repository-knowledge.md).
 
 ## Comments
