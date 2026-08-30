@@ -6,7 +6,7 @@
 ## Context
 
 We explored expanding Common Knowledge into failure detection, agent evaluation,
-improvement recommendations, and relationships with Controls over application or
+improvement recommendations, and relationships with controls over application or
 agent behavior. Those capabilities require visibility into agent sessions, task
 outcomes, semantic relevance, and repository governance that a harness-neutral
 knowledge CLI does not own. Treating client assertions as authoritative would
@@ -26,7 +26,7 @@ the normal Git review workflow.
 - Enhancements must address problems intrinsic to storing, retrieving,
   validating, or maintaining repository knowledge.
 - Evaluation harnesses, agent graphs, telemetry, application and agent-behavior
-  Controls, MLflow, and Databricks integrations belong to separate systems or
+  controls, MLflow, and Databricks integrations belong to separate systems or
   explicitly bounded integrations.
 - Common Knowledge may expose deterministic evidence to clients, but it does not
   infer facts that only a client, harness, or human can observe.

@@ -1,7 +1,7 @@
 # Common Knowledge prototype specification
 
 **Status:** Approved 1.0  
-**Last updated:** 2026-08-22
+**Last updated:** 2026-08-30
 
 ## 1. Product thesis
 
