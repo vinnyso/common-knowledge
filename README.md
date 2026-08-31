@@ -14,10 +14,40 @@ any harness can use the same CLI.
 
 ## Current status
 
-The core v1 CLI is implemented: it initializes a Corpus and supports searching,
-reading, adding, updating, retiring, and validating Entries. The remaining
-prototype work is the Java 21 mock-repository and clean-clone two-agent
-demonstration; see the [GitHub issue tracker](https://github.com/vinnyso/common-knowledge/issues) for the live plan.
+The v1 prototype is complete. The CLI initializes a Corpus and supports
+searching, reading, adding, updating, retiring, and validating Entries. The Java
+21 mock repository and [clean-clone two-agent demonstration](docs/two-agent-handoff.md)
+show that one agent can record a lesson and a later independent agent can
+retrieve and apply it through the same packaged CLI and repository filesystem.
+
+## Engine and repository installation
+
+This repository develops the Common Knowledge Engine and proves the model with a
+reference fixture. A complete Common Knowledge Installation lives in the
+Consumer Repository whose knowledge it manages. The CLI may be installed or
+invoked from elsewhere; the Corpus, activation instructions, project artifacts,
+and Git history remain together in the Consumer Repository. One installation
+might look like this:
+
+```text
+consumer-repository/
+  AGENTS.md               # Example Common Knowledge activation protocol
+  .repo-memory/           # Repository-owned Corpus
+    README.md
+    schema.json
+    log.md
+    entries/
+      <id>.md
+  src/                    # Project artifacts affected by the knowledge
+  tests/                  # Possible deterministic Promotion destinations
+  <instruction files>     # Possible instructional Promotion destinations
+  <skills>/               # Possible reusable Promotion destinations
+```
+
+The Common Knowledge Engine provides the repository-memory mechanism; each
+Consumer Repository supplies the project knowledge and governs any resulting
+changes through its normal Git workflow. A hosted service or database is not
+required for this repository-local model.
 
 ## How it works
 
@@ -153,6 +183,7 @@ to the same lesson; use supersession when a new Entry replaces an older lesson.
 - Canonical design: [`docs/prototype-spec.md`](docs/prototype-spec.md)
 - Implementation contract: [`docs/PRD.md`](docs/PRD.md)
 - Domain vocabulary and principles: [`CONTEXT.md`](CONTEXT.md)
+- Architecture decisions: [`docs/adr/`](docs/adr/)
 - Agent/issue/review workflow: [`AGENTS.md`](AGENTS.md) and
   [`docs/agents/`](docs/agents/)
 

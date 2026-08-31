@@ -1,7 +1,7 @@
 # Common Knowledge prototype specification
 
 **Status:** Approved 1.0  
-**Last updated:** 2026-08-22
+**Last updated:** 2026-08-30
 
 ## 1. Product thesis
 
@@ -316,6 +316,12 @@ scores or autonomous code changes.
 
 ## 12. Future goals (not part of the prototype)
 
+[ADR-0003](adr/0003-bound-common-knowledge-to-repository-knowledge.md) bounds
+future Common Knowledge work to problems intrinsic to storing, retrieving,
+validating, or maintaining repository knowledge. Agent orchestration, session
+observation, outcome evaluation, autonomous improvement, and repository
+governance belong to broader systems that may consume Common Knowledge as a tool.
+
 ### Automated maintenance
 
 Common Knowledge may later provide a GitHub Action, linter, or equivalent CI
@@ -337,28 +343,24 @@ retired change remains necessary.
 
 ### Entry promotion
 
-Common Knowledge may later promote an Entry into a more prescriptive instruction when
-its severity, breadth of applicability, recurrence, confidence, and supporting
-evidence justify giving it default agent attention. Promotion is a
-materialization, not a move: the Entry remains the canonical detailed record in
-the Corpus, while the instruction contains a short rule or pointer.
+Common Knowledge may later guide a human or agent in deciding whether an Entry's
+lesson belongs in a more prescriptive repository mechanism, such as an
+always-on or scoped instruction, reusable skill, deterministic rule, test,
+linter, or CI control. Promotion is a reviewable knowledge-maintenance process,
+not an Entry Lifecycle state and not an automatic move or duplication of the
+Entry.
 
-Promotion must be governed by an explicit repository policy, be reviewable,
-support scopes such as a path or tool, and permit demotion when the condition no
-longer applies. This prevents the promotion mechanism from recreating the
-unbounded instruction-file bloat that Common Knowledge is intended to avoid.
-
-### Write approval policy
-
-Some repositories may require the driving user to approve an Entry before it is
-written into the Corpus. A future policy may support preview, patch, or
-approval-gated write modes. The prototype uses direct working-tree writes because
-they already remain visible and reviewable in the current unit of work.
+The smallest Promotion capability should produce a recommendation containing
+the Entry identifier, proposed destination category, scope, and concise
+rationale. It may also record an explicit relationship to a destination artifact
+after that artifact is adopted. Common Knowledge must not modify or approve the
+destination, bypass normal Git review, or claim that a referenced artifact
+semantically enforces the lesson. If an adopted artifact replaces the need for
+the Entry, retiring the Entry remains a separate explicit Lifecycle operation.
 
 ### Repository configuration
 
-A future configuration file may control repository-specific policy such as write
-approval, search limits or ranking weights, custom Entry kinds, ignored paths,
-maintenance timing, promotion thresholds, and harness behavior. Configuration is
-introduced only when the first real repository needs to vary a default; it is
-not required by the prototype.
+A future configuration file may control Corpus-specific behavior such as search
+limits or ranking weights, custom Entry kinds, ignored paths, maintenance timing,
+and Promotion guidance. Configuration is introduced only when the first real
+repository needs to vary a default; it is not required by the prototype.

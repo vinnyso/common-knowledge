@@ -1,8 +1,8 @@
 # Common Knowledge prototype
 
-Status: implementation in progress
+Status: complete
 
-Updated: 2026-08-25
+Updated: 2026-08-30
 
 **Canonical design:** [Common Knowledge prototype specification](prototype-spec.md).
 **This document:** implementation contract for the first prototype.
@@ -96,11 +96,13 @@ Markdown Entries and never takes ownership of commits, pushes, or review.
 
 ## Further Notes
 
-The current working name for the Corpus directory is `.repo-memory/`; this is a
-prototype convention, not a claimed standard. Consult the canonical design
-specification for the complete repository format, domain rationale, and deferred
-future goals, including automated maintenance, entry promotion, approval-gated
-writes, and repository configuration.
+The Corpus directory name `.repo-memory/` is a prototype convention, not a
+claimed standard. Consult the canonical design specification for the complete
+repository format and domain rationale. Future Common Knowledge work must remain
+intrinsic to storing, retrieving, validating, or maintaining repository
+knowledge. That may include reviewable Entry Promotion guidance without taking
+ownership of the destination artifact or its approval, as recorded in
+[ADR-0003](adr/0003-bound-common-knowledge-to-repository-knowledge.md).
 
 ## Comments
 
