@@ -11,6 +11,9 @@ global agent instructions. What one coding agent learns, every agent can use.
 
 | Term | Meaning |
 | --- | --- |
+| **Common Knowledge Engine** | The reusable tooling and contracts that manage repository knowledge without owning the project knowledge itself. |
+| **Consumer Repository** | The Git repository whose project knowledge and review practices Common Knowledge serves. |
+| **Common Knowledge Installation** | A consumer repository's Common Knowledge setup, including its Corpus and agent activation protocol. |
 | **Corpus** | All Common Knowledge entries in one repository. |
 | **Entry** | A concise, durable, project-specific lesson. |
 | **Trigger** | A task cue, error, command, path, or term used to locate an entry. |
