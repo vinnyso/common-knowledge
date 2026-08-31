@@ -147,7 +147,7 @@ function hasMarkdownSection(body: string, section: string): boolean {
 
 function htmlRawBlockEnd(line: string): RegExp | null | undefined {
   const comment = /^ {0,3}<!--/.exec(line);
-  if (comment !== null) return /-->/.test(line.slice(comment[0].length)) ? null : /-->/;
+  if (comment !== null) return /--!?>/.test(line.slice(comment[0].length)) ? null : /--!?>/;
   const rawTagMatch = /^ {0,3}<(script|pre|style|textarea)(?:[ \\t>]|$)/i.exec(line);
   const rawTag = rawTagMatch?.[1];
   if (rawTag !== undefined && rawTagMatch !== null) {
