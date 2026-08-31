@@ -521,7 +521,7 @@ test("reports missing command operands with command usage", async () => {
 
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, new RegExp(expected.replace(/[<>]/g, "\\$&")));
+    assert.ok(result.stderr.includes(expected), result.stderr);
     assert.match(result.stderr, new RegExp(`Usage: common-knowledge ${args[0]}`));
   }
   assert.deepEqual(await readdir(cwd), []);
@@ -577,7 +577,7 @@ test("rejects unsupported options and missing option values", async () => {
 
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, new RegExp(expected.replace(/["-]/g, "\\$&")));
+    assert.ok(result.stderr.includes(expected), result.stderr);
     assert.match(result.stderr, new RegExp(`Usage: common-knowledge ${args[0]}`));
   }
   assert.deepEqual(await readdir(cwd), []);

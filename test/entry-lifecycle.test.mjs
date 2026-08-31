@@ -274,6 +274,21 @@ test("required Markdown headings inside HTML comments and raw blocks do not coun
   }
 });
 
+test("HTML comment end-bang syntax closes a raw block", async () => {
+  const cwd = await makeRepository();
+  await writeInput(
+    cwd,
+    entrySource({}, "<!--\n## Resolution\n--!>\n## Situation\n\nVisible.\n"),
+  );
+
+  const result = await invoke(["add", "input.md"], cwd);
+
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /missing required Markdown section "## Resolution"/);
+  assert.doesNotMatch(result.stderr, /missing required Markdown section "## Situation"/);
+  assert.deepEqual(await readdir(join(cwd, ".repo-memory", "entries")), []);
+});
+
 test("add enforces the initialized repository schema as the normative metadata contract", async () => {
   const cwd = await makeRepository();
   const schemaPath = join(cwd, ".repo-memory", "schema.json");
