@@ -1,6 +1,6 @@
 # Common Knowledge
 
-<img src="docs/assets/common-knowledge-banner-compact.png" alt="Abstract teal and blue shared knowledge structure connecting project artifacts on a midnight-indigo background." width="100%">
+<img src="docs/assets/common-knowledge-banner-v2.png" alt="Source code flows through a targeted knowledge lookup and returns useful guidance to the codebase in a feedback loop." width="100%">
 
 Common Knowledge is a Git-native shared project knowledge layer for coding
 agents and developers.
