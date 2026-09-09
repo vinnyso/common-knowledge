@@ -7,6 +7,10 @@ Updated: 2026-08-30
 **Canonical design:** [Common Knowledge prototype specification](prototype-spec.md).
 **This document:** implementation contract for the first prototype.
 
+**Next phase:** [Agent-first specification and PRD](agent-first-spec.md) defines
+the planned evolution and its explicit authority boundary. This document remains
+the completed prototype contract.
+
 ## Problem Statement
 
 Teams need project-specific engineering lessons to travel with code without

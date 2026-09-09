@@ -1,15 +1,16 @@
 # Issue tracker: GitHub Issues and Projects
 
-GitHub Issues are the canonical implementation tracker. Durable product
-requirements live in `docs/PRD.md`, and the canonical design lives in
-`docs/prototype-spec.md`. The **Common Knowledge Prototype** GitHub Project is the
+GitHub Issues are the canonical implementation tracker. The agent-first phase
+uses `docs/agent-first-spec.md` as its combined canonical specification and PRD.
+The completed prototype retains `docs/PRD.md` and `docs/prototype-spec.md` for
+unchanged v0.1.0 behavior. The **Common Knowledge Prototype** GitHub Project is the
 planning view for issue lifecycle state.
 
 ## Conventions
 
 - Use one independently reviewable implementation unit per GitHub Issue.
-- Link each implementation issue to `docs/PRD.md` and the relevant canonical
-  design sections.
+- Link each implementation issue to the applicable specification/PRD and its
+  relevant design sections.
 - Use triage labels only for triage state; use the Project `Status` field for
   implementation lifecycle state.
 - Record candidate commits, verification, review findings, and handoffs as issue
