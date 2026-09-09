@@ -1,7 +1,7 @@
 # Common Knowledge agent-first specification and PRD
 
-**Status:** Next-phase contract; capabilities below are planned, not implemented.  
-**Date:** 2026-09-09  
+**Status:** Next-phase contract; capabilities below are planned, not implemented.
+**Date:** 2026-09-09
 **Design issue:** [#35 (AF-01)](https://github.com/vinnyso/common-knowledge/issues/35)
 
 ## Authority and starting point

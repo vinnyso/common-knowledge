@@ -1,6 +1,6 @@
 # ADR-0004: Separate proposal drafting, session acceptance, and PR publication
 
-**Status:** Accepted design; implementation pending  
+**Status:** Accepted design; implementation pending
 **Date:** 2026-09-09
 
 The prototype makes an Entry searchable as soon as an agent writes it, before
