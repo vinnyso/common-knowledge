@@ -52,24 +52,29 @@ returns the candidate to implementation and does not consume an autonomous
 agent-review round. Every revised candidate must receive a fresh successful
 required check; a passing result from an earlier commit is not sufficient.
 
-Implementation and review run in separate Codex tasks. Select and record the
+Use `issue-delivery` to coordinate implementation and dispatch independent
+`review-candidate` reviewers directly in separate agent tasks. Select and record the
 review tier, rationale, candidate commit, required verification, and timebox as
 defined in `docs/agents/review-policy.md`. The review task uses the
-pre-implementation fixed point and latest candidate commit and comments its
-outcome on the issue. Send required findings to the implementation task; that
-agent applies fixes, reruns verification, commits a revised candidate, and sends
+pre-implementation fixed point and latest candidate commit. The delivery agent
+records one consolidated report on the issue and links it elsewhere. Send required
+findings as one batch to the implementation task; that agent applies fixes,
+reruns verification, commits a revised candidate, and sends
 it back for another independent review. The review task does not implement its
 own fixes.
 
-The autonomous review budget is two complete rounds: the initial review and one
-fix/re-review. If round two still reports required findings, keep the issue `In
-Progress`, publish the unresolved evidence and options, and stop for the driving
-human. Do not begin a third review or another architectural redesign without
-explicit approval.
+The autonomous review budget is two complete rounds per unchanged agreed contract:
+the initial review and one fix/re-review. If round two still reports required
+findings, keep the issue `In Progress`, publish the unresolved evidence and options,
+and stop for the driving human. A third correction-loop review requires explicit
+approval. Explicit user-directed scope changes start a newly recorded cycle with
+applicable findings carried forward; commits or failed reviews alone do not reset
+it. Follow the policy's narrow mechanical-follow-up exception after approval.
+Design discussion is separate from reviewing a candidate against an agreed contract.
 
 Only findings traceable to the issue, canonical specification, or a directly
 applicable repository standard block approval. Out-of-scope robustness ideas are
-advisories or follow-up issues. The coordinating agent, not the review task,
+advisories or follow-up issues. The delivery agent, not the review task,
 enforces this boundary.
 
 When review reports no required findings, comment with the agent-review approval,
