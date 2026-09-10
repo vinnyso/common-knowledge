@@ -76,11 +76,26 @@ format in AF-03, without introducing a generic workflow engine.
 A proposal identifies its stable proposal ID, intended operation (add, update,
 supersede, or retire), target IDs where applicable, the target revision/content
 fingerprints observed at drafting, proposed Entry content or retirement reason,
+author attribution, creation and last meaningful revision timestamps,
 and concise evidence and rationale. Include the observation, supporting source
 references, future action, applicability/exception, and intended destination.
 For a new Entry, the precondition includes absence of its ID; supersession checks
 both the predecessor and the new ID. Mechanical source checks can detect missing
 repository references where possible, but cannot establish that evidence is true.
+
+Before AF-03 implementation, its issue must define the exact versioned schema,
+fingerprint inputs and comparison rules, proposal revision identity, timestamp
+semantics, and operation transition/test matrix. Acceptance binds to the exact
+proposal revision. Attribute the proposal author and applying actor separately
+from the Git commit author; supplied actor names are not authenticated identities.
+Git history and source references provide the audit trail, not cryptographic
+provenance or a tamper-evident store.
+
+Target fingerprints detect changes to affected Entries, not the continued truth
+of supporting evidence. Before asking for acceptance, the agent must reassess
+relevant code and sources. Two proposals may target the same Entry: applying one
+makes the other's old target fingerprint stale. Reject stale application and
+refresh the proposal; automatic merging of overlapping edits is out of scope.
 
 ### Draft, accept, apply, discard
 
@@ -111,6 +126,12 @@ repository references where possible, but cannot establish that evidence is true
   Retrying an applied/consumed proposal must not duplicate lifecycle events.
   AF-03 must verify this boundary, including consumption failure, before enabling
   writes; existing file-replacement transactions alone do not provide deletion.
+  The transition matrix must distinguish staging failure, mid-apply failure,
+  consumption failure, incomplete rollback, post-application cleanup failure,
+  and process interruption. Do not promise crash-proof recovery: preserve the
+  documented cooperative model and provide an explicit inspection/recovery path
+  for ambiguous outcomes before retrying. Verify that an applied-but-unconsumed
+  proposal cannot be blindly replayed to duplicate effects.
 
 An agent that authored a retirement proposal already has its contrary evidence
 and must use that evidence when assessing the still-active Entry. Another session
@@ -119,6 +140,26 @@ proposal, not accepted guidance. Separate checkouts do not see unpublished work.
 Publishing requires normal merge and making that revision available locally;
 merge alone does not refresh another checkout. Cross-branch knowledge sources,
 automatic fetching, and push-notification guarantees are deferred.
+
+### Pending publication and cleanup
+
+An unacknowledged proposal may remain pending across sessions and may be committed
+and merged into `main`. Merging its file preserves a suggestion; it does not
+accept or apply the lesson. Default Entry retrieval excludes pending proposals
+even after merge. The PR handoff identifies pending proposals explicitly; their
+presence alone is not a merge blocker. Later acceptance applies the proposal in
+an ordinary repository change after fresh target and evidence checks. Rejection
+of a committed proposal is an ordinary reviewed deletion.
+
+Check pending proposals at relevant session start and handoff checkpoints; do
+not repeatedly interrupt or block unrelated work. At 30 days since creation or
+last meaningful revision, flag a proposal for cleanup assessment. Reading it,
+listing it, or sending a reminder does not reset its age. The agent reassesses
+relevance, evidence, and overlap and batches recommendations to apply, revise,
+discard, or leave pending for the user. Age alone never authorizes deletion or
+acceptance. No background scheduler, automatic expiry, or permanent rejection
+archive is required. AF-03 defines testable UTC timestamp and age calculations;
+AF-04 supplies the checkpoint presentation and reassessment procedure.
 
 ## MCP and operational boundaries
 
@@ -143,6 +184,13 @@ Keep the current actionable contention/retry and manual stale-lock recovery
 contract; automatic bounded retries are not required by this phase. Target
 freshness checks additionally protect against changes between separate calls.
 External processes ignoring CK locks remain outside the cooperative model.
+
+Acceptance expresses user intent but does not replace safe operations. MCP tools
+must validate typed inputs, expose no arbitrary command execution, and constrain
+knowledge targets to the configured checkout. Test traversal and symbolic-link
+escapes, malformed inputs, and insufficient-permission failures. The host owns
+sandbox enforcement; document and test the minimum filesystem permissions needed
+for supported operations rather than requiring unrestricted filesystem access.
 
 The adapter must account for transaction recovery directories outside the checkout
 when testing host filesystem permissions. Pin and record tested SDK, Node, and
@@ -175,6 +223,17 @@ and a bounded managed block if activation requires file edits; initialization
 must not guess or rewrite instruction files. Package prebuilt assets so consumer
 repositories need neither CK source nor an application dependency. Document the
 actual tested install route, upgrades, and uninstall that preserves knowledge.
+Use identifiable, versioned artifacts and record their source and checksum in
+installation proof. Keep setup steps auditable; do not require unnecessary
+privileges or opaque execution of downloaded scripts. Test install, upgrade,
+and uninstall with existing instructions/knowledge and the documented host
+permissions, including recovery storage. Signing infrastructure is not required.
+
+Present proposals using native conversation and diff views: intended operation,
+concise changes, cited evidence, applicability, and stale-target warnings when
+relevant. Offer clear accept/discard/leave-pending choices; custom buttons or a
+separate approval interface are not required. Identify the configured checkout
+and revision in handoff evidence so users can understand visibility and freshness.
 
 ## Ordered milestones
 
@@ -213,12 +272,21 @@ The first complete agent-first milestone (AF-05) must demonstrate:
   accepted guidance before the relevant implementation decision.
 - Negative cases cover no worthwhile lesson, irrelevant guidance, contradictory
   evidence, rejected proposals, edited proposals, and stale targets.
+- A pending proposal can cross a commit/merge and fresh-checkout boundary without
+  becoming accepted guidance; aged proposals are flagged without deletion, and
+  inspection does not reset their age.
 
 Capture observable tool calls, proposal and accepted diffs, exact revisions,
 client/runtime versions, task/session isolation manifests, and application test
 outcomes. This proves operation and reuse, not time or token savings. Keep existing
 CLI safety tests and add focused MCP/filesystem and proposal-transition tests;
 verify skill behavior with realistic tasks rather than exact prose matching.
+AF-03's automated transition tests must cover malformed proposals independently
+of Entry retrieval, stale accepted revisions, simultaneous proposals for one
+Entry, overlapping edits rejected by freshness checks, mid-apply and consumption
+failures, and retries. MCP boundary tests cover configured-root isolation and
+permission failures. Keep scenarios finite and tied to the supported process
+model; the demonstration complements these checks rather than replacing them.
 
 In AF-06, record useful reuse, rejected/noisy proposals, missed consultation,
 corrections, and review effort in one short development note. Compare a few
@@ -232,4 +300,6 @@ runnable demo, short video, limitations, and troubleshooting.
 Other hosts, embeddings, hosted synchronization, confidence scores, autonomous
 acceptance, transcript capture, dashboards, organization-wide policy, broad
 configuration, a custom orchestrator, and dependencies on Genome or SpecGuard
-are deferred. No self-hosted Corpus in the CK engine repository is authorized.
+are deferred. Cryptographic signatures, authenticated actor identities,
+tamper-evident audit infrastructure, automatic conflict merging, and custom
+approval UI are also deferred. No self-hosted Corpus in the CK engine repository is authorized.

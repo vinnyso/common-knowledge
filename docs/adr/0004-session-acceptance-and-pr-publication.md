@@ -30,3 +30,10 @@ locks under [ADR-0002](0002-cooperative-working-tree-lock.md). Skills use the
 current agent's task evidence while the engine remains within
 [ADR-0003](0003-bound-common-knowledge-to-repository-knowledge.md); application
 is not a new governance or orchestration service.
+
+Pending proposals may themselves be committed and merged without accepting their
+content as guidance. Later application or deletion is a separate repository
+change. Retain unacknowledged proposals; after 30 days without meaningful revision,
+surface a cleanup assessment at a relevant checkpoint. Age triggers reassessment,
+not automatic deletion, acceptance, or repeated reminders. This preserves work
+across sessions while keeping the user interaction in normal conversation and PRs.
