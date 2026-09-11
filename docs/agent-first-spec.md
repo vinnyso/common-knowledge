@@ -1,7 +1,7 @@
 # Common Knowledge agent-first specification and PRD
 
 **Status:** Next-phase contract; capabilities below are planned, not implemented.
-**Date:** 2026-09-09
+**Date:** 2026-09-10
 **Design issue:** [#35 (AF-01)](https://github.com/vinnyso/common-knowledge/issues/35)
 
 ## Authority and starting point
@@ -30,6 +30,13 @@ Agents use repository knowledge throughout ordinary engineering work. Reflection
 consolidates lessons worth preserving, users accept local changes in the active
 session, and normal PR review publishes them. The engine remains a repository
 knowledge tool under [ADR-0003](adr/0003-bound-common-knowledge-to-repository-knowledge.md).
+
+The phase goal is **Prove the CK Learning Loop**: Recall → Work → Reflect →
+human review → Preserve → future recall. The agent-first roadmap supplies the
+implementation path; a lightweight evaluation suite measures whether retrieved
+knowledge changes engineering outcomes. Working integration alone is insufficient
+evidence of improved outcomes. Evaluation is development support outside the
+engine, not a new engine responsibility or a competing roadmap.
 
 1. Before relevant work, the agent searches CK and reads applicable evidence.
 2. During work, it consults CK when errors, new areas, or questions arise and
@@ -237,15 +244,27 @@ and revision in handoff evidence so users can understand visibility and freshnes
 
 ## Ordered milestones
 
-These labels are a roadmap, not GitHub issue numbers. Create bounded issues with
-explicit dependencies and verification before implementation; work one at a time.
+These labels map to the tracking issues below. Their dependency and readiness
+requirements govern implementation; work one at a time. Creating an issue does
+not authorize starting it while the driving user has paused implementation.
+
+| Milestone | Tracking issue |
+| --- | --- |
+| AF-01 | [#35](https://github.com/vinnyso/common-knowledge/issues/35) |
+| AF-02 | [#38](https://github.com/vinnyso/common-knowledge/issues/38) |
+| AF-03 | [#39](https://github.com/vinnyso/common-knowledge/issues/39) |
+| AF-03E | [#40](https://github.com/vinnyso/common-knowledge/issues/40) |
+| AF-04 | [#41](https://github.com/vinnyso/common-knowledge/issues/41) |
+| AF-05 | [#42](https://github.com/vinnyso/common-knowledge/issues/42) |
+| AF-06 | [#43](https://github.com/vinnyso/common-knowledge/issues/43) |
 
 | Label | Scope and completion evidence | Dependency |
 | --- | --- | --- |
 | AF-01 | This contract, acceptance ADR, terminology, and authority links reviewed in a docs PR. | Completed prototype |
 | AF-02 | Safe structured MCP search/read/validate in a real client; CLI regression checks; ordinary-task consultation with temporary short instructions tested early. | AF-01 merged |
 | AF-03 | Versioned proposal format and safe operations covering every lifecycle change, freshness, rejection, application failure, and retry. | AF-02 merged |
-| AF-04 | Recall and Reflection skills cause consultation and pre-handoff proposal drafting during normal tasks; zero-proposal cases work. | AF-03 merged |
+| AF-03E | Two to three controlled scenarios comparing baseline and actual CK-assisted task outcomes, with transparent local results. | AF-03 merged |
+| AF-04 | Recall and Reflection skills cause consultation and pre-handoff proposal drafting during normal tasks; zero-proposal cases work. | AF-03E merged |
 | AF-05 | Packaged setup and complete fresh-install, session-acceptance, PR-publication, fresh-session reuse demo. | AF-04 merged |
 | AF-06 | Five to ten real tasks, feedback from three to five engineers, and concise beta documentation informed by observed reuse and review effort. | AF-05 merged |
 
@@ -255,11 +274,57 @@ agent writes. Temporary skill installation can support AF-04 before final
 packaging. Each milestone retains the repository's CI and independent review
 requirements; no runtime capability is delivered by AF-01.
 
+## Minimal outcome evaluation (AF-03E)
+
+Start with two or three scenarios, each recording the task, repository context,
+expected relevant knowledge, known pitfall, success criteria, and evaluation
+method. Compare fresh baseline sessions without CK retrieval with fresh sessions
+using the actual MCP integration and the temporary consultation protocol proved
+in AF-02. Keep model/version, task prompt, ordinary repository instructions,
+tools, application revision, and execution conditions equivalent where practical;
+record the deliberate CK availability/activation difference and any deviations.
+Do not remove contribution guidance from the baseline to manufacture a benefit.
+
+Record whether expected knowledge was retrieved, whether it was relevant, whether
+a known mistake was avoided or a repository pattern followed, whether guidance
+was stale/conflicting/noisy, and the final engineering result. Use application
+checks and observable decisions, not retrieval similarity alone. A null or
+negative result is valid evidence. Use small local JSON/JSONL results and a
+repeatable runbook; add a runner only where it removes demonstrated manual work.
+Token usage, latency, retries, and manual corrections are optional when cheap to
+capture, not prerequisites for the first evaluation. Do not infer effectiveness
+or savings beyond the observed trials.
+
+Project Genome's existing **Legacy Orders** synthetic application is the preferred
+testbed; reuse its checkpoint-2 application rather than build another project.
+This is reuse of a test fixture, not a dependency on or integration with Genome.
+AF-03E owns preparation: pin and verify the application revision/artifact,
+define task packets and hidden acceptance checks, and use independent application
+clones whose agents cannot access benchmark-author material, evaluator answers,
+other trial conversations, or persistent agent memory. Preserve ordinary public
+application documentation in both conditions. CK guidance must cite available
+project evidence, not hidden tests or reference answers.
+
+Candidate tasks are reference-import contract correction, dispatch-export
+constraints, and CSV quoting as a low-context control. These are assessment
+candidates, not completed evaluation cases; AF-03E must finalize their feasibility
+and rubrics before trials. The previously observed CK issue/PR convention failure
+remains a separate candidate for a controlled contribution-workflow scenario.
+Legacy Orders does not currently reproduce that repository workflow; do not claim
+it covers that failure or infer repeated baseline failure from one observation.
+
+Testbed preparation can wait until AF-03E and must be complete before its trials.
+Keep evaluation artifacts separate from runtime/library exports and consumer
+installation. No MLflow prerequisite: reconsider it only if local results prove
+inadequate. Databricks, dashboards, and a generic evaluation platform remain
+deferred. The earlier evaluation intent is retained without reviving a broader
+failure-assessment product.
+
 ## First milestone proof and practical evaluation
 
 The first complete agent-first milestone (AF-05) must demonstrate:
 
-- Agent A receives an ordinary Java billing task through installed instructions,
+- Agent A receives an ordinary engineering task in the prepared testbed through installed instructions,
   consults CK before relevant work, and handles an empty Corpus normally.
 - After a non-obvious correction, it performs Reflection and drafts an
   evidence-backed proposal without asking permission just to draft.
