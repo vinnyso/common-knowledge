@@ -22,12 +22,16 @@ Required findings, review budgets, and escalation rules are defined in
 
 ## Before implementation
 
-- Read `CONTEXT.md`, relevant ADRs, `docs/prototype-spec.md`, the prototype PRD,
-  and the assigned implementation issue before changing code.
+- Read `CONTEXT.md`, relevant ADRs, the applicable specification/PRD, and the
+  assigned implementation issue before changing code.
+- For agent-first work, read `docs/agent-first-spec.md` (combined specification
+  and PRD). For existing v0.1.0 behavior, read `docs/prototype-spec.md` and
+  `docs/PRD.md`.
 - Work on one `ready-for-agent` issue at a time and verify that its dependencies
   are complete.
-- Treat `docs/prototype-spec.md` as canonical when project artifacts conflict.
-  Stop and surface a conflict instead of choosing silently.
+- Follow the authority boundary in `docs/agent-first-spec.md`: it is canonical
+  for the next phase; the prototype specification remains canonical for unchanged
+  v0.1.0 behavior. Stop and surface other conflicts instead of choosing silently.
 - Do not implement a future goal unless an issue explicitly brings it into
   scope.
 
