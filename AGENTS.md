@@ -39,8 +39,8 @@ Required findings, review budgets, and escalation rules are defined in
 
 - Follow the issue lifecycle and handoff protocol in
   `docs/agents/issue-tracker.md`.
-- Use the build, test, and commit portions of the `implement` workflow in the
-  implementation task. Test observable behavior at the CLI/filesystem seam
+- Use `issue-delivery` for implementation and lifecycle coordination, following
+  this repository's policy. Test observable behavior at the CLI/filesystem seam
   agreed in the specification.
 - Run `npm run preflight` before every implementation handoff. Run the broader
   package verification only when the issue or changed package surface requires
@@ -55,20 +55,26 @@ Required findings, review budgets, and escalation rules are defined in
 - Preserve unrelated working-tree changes.
 - Select and record the review tier, rationale, candidate commit, required
   verification, and timebox under `docs/agents/review-policy.md` before review.
-  Every tier uses a separate Codex task from implementation and inspects the
-  complete fixed-point-to-candidate diff. Tier 3 uses `code-review` with
-  independent Standards and Spec reviewers; Tier 1 and Tier 2 may use one
-  independent reviewer that reports the two axes separately.
-- The coordinating agent classifies review findings under
+  Every full review inspects the complete fixed-point-to-candidate diff. Dispatch
+  `review-candidate` reviewers directly in separate agent tasks from implementation,
+  without an intermediate coordinator. Tier 3 uses independent Standards and Spec
+  reviewers; Tier 1 and Tier 2 use one reviewer reporting the axes separately.
+  Send compact manifests, reuse trustworthy verification, and consolidate findings
+  into one batch. Follow the policy's targeted mechanical-follow-up exception.
+- The delivery agent classifies review findings under
   `docs/agents/review-policy.md`; a reviewer does not expand the issue contract.
 - Send in-scope required findings back to the implementation task. The
   implementing agent makes fixes, reruns verification, commits the revised
   candidate, and returns it to the separate review task.
-- Autonomously run at most an initial review and one fix/re-review round. If the
-  second review still has required findings, stop and ask the driving human for
+- Per unchanged agreed contract, run at most an initial review and one autonomous
+  fix/re-review round. If the second review still has required findings, stop and
+  ask the driving human for
   direction. A fresh full re-review means full-diff inspection at the selected
   tier, not automatic repetition of unchanged expensive checks. A third review
-  requires explicit human approval.
+  against the same contract requires explicit human approval. Explicit user-directed
+  scope changes start a new recorded cycle, carrying forward applicable findings;
+  do not treat new commits or failed reviews as permission to reset the budget.
+  Design assessment is separate from review of a candidate against an agreed contract.
 - Stop before a review-driven change would replace an architecture, alter public
   behavior, add a runtime guarantee, or modify the canonical specification.
   Present the finding and options to the driving human instead.

@@ -41,8 +41,12 @@ Closes #
 <!-- Identify the review fixed point, noteworthy risks, tradeoffs, and follow-up work. -->
 
 - Fixed point:
+- Candidate commit:
+- Review cycle / agreed contract revision:
 - Review rounds used:
 - Review tier / rationale / timebox:
+- Verification evidence / consolidated review report:
+<!-- For a mechanical follow-up, link the prior approval and targeted check. -->
 - Risks:
 - Follow-ups:
 
