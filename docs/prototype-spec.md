@@ -3,6 +3,10 @@
 **Status:** Approved 1.0  
 **Last updated:** 2026-08-30
 
+**Next phase:** [Agent-first specification and PRD](agent-first-spec.md) defines
+the planned evolution and its explicit authority boundary. This document remains
+the completed prototype contract.
+
 ## 1. Product thesis
 
 Common Knowledge is a Git-native shared project knowledge layer for coding agents.

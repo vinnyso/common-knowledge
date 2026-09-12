@@ -9,9 +9,10 @@
 - Before editing, establish the task's acceptance criteria and read applicable
   guidance. Use [the documentation routes](docs/agents/domain.md) to select the
   relevant specification sections, domain context, ADRs, and product intent.
-- `docs/prototype-spec.md` is canonical when project artifacts conflict. Surface
-  applicable conflicts instead of choosing silently. Do not implement a future
-  goal unless an issue explicitly brings it into scope.
+- Follow the authority boundary in `docs/agent-first-spec.md`: it is canonical
+  for the next phase; the prototype specification remains canonical for unchanged
+  v0.1.0 behavior. Surface other conflicts instead of choosing silently. Do not
+  implement a future goal unless an issue explicitly brings it into scope.
 - Preserve unrelated working-tree changes.
 
 ## Delivery and review

@@ -37,3 +37,12 @@ workflow.
   explicitly bounded integrations.
 - Common Knowledge may expose deterministic evidence to clients, but it does not
   infer facts that only a client, harness, or human can observe.
+
+## Agent-first integration
+
+The [agent-first contract](../agent-first-spec.md) keeps this boundary: the
+current coding agent performs Reflection using its task context, and skills/MCP
+provide bounded access to repository knowledge. Session acceptance and PR
+publication are defined in
+[ADR-0004](0004-session-acceptance-and-pr-publication.md); the engine does not
+observe sessions or become the authority for human approval.

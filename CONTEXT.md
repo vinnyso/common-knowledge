@@ -21,6 +21,10 @@ global agent instructions. What one coding agent learns, every agent can use.
 | **Provenance** | The source and authoring information that supports an entry. |
 | **Lifecycle** | An entry's state: active, superseded, or retired. |
 | **Promotion** | A reviewable process for representing an entry's lesson in a more prescriptive repository mechanism while preserving its provenance and relationship to the entry. |
+| **Proposal** | A pending, evidence-backed recommendation to add, correct, supersede, or retire an Entry. |
+| **Reflection** | The current agent's assessment of lessons from meaningful work and whether they deserve a proposal. |
+| **Session Acceptance** | The user's acceptance of a concrete proposal for application to local knowledge. |
+| **Publication** | Acceptance of the resulting repository change through normal PR review and merge. |
 
 ## Product principles
 
