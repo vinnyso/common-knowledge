@@ -116,7 +116,7 @@ worktree. A configured subdirectory resolves to its owning checkout root.
 
 ```sh
 codex mcp add common-knowledge -- \
-  /absolute/path/to/common-knowledge/dist/mcp.js \
+  node /absolute/path/to/common-knowledge/dist/mcp.js \
   --root /absolute/path/to/consumer-repository
 codex mcp list
 ```
