@@ -25,10 +25,10 @@ common-knowledge-mcp --root /absolute/path/to/consumer-repository
 
 The path may name a Git repository root, a linked worktree root, or a directory
 inside either. Common Knowledge resolves and binds the owning top-level checkout.
-Non-Git directories, explicitly symlinked root paths, and Git submodules are
-rejected at startup. Configure a submodule's owning checkout instead. Nested or
-otherwise ambiguous arrangements should use the intended checkout's top-level
-path explicitly.
+Non-Git directories, configured paths with a symbolic link in any path
+component, and Git submodules are rejected at startup. Configure a submodule's
+owning checkout instead. Nested or otherwise ambiguous arrangements should use
+the intended checkout's top-level path explicitly.
 
 Tool inputs cannot select another repository. The optional `search.path` is a
 normalized forward-slash repository-relative applicability path; absolute paths,
