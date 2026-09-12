@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
@@ -30,7 +30,9 @@ function run(command, args, options = {}) {
   });
 }
 
-const temporaryRoot = await mkdtemp(join(tmpdir(), "common-knowledge-package-"));
+const temporaryRoot = await realpath(
+  await mkdtemp(join(tmpdir(), "common-knowledge-package-")),
+);
 const installRoot = join(temporaryRoot, "install");
 const npmEnvironment = {
   ...process.env,

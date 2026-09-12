@@ -5,7 +5,7 @@ Automated adapter and filesystem coverage remains in `test/mcp.test.mjs`.
 
 ## Versions and candidate
 
-- Candidate revision used by the server: `c13fbab37c42aded3dd7f96f924f51c2700e9af4`
+- Candidate revision used by the server: `31c3642bb1d28f735ce7a5002ec5717f6df70612`
 - Isolated consumer revision: `f61889f827905a597c7a85d1ee69dd0a07da22cd`
 - Node.js: `v26.4.0` (the package minimum remains Node.js 20)
 - npm: `11.17.0`
@@ -16,15 +16,20 @@ Automated adapter and filesystem coverage remains in `test/mcp.test.mjs`.
 ## Discovery and direct operations
 
 On 2026-09-12, `codex exec` started the adapter as a required stdio server bound
-to `/private/tmp/ck-mcp-client-proof`. Codex initialized the server, discovered
-its namespaced tools, and successfully called `common_knowledge/search` followed
-by `common_knowledge/read`. Search returned `status: ok` with
-`project-slug-contract`; read returned `status: ok` with the complete Entry.
+to `/private/tmp/ck-mcp-client-proof-r2`. Codex initialized the server, discovered
+its namespaced tools, and made these calls in order:
+
+| Order | Tool | Exact arguments | Structured result |
+| --- | --- | --- | --- |
+| 1 | `common_knowledge/search` | `{"query":"slugify empty after normalization TypeError regression tests","path":"src/slug.js"}` | `status: ok`; one result, `project-slug-contract` |
+| 2 | `common_knowledge/read` | `{"id":"project-slug-contract"}` | `status: ok`; complete Entry Markdown |
 
 The first startup attempt used the generated `dist/mcp.js` path as the executable
 and failed with `Permission denied` before a Codex session was created. The
 documented configuration was corrected to launch the build artifact through
-`node`; the bounded client run then initialized and completed successfully.
+`node`; the bounded client run then initialized and completed successfully. A
+reviewer-required rerun used JSON events to retain the exact arguments above;
+it reproduced the same search-then-read order and task outcome.
 
 ## Ordinary-task consultation
 
