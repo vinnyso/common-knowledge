@@ -1,90 +1,33 @@
 # Common Knowledge agent guidance
 
-## Agent skills
+## Task scope and context
 
-### Issue tracker
-
-GitHub Issues are the canonical implementation tracker. See
-`docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-This project uses the default five-role triage vocabulary. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-This is a single-context project: use the root `CONTEXT.md` and `docs/adr/` for durable design decisions. See `docs/agents/domain.md`.
-
-### Review policy
-
-Required findings, review budgets, and escalation rules are defined in
-`docs/agents/review-policy.md`.
-
-## Before implementation
-
-- Read `CONTEXT.md`, relevant ADRs, the applicable specification/PRD, and the
-  assigned implementation issue before changing code.
-- For agent-first work, read `docs/agent-first-spec.md` (combined specification
-  and PRD). For existing v0.1.0 behavior, read `docs/prototype-spec.md` and
-  `docs/PRD.md`.
-- Work on one `ready-for-agent` issue at a time and verify that its dependencies
-  are complete.
+- GitHub Issues are the canonical implementation tracker. Work on one
+  `ready-for-agent` issue at a time and verify that its dependencies are complete.
+  Explicitly authorized maintenance may use a PR without an issue, as defined in
+  [the delivery workflow](docs/agents/issue-tracker.md).
+- Before editing, establish the task's acceptance criteria and read applicable
+  guidance. Use [the documentation routes](docs/agents/domain.md) to select the
+  relevant specification sections, domain context, ADRs, and product intent.
 - Follow the authority boundary in `docs/agent-first-spec.md`: it is canonical
   for the next phase; the prototype specification remains canonical for unchanged
-  v0.1.0 behavior. Stop and surface other conflicts instead of choosing silently.
-- Do not implement a future goal unless an issue explicitly brings it into
-  scope.
-
-## Implementation workflow
-
-- Follow the issue lifecycle and handoff protocol in
-  `docs/agents/issue-tracker.md`.
-- Use `issue-delivery` for implementation and lifecycle coordination, following
-  this repository's policy. Test observable behavior at the CLI/filesystem seam
-  agreed in the specification.
-- Run `npm run preflight` before every implementation handoff. Run the broader
-  package verification only when the issue or changed package surface requires
-  it.
-- Push each candidate commit to its implementation pull request and wait for the
-  `CI / Required checks` check to pass for that exact commit before beginning a
-  complete independent review or re-review. Keep the pull request in draft until
-  the candidate is agent-approved.
-- A required CI failure returns the candidate to implementation and does not use
-  an autonomous agent-review round. After fixing the failure, push the revised
-  candidate and wait for its fresh required check to pass.
+  v0.1.0 behavior. Surface other conflicts instead of choosing silently. Do not
+  implement a future goal unless an issue explicitly brings it into scope.
 - Preserve unrelated working-tree changes.
-- Select and record the review tier, rationale, candidate commit, required
-  verification, and timebox under `docs/agents/review-policy.md` before review.
-  Every full review inspects the complete fixed-point-to-candidate diff. Dispatch
-  `review-candidate` reviewers directly in separate agent tasks from implementation,
-  without an intermediate coordinator. Tier 3 uses independent Standards and Spec
-  reviewers; Tier 1 and Tier 2 use one reviewer reporting the axes separately.
-  Send compact manifests, reuse trustworthy verification, and consolidate findings
-  into one batch. Follow the policy's targeted mechanical-follow-up exception.
-- The delivery agent classifies review findings under
-  `docs/agents/review-policy.md`; a reviewer does not expand the issue contract.
-- Send in-scope required findings back to the implementation task. The
-  implementing agent makes fixes, reruns verification, commits the revised
-  candidate, and returns it to the separate review task.
-- Per unchanged agreed contract, run at most an initial review and one autonomous
-  fix/re-review round. If the second review still has required findings, stop and
-  ask the driving human for
-  direction. A fresh full re-review means full-diff inspection at the selected
-  tier, not automatic repetition of unchanged expensive checks. A third review
-  against the same contract requires explicit human approval. Explicit user-directed
-  scope changes start a new recorded cycle, carrying forward applicable findings;
-  do not treat new commits or failed reviews as permission to reset the budget.
-  Design assessment is separate from review of a candidate against an agreed contract.
-- Stop before a review-driven change would replace an architecture, alter public
-  behavior, add a runtime guarantee, or modify the canonical specification.
-  Present the finding and options to the driving human instead.
-- Keep the issue `In Progress` throughout the implementation and agent-review
-  loop. Move it to `In Review` only when the latest candidate is agent-approved
-  and awaiting the driving human's approval.
-- Implementation must use a pull request. Use its human merge as the approval
-  gate; do not require a duplicate Codex-task approval.
-- Move an issue to `Done` and close it only after its approved pull request is
-  merged.
+
+## Delivery and review
+
+- Use `issue-delivery` for implementation and lifecycle coordination. Follow
+  [the delivery workflow](docs/agents/issue-tracker.md) for authorization boundaries,
+  completion, PR readiness, and issue transitions. Use
+  [the triage vocabulary](docs/agents/triage-labels.md) when managing issue labels.
+- Follow [the review policy](docs/agents/review-policy.md) for required verification,
+  exact-candidate CI, independent `review-candidate` dispatch, finding
+  classification, review tiers, and correction budgets. Read it before delivery
+  or candidate review; skills do not add gates or override repository policy.
+- Continue authorized delivery through its defined completion point, including
+  in-scope fixes and required verification/review. Pause only at an applicable
+  boundary in the delivery workflow or review policy.
 
 ## Project boundaries
 
