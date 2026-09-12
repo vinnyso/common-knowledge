@@ -81,10 +81,11 @@ For these read-only MCP tools, the server process needs:
   checkout root.
 
 The same installed engine may also run lifecycle commands. Those commands need
-write access to Corpus files and to the operating system temporary directory used
-for transaction staging and retained recovery evidence when rollback or cleanup
-cannot complete. A host sandbox must grant those paths explicitly when it permits
-writes.
+write access to Corpus files and create, write, read, and remove access in the
+checkout's parent directory. Lifecycle transactions create
+`.common-knowledge-transaction-*` staging and retained recovery directories there
+so atomic renames remain on the checkout filesystem. A host sandbox must grant
+that parent path explicitly when it permits writes.
 
 MCP is an interface to Common Knowledge, not a sandbox. The host remains
 responsible for process and filesystem isolation. The adapter does not fetch,

@@ -41,8 +41,9 @@ afterEach(async () => {
 
 async function temporaryDirectory(prefix = "common-knowledge-mcp-") {
   const directory = await mkdtemp(join(tmpdir(), prefix));
-  temporaryDirectories.push(directory);
-  return directory;
+  const canonical = await realpath(directory);
+  temporaryDirectories.push(canonical);
+  return canonical;
 }
 
 async function git(cwd, ...args) {
@@ -287,7 +288,11 @@ test("rejects non-Git, symbolic-link, and submodule root arrangements", async ()
   const link = join(dirname(repository), `${repository.split("/").at(-1)}-link`);
   temporaryDirectories.push(link);
   await symlink(repository, link);
-  assert.throws(() => resolveCheckoutRoot(link), /must not be a symbolic link/u);
+  assert.throws(() => resolveCheckoutRoot(link), /must not use symbolic links/u);
+  assert.throws(
+    () => resolveCheckoutRoot(join(link, "src")),
+    /must not use symbolic links/u,
+  );
 
   const child = await makeRepository();
   await writeFile(join(child, "README.md"), "child\n", "utf8");

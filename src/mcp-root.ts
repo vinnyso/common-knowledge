@@ -1,5 +1,5 @@
 import { lstatSync, realpathSync } from "node:fs";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { isAbsolute, parse, relative, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 
 export class UnsupportedCheckoutRootError extends Error {
@@ -10,10 +10,16 @@ export class UnsupportedCheckoutRootError extends Error {
 }
 
 function assertNoSymbolicLink(path: string): void {
-  if (lstatSync(path).isSymbolicLink()) {
-    throw new UnsupportedCheckoutRootError(
-      `configured root must not be a symbolic link: ${path}`,
-    );
+  const absolute = resolve(path);
+  const root = parse(absolute).root;
+  let component = root;
+  for (const part of absolute.slice(root.length).split(sep).filter(Boolean)) {
+    component = resolve(component, part);
+    if (lstatSync(component).isSymbolicLink()) {
+      throw new UnsupportedCheckoutRootError(
+        `configured root must not use symbolic links: ${component}`,
+      );
+    }
   }
 }
 
