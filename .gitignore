@@ -3,3 +3,4 @@ dist/
 *.tgz
 coverage/
 *.tsbuildinfo
+.DS_Store
