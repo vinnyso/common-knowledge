@@ -51,6 +51,8 @@ Follow [the review policy](review-policy.md) for exact-candidate CI, independent
 review, finding classification, verification, and correction budgets. Keep the PR
 in draft and the issue `In Progress` throughout that process. The delivery agent
 records the consolidated review report once in the issue and links it elsewhere.
+Use one initial independent assessment by default, targeted correction checks,
+and the policy's bounded documentation/evidence follow-up.
 
 When review reports no required findings, comment with the agent-review approval,
 mark the pull request ready for human review, and move the issue to `In Review`.
