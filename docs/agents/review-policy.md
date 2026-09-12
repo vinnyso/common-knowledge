@@ -22,7 +22,7 @@ CI-passing candidate. Ordinary self-checks and design discussion may happen earl
 Before implementation, record the following in the issue or implementation
 handoff:
 
-- the fixed point and originating issue;
+- the fixed point and originating issue or explicitly authorized maintenance scope;
 - the canonical specification sections and acceptance criteria;
 - relevant repository standards;
 - explicit operating assumptions, including any supported concurrency or threat
@@ -59,6 +59,9 @@ The delivery agent must reject or downgrade an untraceable finding instead
 of automatically sending it to implementation. Return one consolidated batch
 of required findings with stable IDs. Advisories do not automatically trigger
 fixes or re-review. Reviewers must not expand the contract through suggestions.
+The implementing agent applies the consolidated required fixes, reruns relevant
+verification, commits and pushes the revised candidate, and returns it for
+independent review under this policy.
 
 ## Review tier selection
 
@@ -107,10 +110,11 @@ for regressions at the tier selected for the corrected candidate. It does not
 reopen product scope or require every unchanged, previously passing expensive
 check to run again.
 
-If the second review reports required findings, stop with the issue `In
-Progress`. Comment with the unresolved findings, completed verification, and
-options. A third review or another fix cycle against that same contract requires
-explicit approval from the driving human.
+If the second review reports required findings, stop and keep the PR draft and
+the issue `In Progress` when one exists. Record the unresolved findings, completed
+verification, and options in the canonical issue or maintenance PR. A third
+review or another fix cycle against that same contract requires explicit approval
+from the driving human.
 
 An explicit user-directed change to requirements or scope starts a new recorded
 cycle. Record the instruction, contract delta, new candidate, and cycle identifier;
@@ -132,7 +136,8 @@ Stop earlier and escalate when a proposed review fix would:
 ## Bounded verification
 
 Implementation runs `npm run preflight` before every handoff. It runs full tests
-and package verification when required by the issue or affected surface.
+and package verification when required by the task or affected surface. Test
+observable behavior at the CLI/filesystem seam agreed in the specification.
 
 Each candidate commit must pass the `CI / Required checks` GitHub Actions check
 before a complete independent review begins. The check must belong to the exact
