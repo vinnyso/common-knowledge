@@ -3,6 +3,8 @@ import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -60,6 +62,10 @@ try {
   assert.equal(installedManifest.license, "Apache-2.0");
   assert.equal(installedManifest.engines.node, ">=20");
   assert.equal(installedManifest.bin["common-knowledge"], "dist/cli.js");
+  assert.equal(installedManifest.bin["common-knowledge-mcp"], "dist/mcp.js");
+
+  const gitResult = await run("git", ["init", "-q", "-b", "main"], { cwd: installRoot });
+  assert.equal(gitResult.exitCode, 0, gitResult.stderr);
 
   const cliResult = await run(
     join(installRoot, "node_modules", ".bin", "common-knowledge"),
@@ -88,7 +94,25 @@ try {
     "schema.json",
   ]);
 
-  process.stdout.write(`Verified ${filename}: packed, installed, and executed in isolation.\n`);
+  const transport = new StdioClientTransport({
+    command: join(installRoot, "node_modules", ".bin", "common-knowledge-mcp"),
+    args: ["--root", installRoot],
+    stderr: "pipe",
+  });
+  const client = new Client({ name: "package-verification", version: "1.0.0" });
+  try {
+    await client.connect(transport);
+    const tools = await client.listTools();
+    assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), ["read", "search", "validate"]);
+    const validation = await client.callTool({ name: "validate", arguments: {} });
+    assert.deepEqual(validation.structuredContent, { status: "ok", entry_count: 0 });
+  } finally {
+    await client.close();
+  }
+
+  process.stdout.write(
+    `Verified ${filename}: packed, installed, and exercised CLI and MCP operations in isolation.\n`,
+  );
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
 }

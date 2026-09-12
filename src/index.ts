@@ -1,6 +1,11 @@
 import type { Writable } from "node:stream";
 
 import {
+  readKnowledge,
+  searchKnowledge,
+  validateKnowledge,
+} from "./application.js";
+import {
   CorpusAlreadyExistsError,
   corpusDirectoryName,
   initializeCorpus,
@@ -8,11 +13,8 @@ import {
 import {
   addEntry,
   EntryCommandError,
-  readEntry,
   retireEntry,
-  searchEntries,
   updateEntry,
-  validateCorpus,
 } from "./entries.js";
 import { withCheckoutLock } from "./lock.js";
 
@@ -199,7 +201,7 @@ function searchOptions(args: readonly string[]): { path?: string; kind?: string 
 }
 
 function formatSearchResults(
-  results: ReturnType<typeof searchEntries>,
+  results: ReturnType<typeof searchKnowledge>,
 ): string {
   return results
     .map((result) =>
@@ -268,7 +270,7 @@ export function runCli(args: readonly string[], context: CliContext): number {
       case "read": {
         const id = commandArguments[0];
         if (id === undefined) throw new Error("unreachable missing read ID");
-        context.stdout.write(withCheckoutLock(context.cwd, command, () => readEntry(context.cwd, id)));
+        context.stdout.write(readKnowledge(context.cwd, id));
         return 0;
       }
       case "add": {
@@ -296,16 +298,17 @@ export function runCli(args: readonly string[], context: CliContext): number {
         return 0;
       }
       case "validate": {
-        const count = withCheckoutLock(context.cwd, command, () => validateCorpus(context.cwd));
+        const count = validateKnowledge(context.cwd);
         context.stdout.write(`Corpus is valid (${count} Entries).\n`);
         return 0;
       }
       case "search": {
         const query = commandArguments[0];
         if (query === undefined) throw new Error("unreachable missing search query");
-        const results = withCheckoutLock(context.cwd, command, () =>
-          searchEntries(context.cwd, query, searchOptions(commandArguments)),
-        );
+        const results = searchKnowledge(context.cwd, {
+          query,
+          ...searchOptions(commandArguments),
+        });
         context.stdout.write(formatSearchResults(results));
         return 0;
       }

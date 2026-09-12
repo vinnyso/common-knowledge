@@ -19,6 +19,8 @@ searching, reading, adding, updating, retiring, and validating Entries. The Java
 21 mock repository and [clean-clone two-agent demonstration](docs/two-agent-handoff.md)
 show that one agent can record a lesson and a later independent agent can
 retrieve and apply it through the same packaged CLI and repository filesystem.
+The next-phase local stdio MCP adapter exposes the protected `search`, `read`,
+and `validate` operations to supported Codex clients.
 
 ## Engine and repository installation
 
@@ -107,6 +109,23 @@ by kind and affected path, and ranks exact Trigger phrases, matching Scope,
 Trigger-token overlap, and title-token overlap. It returns at most five results
 with the reasons for each match.
 
+## Codex MCP access
+
+Build the package, then bind the MCP adapter to one explicit Git checkout or
+worktree. A configured subdirectory resolves to its owning checkout root.
+
+```sh
+codex mcp add common-knowledge -- \
+  /absolute/path/to/common-knowledge/dist/mcp.js \
+  --root /absolute/path/to/consumer-repository
+codex mcp list
+```
+
+The local adapter exposes typed read-only `search`, `read`, and `validate`
+tools. It never accepts a repository root per tool call. See the
+[MCP operation and host guide](docs/mcp.md) for supported roots, outcomes,
+permissions, Codex configuration, and limitations.
+
 ## Creating an Entry
 
 Create a small Markdown file with YAML front matter, then add it. The body must
@@ -181,6 +200,8 @@ to the same lesson; use supersession when a new Entry replaces an older lesson.
 ## Documentation
 
 - Canonical design: [`docs/prototype-spec.md`](docs/prototype-spec.md)
+- Agent-first design: [`docs/agent-first-spec.md`](docs/agent-first-spec.md)
+- MCP operation and host guide: [`docs/mcp.md`](docs/mcp.md)
 - Implementation contract: [`docs/PRD.md`](docs/PRD.md)
 - Domain vocabulary and principles: [`CONTEXT.md`](CONTEXT.md)
 - Architecture decisions: [`docs/adr/`](docs/adr/)
