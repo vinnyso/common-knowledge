@@ -2,6 +2,15 @@
 
 <!-- Explain the outcome of this pull request in a few sentences. -->
 
+## Human review guide
+
+<!-- Keep this visible and concise. Link the important paths at the candidate SHA. -->
+
+- Start here:
+- Main decision or tradeoff:
+- Scrutinize:
+- Changes since your last review: <!-- Exact comparison, or first review. -->
+
 ## Plan
 
 <!-- Link the originating issue and summarize the implementation plan. Note any deviations. -->
@@ -42,11 +51,11 @@ Closes #
 
 - Fixed point:
 - Candidate commit:
-- Review cycle / agreed contract revision:
-- Review rounds used:
-- Review tier / rationale / timebox:
+- Agreed contract revision:
+- Assessment / correction status:
+- Review tier / named risks / reviewer / timebox:
 - Verification evidence / consolidated review report:
-<!-- For a mechanical follow-up, link the prior approval and targeted check. -->
+<!-- For a follow-up, record prior/new SHAs and retained versus rechecked coverage. -->
 - Risks:
 - Follow-ups:
 
@@ -56,5 +65,5 @@ Closes #
 - [ ] Relevant tests and checks pass.
 - [ ] `npm run preflight` passes.
 - [ ] Documentation and agent instructions are aligned.
-- [ ] No secrets, personal data, prompts, or task transcripts were added.
+- [ ] No secrets, personal data, or full task transcripts were added; any required bounded trial inputs are identified.
 - [ ] Independent agent review is complete, or the PR is explicitly awaiting it.

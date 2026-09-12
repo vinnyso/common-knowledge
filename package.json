@@ -27,15 +27,18 @@
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint:repo": "node scripts/lint-repository.mjs",
     "lint": "npm run typecheck && npm run lint:repo",
-    "preflight": "npm run lint && npm run test:focused",
+    "preflight": "npm run lint && npm run lint:types && npm run test:focused",
     "test:focused": "npm run build && node --test test/cli.test.mjs test/entry-lifecycle.test.mjs test/mcp.test.mjs",
     "test": "npm run build && node --test",
     "verify:package": "npm run build && node scripts/verify-package.mjs",
-    "benchmark:search": "npm run build && node scripts/benchmark-search.mjs"
+    "benchmark:search": "npm run build && node scripts/benchmark-search.mjs",
+    "lint:types": "eslint src --max-warnings 0"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
-    "typescript": "^5.9.0"
+    "eslint": "10.10.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "8.70.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",

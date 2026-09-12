@@ -210,8 +210,12 @@ to the same lesson; use supersession when a new Entry replaces an older lesson.
 
 ## Development checks
 
+Development lint tooling requires Node.js 20.19+, 22.13+, or 24+ (ESLint 10's
+supported release lines). The published CLI runtime requirement remains Node.js
+20+. Install development dependencies with `npm ci`.
+
 ```sh
-npm run preflight       # type-check, repository lint, focused CLI/filesystem tests
+npm run preflight       # types, repository + correctness lint, focused behavior tests
 npm test                # complete test suite
 npm run verify:package  # build, pack, install, and execute in isolation
 ```

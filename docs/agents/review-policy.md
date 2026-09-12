@@ -1,200 +1,158 @@
-# Independent review policy
+# Review policy
 
-Independent review protects the issue contract without silently enlarging it.
-The delivery agent owns the review gate; independent reviewers supply evidence
-and findings but do not redefine product scope. Use `issue-delivery` for delivery
-and `review-candidate` for candidate review. This policy is authoritative; skills
-do not add gates or override its coverage requirements. If a skill is unavailable,
-follow the documented procedure and report any unmet independence requirement.
+Independent review protects the agreed task contract. Deterministic checks own
+mechanical standards; reviewers assess requirements, missing cases, and residual
+risk. The delivery agent coordinates review directly with `review-candidate`.
+This policy is authoritative over reusable skills. Human merge remains the
+publication gate; keep the PR draft until its required assessment is complete.
 
-## Design assessment and candidate review
+## Contract and evidence
 
-Design assessment explores requirements, options, and tradeoffs with the user.
-It is not an implementation correction loop and does not consume review rounds.
-Once the user agrees a contract, candidate review checks the resulting change
-against it, including documentation that records an accepted design. Such a
-design-document candidate remains Tier 3; do not reclassify its review as design
-discussion to evade the gate. Only candidate reviews require a committed,
-CI-passing candidate. Ordinary self-checks and design discussion may happen earlier.
+Before implementation, record the originating issue or authorized maintenance
+scope, acceptance criteria, applicable specification/standards, operating
+assumptions, and fixed point. Before review, add the immutable candidate SHA,
+required check results/links, risk tier, reviewer assignment, and bounded review
+questions. Record this once in the issue or maintenance PR and link it elsewhere.
 
-## Review contract
+Design assessment can explore options before a candidate exists. Candidate
+review checks the agreed contract; it cannot enlarge scope or turn workflow
+instructions into product guarantees. Changes to architecture, public behavior,
+non-goals, or canonical requirements need driving-human direction.
 
-Before implementation, record the following in the issue or implementation
-handoff:
+Before a manual client trial, specify its evidence fields: code revision,
+client/runtime/model versions and settings, activation and task inputs, ordered
+tool names and exact arguments, outcomes, acceptance checks, and isolation limits.
+Capture those fields during the first run. Check completeness before ending the
+session; do not rerun a successful trial merely to reconstruct omitted metadata
+when trustworthy retained evidence supplies it. Record unavailable evidence as a
+gap. Never fabricate payloads or commit secrets or full session transcripts.
 
-- the fixed point and originating issue or explicitly authorized maintenance scope;
-- the canonical specification sections and acceptance criteria;
-- relevant repository standards;
-- explicit operating assumptions, including any supported concurrency or threat
-  model;
-- the commands required for implementation handoff and independent review.
+## Deterministic verification
 
-Identify the review cycle and the agreed contract revision. A maintenance PR
-without an issue may record this manifest in the PR, following existing practice.
+- `npm run lint` checks TypeScript types and repository text, links, JSON,
+  focused-test markers, and package/license metadata.
+- `npm run lint:types` applies the small type-aware correctness rule set in
+  `eslint.config.mjs`. Formatting preferences are outside this check.
+- Behavior tests own known invariants and regressions at the CLI/filesystem seam.
+  Convert a discovered defect into an appropriate regression test when feasible.
+- Package verification owns packed-install behavior. CodeQL supplies automated
+  security analysis; a clean result does not prove every security property.
 
-An assumption can clarify an existing contract. Changing public behavior,
-architecture, non-goals, or the canonical specification requires the driving
-human's approval.
+Implementation runs `npm run preflight` before code/configuration handoff and
+checks required by the issue or affected surface. Documentation-only corrections
+run repository lint and relevant document checks locally; unchanged application
+tests need not be repeated locally. Required CI still applies to every candidate.
 
-## Finding classification
+Before initial independent review or verification of a revised committed
+candidate, `CI / Required checks` must pass on that exact SHA. Earlier green
+commits do not qualify. A CI failure returns to implementation; it does not
+consume an independent review attempt. Resolve required automated findings before
+asking an LLM to inspect the candidate. Do not silently waive required checks.
 
-A **required** finding must include all of the following:
+Reviewers reuse trustworthy exact-candidate CI and unchanged evidence. They do
+not repeat lint, full tests, package verification, or security scans without a
+specific missing result, changed input, or concrete concern. Any additional probe
+must answer a named question, be finite, and be recorded in the report.
 
-1. A citation to an acceptance criterion, canonical specification statement, or
-   repository standard that directly governs the changed code.
-2. Reproducible evidence from within the documented operating assumptions.
-3. A concise explanation of user or repository impact.
-4. A bounded, actionable correction.
+## Initial independent review
 
-Repository workflow instructions govern agent behavior unless the product
-specification explicitly turns them into runtime requirements. Do not infer a
-new product guarantee from an agent-process rule.
+Use one independent reviewer by default, reporting Standards and Spec separately.
+Do not assign a second full-diff reviewer merely because a change is high risk.
 
-A useful concern that fails any required-finding condition is an **advisory**.
-Record it as optional follow-up work; it does not block agent approval. Examples
-include behavior outside the documented threat model, speculative future scale,
-or a robustness improvement unrelated to the originating issue.
-
-The delivery agent must reject or downgrade an untraceable finding instead
-of automatically sending it to implementation. Return one consolidated batch
-of required findings with stable IDs. Advisories do not automatically trigger
-fixes or re-review. Reviewers must not expand the contract through suggestions.
-The implementing agent applies the consolidated required fixes, reruns relevant
-verification, commits and pushes the revised candidate, and returns it for
-independent review under this policy.
-
-## Review tier selection
-
-Before dispatching a review, the coordinating agent selects and records the
-review tier, rationale, candidate commit, required verification, and timebox in
-the issue or pull-request handoff. The tier controls review depth, not diff
-coverage: every tier inspects the complete fixed-point-to-candidate diff and
-reports Standards and Spec conclusions separately.
-
-| Tier | Use when the candidate changes | Default review profile | Default timebox |
+| Tier | Changed surface | Default reviewer | Initial timebox |
 | --- | --- | --- | --- |
-| 1 — low | Documentation, evidence, runbooks, or metadata with no runtime or CLI behavior change | One independent reviewer using Terra at low effort | 3 minutes |
-| 2 — routine | Typed implementation or local observable behavior without a high-risk surface | One independent reviewer using Terra at medium effort | 5 minutes |
-| 3 — high | Filesystem or transaction behavior, concurrency, security or privacy, parser or diagnostic compatibility, public API or runtime contracts, or canonical design | Separate Standards and Spec reviewers using Sol at medium effort | 10 minutes |
+| 1 | Documentation, evidence, runbooks, metadata without runtime behavior | Terra, low effort | 3 minutes |
+| 2 | Routine typed implementation or local behavior without a high-risk boundary | Terra, medium effort | 5 minutes |
+| 3 | Filesystem/transactions, concurrency, security/privacy, public protocol or diagnostic compatibility, or canonical design | Sol, medium effort | 10 minutes |
 
-A Tier 1 or Tier 2 reviewer covers both axes in one independent task and reports
-them separately. Tier 3 uses two independent reviewers with `review-candidate`,
-one per axis; each inspects the complete diff. The delivery agent dispatches
-reviewers directly as separate agent tasks, without an intermediate coordinator.
-Reviewers do not implement their own fixes.
+The tier selects attention and effort, not an automatic reviewer team. A second
+specialist is appropriate only for a recorded risk/question that the primary
+assessment cannot adequately cover. Give that specialist the affected paths,
+contract, and question; do not duplicate the entire primary assignment. Record
+its bounded timebox and resolve its required findings before approval.
 
-Send a compact manifest: assignment, issue/specification and policy references,
-baseline and candidate SHAs, verification links/results, cycle/round, tier, and
-timebox. Do not inherit the implementation conversation by default. Reviewers
-read the actual diff and necessary source context, not just its summary. Keep
-reports concise (normally under 400 words per axis unless findings require more)
-and link verbose evidence. Record the consolidated report once in the canonical
-issue or maintenance PR; link it from other handoffs rather than duplicating it.
+The primary initial review covers the complete authored diff and necessary
+surrounding context. For generated artifacts such as lockfiles, inspect the
+manifest changes, dependency changes, integrity/source information, and available
+deterministic consistency evidence; do not spend model context reproducing every
+generated line. Record this coverage explicitly, including any unassessed area.
 
-Elevate to the higher tier before approval when the diff or verification reveals
-a higher-risk surface. Do not downgrade a candidate merely because its diff is
-small. If a review reaches its timebox without enough evidence, stop and report
-the proof gap; do not retry or poll indefinitely. The driving human may direct
-an escalation or a longer review.
+Pass a compact manifest, not the implementation conversation. The reviewer reads
+source evidence, not just the author's summary. Standards reports remaining
+applicable violations beyond automated coverage; Spec assesses acceptance,
+operating assumptions, omissions, and unauthorized behavior. Automated results
+support, but do not replace, semantic judgment.
 
-## Review budget and stop-loss
+## Findings, Copilot, and corrections
 
-Each review cycle against an unchanged, agreed contract has an autonomous budget
-of two complete review rounds:
+A required finding needs a governing requirement or standard, exact location,
+reproducible evidence within supported assumptions, impact, and a bounded fix.
+Other useful concerns are advisories. The delivery agent classifies and
+deduplicates findings from independent review, human comments, and available
+Copilot review into one batch with stable IDs. Verify suggestions against actual
+code; neither silence nor a Copilot suggestion establishes correctness. Copilot
+is supplemental and does not create a separate approval or correction loop.
+Do not request additional Copilot runs merely to satisfy this policy.
 
-1. Initial independent Standards and Spec review.
-2. One fresh full re-review after required fixes.
+The implementing agent makes in-scope corrections, adds relevant regression
+coverage, and updates affected docs and the PR guide together. The reviewer does
+not implement its own fixes. Keep unrelated improvements as follow-up work.
 
-Fresh full re-review means inspecting the complete fixed-point-to-candidate diff
-for regressions at the tier selected for the corrected candidate. It does not
-reopen product scope or require every unchanged, previously passing expensive
-check to run again.
+After fixes, the same reviewer normally checks the complete incremental diff,
+carried findings, affected behavior, and regression evidence. Record the prior
+reviewed SHA, new SHA, coverage retained, and coverage re-examined. No substantive
+new change may inherit approval without this assessment. Repeat full review only
+when changed scope, architecture, cross-cutting behavior, invalidated evidence,
+or a concrete unassessed risk justifies it; record why. A new commit alone is not
+such a reason.
 
-If the second review reports required findings, stop and keep the PR draft and
-the issue `In Progress` when one exists. Record the unresolved findings, completed
-verification, and options in the canonical issue or maintenance PR. A third
-review or another fix cycle against that same contract requires explicit approval
-from the driving human.
+Allow one initial assessment and one substantive correction pass autonomously.
+If substantive required findings remain after that pass, stop with evidence and
+options for the driving human. Do not start open-ended correction loops or reset
+the budget by renaming findings or creating commits. Explicit user scope changes
+start a recorded contract revision with applicable findings carried forward.
 
-An explicit user-directed change to requirements or scope starts a new recorded
-cycle. Record the instruction, contract delta, new candidate, and cycle identifier;
-carry forward unresolved findings still applicable to the new contract. The user
-need not separately approve reviewing the change they directed. New cycles retain
-full baseline-to-candidate coverage and exact-candidate CI. A new commit, failed
-review, agent-proposed redesign, or wording change alone does not reset the budget.
-The limit prevents repeated autonomous correction loops, not successive rounds
-of user-directed product design across the lifetime of a PR.
+Once no substantive code/design finding remains, allow one bounded independent
+documentation/evidence follow-up without another full code review or extra human
+permission. It may close wording alignment or missing evidence for already
+reviewed behavior; it cannot alter requirements, hide missing behavioral proof,
+or authorize runtime changes. Check the entire incremental document diff and
+relevant PR text, reuse valid code verdicts, and record the resulting candidate
+approval. If this check still leaves required findings, seek human direction.
 
-Stop earlier and escalate when a proposed review fix would:
+Usage or tool interruptions are incomplete work, not new findings or new rounds.
+Resume the remaining assessment with retained evidence; do not replay completed
+inspection. Timeboxes bound active review, excluding external waits. On reaching
+the timebox, report assessed coverage and the remaining question; do not claim
+approval or silently extend it. A delivery agent may supply a timestamped live
+PR-body snapshot and SHA to resolve a fetch outage; the independent reviewer must
+still assess the snapshot, and its freshness must be verified before readiness.
 
-- replace a core architecture or state model;
-- alter public behavior or introduce a new runtime guarantee;
-- change the canonical specification or a declared non-goal;
-- add a material dependency solely for an edge case;
-- or substantially exceed the issue's expected implementation size.
+## Human reading guide and handoff
 
-## Bounded verification
+Put a visible `Human review guide` near the top of the PR description, using the
+PR template. Keep it short: where to start, the main decision/tradeoff, and what
+deserves scrutiny. After human review begins, link changes since the last
+human-reviewed SHA. Link evidence instead of duplicating logs.
 
-Implementation runs `npm run preflight` before every handoff. It runs full tests
-and package verification when required by the task or affected surface. Test
-observable behavior at the CLI/filesystem seam agreed in the specification.
+The guide is informational. Check its accuracy during the existing review; do
+not add a reviewer or full review cycle for it. A misleading behavior or safety
+claim needs correction. A missing heading, optional detail, or unavailable live
+fetch does not by itself invalidate completed code assessment. Record guide gaps
+separately and complete the applicable narrow check before claiming it verified.
+Human review always retains access to the complete diff and evidence.
 
-Each candidate commit must pass the `CI / Required checks` GitHub Actions check
-before a complete independent review begins. The check must belong to the exact
-candidate commit under review; a successful check for an earlier commit does not
-carry forward. A CI failure returns the candidate to implementation and does not
-consume either autonomous review round. The revised candidate must receive a
-fresh successful required check before review or re-review.
+Report candidate/fixed point, coverage, separate Standards/Spec verdicts, required
+findings, advisories, automated evidence, unresolved gaps, and next action in one
+concise canonical report. An incomplete required assessment is not approval.
+When required findings and assessments are resolved and exact-candidate CI passes,
+mark the PR ready and issue In Review when present. Close the issue only after
+human merge, following [the delivery lifecycle](issue-tracker.md).
 
-The reviewer verifies required baseline results for the exact candidate and reuses
-trusted implementation/CI evidence. Rerun checks only to resolve missing evidence,
-changed inputs, or a concrete concern. Independent probes must be finite and named
-in the review report; open-ended fault discovery is not a completion criterion.
-
-On re-review:
-
-- inspect the complete diff;
-- verify implementation reran `npm run preflight` and tests relevant to required
-  fixes for the revised candidate;
-- verify complete tests when shared behavior changed;
-- require package, license, or alternate-runtime checks only when their inputs
-  changed or the prior result is no longer trustworthy;
-- reuse exact-candidate CI and unchanged verification evidence rather than
-  repeating checks whose inputs did not change.
-
-## Mechanical follow-ups
-
-After a complete candidate review has no required findings, a strictly mechanical
-follow-up may receive a targeted independent check instead of a new full review.
-The check does not consume a review round. Keep the PR draft until it completes.
-Required CI and implementation preflight still apply to the revised candidate.
-
-Record the previously approved SHA, revised SHA, complete incremental diff, and
-why the change cannot alter behavior, requirements, or meaning. One independent
-reviewer checks that entire incremental diff, verifies relevant mechanical checks,
-and records whether the prior approval extends to the new candidate. Formatting
-is not automatically mechanical: Markdown whitespace can change rendering, and
-whitespace in code or fixtures can change behavior. A whitespace cleanup qualifies
-only when its effect is verified to preserve the intended meaning and behavior.
-Changes to dependencies, commands, links, policy, requirements, or runtime behavior
-do not qualify merely because they are small. When uncertain, use full review.
-
-This exception cannot clear substantive unresolved findings, bypass a failed CI
-check, reset a spent cycle, or transfer approval after unreviewed semantic changes.
-
-## Review report
-
-Report Standards and Spec separately. For each axis, list required findings
-first, advisories second, and verification evidence last. Include:
-
-- fixed point and candidate commit;
-- review cycle/contract revision and round number (`1 of 2` or `2 of 2`), or the
-  prior approved SHA and targeted mechanical-follow-up verdict;
-- review tier, rationale, review profile, and timebox outcome;
-- exact required-finding citations;
-- commands run and summarized results;
-- whether the candidate is agent-approved;
-- and any follow-up issues recommended for advisories.
-
-The review task never implements its own fixes, changes lifecycle state, or opens
-a pull request.
+Observe this policy during ordinary deliveries, without extra benchmark runs.
+Record available model/effort, avoidable interventions, repeated work, and useful
+findings. Use numeric usage only when actually available; do not infer savings
+from elapsed time. Ask whether the guide helped at human-review completion.
+Keep the existing three-implementation-PR guide trial count; maintenance PRs do
+not reset it. PR #46's first trial was not noticed by the human, who reviewed the
+diff directly; it demonstrated no reduction in human review burden.
