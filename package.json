@@ -16,7 +16,8 @@
     "node": ">=20"
   },
   "bin": {
-    "common-knowledge": "dist/cli.js"
+    "common-knowledge": "dist/cli.js",
+    "common-knowledge-mcp": "dist/mcp.js"
   },
   "files": [
     "dist"
@@ -27,7 +28,7 @@
     "lint:repo": "node scripts/lint-repository.mjs",
     "lint": "npm run typecheck && npm run lint:repo",
     "preflight": "npm run lint && npm run test:focused",
-    "test:focused": "npm run build && node --test test/cli.test.mjs test/entry-lifecycle.test.mjs",
+    "test:focused": "npm run build && node --test test/cli.test.mjs test/entry-lifecycle.test.mjs test/mcp.test.mjs",
     "test": "npm run build && node --test",
     "verify:package": "npm run build && node scripts/verify-package.mjs",
     "benchmark:search": "npm run build && node scripts/benchmark-search.mjs"
@@ -37,6 +38,7 @@
     "typescript": "^5.9.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
     "ajv": "^8.20.0",
     "yaml": "^2.9.0"
   }
