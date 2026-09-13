@@ -5,8 +5,10 @@ changed behavior or decision:
 
 - Use the assigned issue or explicitly agreed task scope to identify acceptance
   criteria and relevant specification sections. For agent-first work, use
-  [the combined specification and PRD](../agent-first-spec.md). For unchanged
-  v0.1.0 behavior, use [the prototype specification](../prototype-spec.md).
+  [the combined specification and PRD](../agent-first-spec.md), and use the
+  [delivery roadmap](../agent-first-roadmap.md) when preparing its milestones for
+  issue conversion. For unchanged v0.1.0 behavior, use
+  [the prototype specification](../prototype-spec.md).
 - Use [CONTEXT.md](../../CONTEXT.md) for domain terminology and project boundaries.
 - Read decisions in `docs/adr/` that govern the affected design.
 - Use [the PRD](../PRD.md) when product intent or user outcomes need clarification.
