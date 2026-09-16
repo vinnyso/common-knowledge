@@ -4,6 +4,7 @@ import {
   existsSync,
   fstatSync,
   lstatSync,
+  mkdirSync,
   openSync,
   readFileSync,
   realpathSync,
@@ -25,6 +26,10 @@ export function corpusPath(cwd: string): string {
 
 export function entryPath(cwd: string, id: string): string {
   return join(corpusPath(cwd), "entries", `${id}.md`);
+}
+
+export function proposalPath(cwd: string, id: string): string {
+  return join(corpusPath(cwd), "proposals", `${id}.md`);
 }
 
 function assertSafeCorpusFilePath(cwd: string, path: string, label: string): void {
@@ -102,12 +107,15 @@ export function readSafeCorpusFile(cwd: string, path: string, label: string): st
   }
 }
 
-export function entryDirectoryIdentity(cwd: string): { path: string; identity: string } {
-  const path = join(resolve(cwd), corpusDirectoryName, "entries");
+function corpusDirectoryIdentity(
+  cwd: string,
+  name: "entries" | "proposals",
+): { path: string; identity: string } {
+  const path = join(resolve(cwd), corpusDirectoryName, name);
   const corpus = join(resolve(cwd), corpusDirectoryName);
   for (const [component, label] of [
     [corpus, "Corpus directory"],
-    [path, "Corpus entries directory"],
+    [path, `Corpus ${name} directory`],
   ] as const) {
     const stat = lstatSync(component, { bigint: true });
     if (stat.isSymbolicLink() || !stat.isDirectory()) {
@@ -117,18 +125,42 @@ export function entryDirectoryIdentity(cwd: string): { path: string; identity: s
     }
   }
   const resolvedCorpus = realpathSync(corpus);
-  const resolvedEntries = realpathSync(path);
-  if (relative(resolvedCorpus, resolvedEntries) !== "entries") {
+  const resolvedDirectory = realpathSync(path);
+  if (relative(resolvedCorpus, resolvedDirectory) !== name) {
     throw new EntryCommandError(
-      `Corpus entries directory resolves outside ${corpusDirectoryName}`,
+      `Corpus ${name} directory resolves outside ${corpusDirectoryName}`,
     );
   }
   const stat = lstatSync(path, { bigint: true });
   return { path, identity: `${stat.dev}:${stat.ino}:${stat.mtimeNs}:${stat.size}` };
 }
 
+export function entryDirectoryIdentity(cwd: string): { path: string; identity: string } {
+  return corpusDirectoryIdentity(cwd, "entries");
+}
+
 export function assertEntryDirectoryIdentity(cwd: string, expected: string): void {
   if (entryDirectoryIdentity(cwd).identity !== expected) {
     throw new EntryCommandError("Corpus entries directory changed during validation");
   }
+}
+
+export function proposalDirectoryIdentity(cwd: string): { path: string; identity: string } {
+  return corpusDirectoryIdentity(cwd, "proposals");
+}
+
+export function assertProposalDirectoryIdentity(cwd: string, expected: string): void {
+  if (proposalDirectoryIdentity(cwd).identity !== expected) {
+    throw new EntryCommandError("Corpus proposals directory changed during operation");
+  }
+}
+
+export function ensureProposalDirectory(cwd: string): { path: string; identity: string } {
+  const path = join(corpusPath(cwd), "proposals");
+  try {
+    mkdirSync(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+  }
+  return proposalDirectoryIdentity(cwd);
 }

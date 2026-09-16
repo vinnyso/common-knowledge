@@ -79,6 +79,33 @@ function entrySource({ id, title, triggers }) {
   return `---\nschema_version: 1\nid: ${id}\nkind: gotcha\ntitle: ${title}\ntriggers:\n${triggers.map((trigger) => `  - ${trigger}`).join("\n")}\nstatus: active\ncreated_at: 2026-09-11T12:00:00Z\ncreated_by: mcp-test\n---\n## Situation\n\nA recurring project condition.\n\n## Resolution\n\nApply the project-specific resolution.\n`;
 }
 
+function proposalArguments(overrides = {}) {
+  return {
+    id: "pending-rule",
+    operation: "add",
+    created_by: "mcp-agent",
+    targets: [{ id: "pending-rule", state: "absent" }],
+    evidence: [{
+      source: "src/example.ts",
+      revision: "abc123",
+      observed_fact: "The implementation uses the repository-specific behavior.",
+      lineage: "implementation",
+      validator: "npm test",
+    }],
+    rationale: "Preserve a reusable project-specific constraint.",
+    future_use: "Consult before changing the affected implementation.",
+    applicability_and_exceptions: "Applies while the cited implementation remains current.",
+    assumptions_and_unresolved_checks: "No unresolved checks.",
+    intended_destination: ".repo-memory/entries/pending-rule.md",
+    proposed_entry: entrySource({
+      id: "pending-rule",
+      title: "Use the pending repository rule",
+      triggers: ["pending-only-needle"],
+    }),
+    ...overrides,
+  };
+}
+
 async function initializeWithEntry(repository, entry) {
   assert.equal((await invokeCli(["init"], repository)).exitCode, 0);
   const input = join(repository, `${entry.id}.md`);
@@ -102,7 +129,7 @@ async function connect(root) {
   return { client, stderr: () => stderr };
 }
 
-test("discovers typed read-only MCP tools and performs successful operations", async () => {
+test("discovers typed MCP tools and performs successful read operations", async () => {
   const repository = await makeRepository();
   await initializeWithEntry(repository, {
     id: "project-test-command",
@@ -112,9 +139,21 @@ test("discovers typed read-only MCP tools and performs successful operations", a
   const connection = await connect(repository);
   try {
     const listed = await connection.client.listTools();
-    assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), ["read", "search", "validate"]);
+    assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), [
+      "proposal_create",
+      "proposal_discard",
+      "proposal_edit",
+      "proposal_list",
+      "proposal_read",
+      "read",
+      "search",
+      "validate",
+    ]);
     for (const tool of listed.tools) {
-      assert.equal(tool.annotations.readOnlyHint, true);
+      assert.equal(
+        tool.annotations.readOnlyHint,
+        ["proposal_list", "proposal_read", "read", "search", "validate"].includes(tool.name),
+      );
       assert.ok(tool.outputSchema);
     }
 
@@ -190,6 +229,90 @@ test("returns distinct typed outcomes for empty, missing, invalid, absent, and c
       arguments: { query: "known rule" },
     });
     assert.equal(invalid.structuredContent.status, "invalid_entry");
+  } finally {
+    await connection.client.close();
+  }
+});
+
+test("proposal MCP tools round trip exact revisions without changing accepted knowledge", async () => {
+  const repository = await makeRepository();
+  await initializeWithEntry(repository, {
+    id: "accepted-rule",
+    title: "Use the accepted repository rule",
+    triggers: ["accepted rule"],
+  });
+  const logPath = join(repository, ".repo-memory", "log.md");
+  const logBefore = await readFile(logPath, "utf8");
+  const acceptedPath = join(repository, ".repo-memory", "entries", "accepted-rule.md");
+  const acceptedBefore = await readFile(acceptedPath, "utf8");
+  const connection = await connect(repository);
+  try {
+    const created = await connection.client.callTool({
+      name: "proposal_create",
+      arguments: proposalArguments(),
+    });
+    assert.equal(created.structuredContent.status, "ok");
+    assert.equal(created.structuredContent.proposal.summary.status, "proposed");
+    assert.match(created.structuredContent.proposal.summary.revision, /^sha256:[a-f0-9]{64}$/u);
+    const firstRevision = created.structuredContent.proposal.summary.revision;
+
+    const listed = await connection.client.callTool({ name: "proposal_list", arguments: {} });
+    assert.equal(listed.structuredContent.proposals[0].id, "pending-rule");
+    assert.deepEqual(listed.structuredContent.proposals[0].diagnostics, []);
+
+    const read = await connection.client.callTool({
+      name: "proposal_read",
+      arguments: { id: "pending-rule" },
+    });
+    assert.equal(read.structuredContent.proposal.summary.revision, firstRevision);
+    assert.match(read.structuredContent.proposal.source, /## Proposed Entry/u);
+
+    const pendingSearch = await connection.client.callTool({
+      name: "search",
+      arguments: { query: "pending-only-needle" },
+    });
+    assert.deepEqual(pendingSearch.structuredContent, { status: "no_match", results: [] });
+
+    const staleEdit = await connection.client.callTool({
+      name: "proposal_edit",
+      arguments: {
+        ...proposalArguments({ rationale: "Revised rationale." }),
+        created_by: undefined,
+        expected_revision: `sha256:${"0".repeat(64)}`,
+        revised_by: "mcp-editor",
+      },
+    });
+    assert.equal(staleEdit.structuredContent.status, "stale_revision");
+
+    const edited = await connection.client.callTool({
+      name: "proposal_edit",
+      arguments: {
+        ...proposalArguments({ rationale: "Revised rationale." }),
+        created_by: undefined,
+        expected_revision: firstRevision,
+        revised_by: "mcp-editor",
+      },
+    });
+    assert.equal(edited.structuredContent.status, "ok");
+    const secondRevision = edited.structuredContent.proposal.summary.revision;
+    assert.notEqual(secondRevision, firstRevision);
+
+    const staleDiscard = await connection.client.callTool({
+      name: "proposal_discard",
+      arguments: { id: "pending-rule", expected_revision: firstRevision },
+    });
+    assert.equal(staleDiscard.structuredContent.status, "stale_revision");
+    const discarded = await connection.client.callTool({
+      name: "proposal_discard",
+      arguments: { id: "pending-rule", expected_revision: secondRevision },
+    });
+    assert.deepEqual(discarded.structuredContent, {
+      status: "ok",
+      proposal_id: "pending-rule",
+    });
+
+    assert.equal(await readFile(logPath, "utf8"), logBefore);
+    assert.equal(await readFile(acceptedPath, "utf8"), acceptedBefore);
   } finally {
     await connection.client.close();
   }
@@ -329,6 +452,11 @@ test("reports insufficient checkout permissions as a typed outcome", async () =>
       arguments: {},
     });
     assert.equal(result.structuredContent.status, "permission_denied");
+    const proposal = await connection.client.callTool({
+      name: "proposal_create",
+      arguments: proposalArguments(),
+    });
+    assert.equal(proposal.structuredContent.status, "permission_denied");
   } finally {
     await chmod(repository, 0o755);
     await connection.client.close();

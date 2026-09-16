@@ -17,6 +17,7 @@ This directory is the repository-local source of truth for durable, project-spec
 
 - \`schema.json\` is the normative JSON Schema for Entry front matter.
 - \`entries/<id>.md\` stores each Entry as Markdown with YAML front matter.
+- \`proposals/<id>.md\` stores pending proposals separately from accepted Entries.
 - \`log.md\` is the append-only activity log for Entry changes.
 
 Follow the repository-level knowledge protocol in the repository's agent instructions (for example, \`AGENTS.md\`) to decide when to search, read, write, or maintain this Corpus. Read only relevant Entries, verify that they still apply, and use normal Git review for changes.
@@ -157,6 +158,7 @@ export function initializeCorpus(workingDirectory: string): string {
 
   try {
     mkdirSync(join(stagingPath, "entries"));
+    mkdirSync(join(stagingPath, "proposals"));
     writeFileSync(join(stagingPath, "README.md"), corpusReadme, "utf8");
     writeFileSync(
       join(stagingPath, "schema.json"),
@@ -175,7 +177,7 @@ export function initializeCorpus(workingDirectory: string): string {
       throw error;
     }
 
-    for (const name of ["README.md", "schema.json", "log.md", "entries"]) {
+    for (const name of ["README.md", "schema.json", "log.md", "entries", "proposals"]) {
       renameSync(join(stagingPath, name), join(corpusPath, name));
     }
 

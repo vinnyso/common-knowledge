@@ -141,9 +141,11 @@ test("initializes the exact Corpus layout in the explicit working directory", as
     "README.md",
     "entries",
     "log.md",
+    "proposals",
     "schema.json",
   ]);
   assert.deepEqual(await readdir(join(corpusPath, "entries")), []);
+  assert.deepEqual(await readdir(join(corpusPath, "proposals")), []);
 
   const readme = await readFile(join(corpusPath, "README.md"), "utf8");
   assert.match(readme, /repository-local source of truth/);
