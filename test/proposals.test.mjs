@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   mkdtemp,
@@ -10,7 +11,8 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, test } from "node:test";
 
 import { createKnowledgeProposal } from "../dist/application.js";
@@ -26,6 +28,7 @@ import {
 import { StaleProposalRevisionError } from "../dist/proposal-model.js";
 
 const temporaryDirectories = [];
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 afterEach(async () => {
   await Promise.all(
@@ -93,6 +96,81 @@ async function installEntry(cwd, id, overrides = {}) {
   const source = entrySource(id, overrides);
   await writeFile(join(cwd, ".repo-memory", "entries", `${id}.md`), source, "utf8");
   return source;
+}
+
+function invokeProposalCreate(cwd, input, environment) {
+  const applicationUrl = pathToFileURL(join(projectRoot, "dist", "application.js")).href;
+  const source =
+    `import { createKnowledgeProposal } from ${JSON.stringify(applicationUrl)};` +
+    `createKnowledgeProposal(process.cwd(), JSON.parse(process.env.CK_PROPOSAL_INPUT));`;
+  return new Promise((resolveResult, reject) => {
+    const child = spawn(
+      process.execPath,
+      ["--input-type=module", "--eval", source],
+      {
+        cwd,
+        env: { ...environment, CK_PROPOSAL_INPUT: JSON.stringify(input) },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    child.on("error", reject);
+    child.on("close", (exitCode, signal) =>
+      resolveResult({ exitCode, signal, stdout, stderr }),
+    );
+  });
+}
+
+async function startHeldProposalCreate(cwd, input) {
+  const signal = join(cwd, "proposal-lock-acquired.signal");
+  const release = join(cwd, "proposal-lock-release.signal");
+  const preload = join(cwd, "hold-proposal-lock.mjs");
+  await writeFile(
+    preload,
+    `import fs from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
+const originalOpen = fs.openSync.bind(fs);
+let held = false;
+fs.openSync = (path, flags, mode) => {
+  const descriptor = originalOpen(path, flags, mode);
+  if (!held && String(path).endsWith(".repo-memory.lock") && flags === "wx") {
+    held = true;
+    fs.writeFileSync(process.env.CK_LOCK_SIGNAL, "held\\n");
+    while (!fs.existsSync(process.env.CK_LOCK_RELEASE)) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10);
+  }
+  return descriptor;
+};
+syncBuiltinESMExports();
+`,
+    "utf8",
+  );
+  const environment = {
+    ...process.env,
+    NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --import=${pathToFileURL(preload).href}`.trim(),
+    CK_LOCK_SIGNAL: signal,
+    CK_LOCK_RELEASE: release,
+  };
+  const completion = invokeProposalCreate(cwd, input, environment);
+  for (let attempt = 0; attempt < 500; attempt += 1) {
+    try {
+      await readFile(signal, "utf8");
+      return {
+        release: async () => {
+          await writeFile(release, "release\n", "utf8");
+          return completion;
+        },
+      };
+    } catch {
+      await new Promise((resolveWait) => setTimeout(resolveWait, 10));
+    }
+  }
+  const early = await completion;
+  assert.fail(`first proposal mutation did not acquire the checkout lock: ${early.stderr}`);
 }
 
 test("create, inspect, edit, and discard preserve proposal isolation and exact revisions", async () => {
@@ -291,12 +369,43 @@ test("existing Corpora gain a safe proposals directory and reject linked or trav
   assert.throws(() => listProposals(cwd), /ordinary directory without symbolic links/u);
 });
 
-test("proposal operations honor the cooperative checkout lock", async () => {
+test("simultaneous proposal mutations are isolated by the cooperative checkout lock", async () => {
   const cwd = await repository();
-  await writeFile(join(cwd, ".repo-memory.lock"), "{}\n", "utf8");
+  const logPath = join(cwd, ".repo-memory", "log.md");
+  const logBefore = await readFile(logPath, "utf8");
+  const held = await startHeldProposalCreate(
+    cwd,
+    draft({
+      id: "held-rule",
+      targets: [{ id: "held-rule", state: "absent" }],
+      intended_destination: ".repo-memory/entries/held-rule.md",
+      proposed_entry: entrySource("held-rule"),
+    }),
+  );
   assert.throws(
-    () => createKnowledgeProposal(cwd, draft()),
+    () => createKnowledgeProposal(
+      cwd,
+      draft({
+        id: "competing-rule",
+        targets: [{ id: "competing-rule", state: "absent" }],
+        intended_destination: ".repo-memory/entries/competing-rule.md",
+        proposed_entry: entrySource("competing-rule"),
+      }),
+    ),
     /checkout lock .* is held/u,
   );
   assert.deepEqual(await readdir(join(cwd, ".repo-memory", "proposals")), []);
+  assert.deepEqual(await readdir(join(cwd, ".repo-memory", "entries")), []);
+  assert.equal(await readFile(logPath, "utf8"), logBefore);
+
+  assert.deepEqual(await held.release(), {
+    exitCode: 0,
+    signal: null,
+    stdout: "",
+    stderr: "",
+  });
+  assert.deepEqual(await readdir(join(cwd, ".repo-memory", "proposals")), ["held-rule.md"]);
+  assert.deepEqual(await readdir(join(cwd, ".repo-memory", "entries")), []);
+  assert.equal(await readFile(logPath, "utf8"), logBefore);
+  await assert.rejects(readFile(join(cwd, ".repo-memory.lock"), "utf8"), { code: "ENOENT" });
 });
