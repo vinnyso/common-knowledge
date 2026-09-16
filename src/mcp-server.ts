@@ -5,17 +5,25 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import * as z from "zod/v4";
 
 import {
+  createKnowledgeProposal,
+  discardKnowledgeProposal,
+  editKnowledgeProposal,
+  listKnowledgeProposals,
   readKnowledge,
+  readKnowledgeProposal,
   searchKnowledge,
   validateKnowledge,
 } from "./application.js";
 import { EntryCommandError } from "./entries.js";
+import { ProposalCommandError, StaleProposalRevisionError } from "./proposal-model.js";
 
 const outcomeStatus = z.enum([
   "ok",
   "no_match",
   "missing_corpus",
   "invalid_entry",
+  "invalid_proposal",
+  "stale_revision",
   "lock_contention",
   "not_found",
   "permission_denied",
@@ -30,15 +38,55 @@ const searchResultSchema = z.object({
   reasons: z.array(z.string()),
 });
 
+const proposalTargetSchema = z.object({
+  id: z.string(),
+  state: z.enum(["absent", "present"]),
+  fingerprint: z.string().optional(),
+});
+
+const proposalSummarySchema = z.object({
+  id: z.string(),
+  status: z.literal("proposed"),
+  operation: z.enum(["add", "update", "supersede", "retire"]).optional(),
+  targets: z.array(proposalTargetSchema),
+  revision: z.string().optional(),
+  age_days: z.number().int().nonnegative().optional(),
+  assessment_due: z.boolean().optional(),
+  diagnostics: z.array(z.string()),
+});
+
+const proposalInspectionSchema = z.object({
+  summary: proposalSummarySchema,
+  source: z.string().optional(),
+});
+
 const toolOutcomeSchema = {
   status: outcomeStatus,
   message: z.string().optional(),
   results: z.array(searchResultSchema).optional(),
   entry: z.string().optional(),
   entry_count: z.number().int().nonnegative().optional(),
+  proposals: z.array(proposalSummarySchema).optional(),
+  proposal: proposalInspectionSchema.optional(),
+  proposal_id: z.string().optional(),
 };
 
 type ToolOutcome = z.infer<z.ZodObject<typeof toolOutcomeSchema>>;
+
+function outputSummary(summary: import("./proposal-model.js").ProposalSummary) {
+  return {
+    ...summary,
+    targets: summary.targets.map((target) => ({ ...target })),
+    diagnostics: [...summary.diagnostics],
+  };
+}
+
+function outputInspection(inspection: import("./proposal-model.js").ProposalInspection) {
+  return {
+    summary: outputSummary(inspection.summary),
+    ...(inspection.source === undefined ? {} : { source: inspection.source }),
+  };
+}
 
 function textResult(outcome: ToolOutcome) {
   return {
@@ -69,14 +117,26 @@ function failedOutcome(error: unknown): ToolOutcome {
   if (/Entry .* does not exist/u.test(message)) {
     return { status: "not_found", message };
   }
+  if (/Proposal .* does not exist/u.test(message)) {
+    return { status: "not_found", message };
+  }
   if (
     errorCodes(error).some((code) => code === "EACCES" || code === "EPERM") ||
     /EACCES|EPERM|permission denied/u.test(message)
   ) {
     return { status: "permission_denied", message };
   }
+  if (error instanceof EntryCommandError && /Proposal|proposals/u.test(message)) {
+    return { status: "invalid_proposal", message };
+  }
   if (error instanceof EntryCommandError) {
     return { status: "invalid_entry", message };
+  }
+  if (error instanceof StaleProposalRevisionError) {
+    return { status: "stale_revision", message };
+  }
+  if (error instanceof ProposalCommandError) {
+    return { status: "invalid_proposal", message };
   }
   return { status: "operation_failed", message };
 }
@@ -101,7 +161,7 @@ export function createMcpServer(checkoutRoot: string): McpServer {
     { name: "common-knowledge", version: "0.1.0" },
     {
       instructions:
-        "Read-only Common Knowledge tools are bound to one configured Git checkout. Search uses repository knowledge from current files; read retrieves one result by Entry ID; validate checks the Corpus. Verify retrieved guidance against current code and evidence.",
+        "Common Knowledge tools are bound to one configured Git checkout. Search and read expose accepted active Entries. Proposal tools author and inspect separate pending artifacts shown as proposed; they do not apply proposals or change accepted Entries. Verify retrieved guidance and proposal evidence against current code.",
     },
   );
   const annotations = {
@@ -182,6 +242,169 @@ export function createMcpServer(checkoutRoot: string): McpServer {
     async () => {
       try {
         return textResult({ status: "ok", entry_count: validateKnowledge(checkoutRoot) });
+      } catch (error) {
+        return textResult(failedOutcome(error));
+      }
+    },
+  );
+
+  const proposalId = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
+  const actor = z.string().min(1).max(256).refine((value) => value === value.trim() && !/[|\r\n]/u.test(value), {
+    message: "actor must be unpadded, single-line, and must not contain |",
+  });
+  const proposalTargetInput = z.object({
+    id: proposalId,
+    state: z.enum(["absent", "present"]),
+  });
+  const proposalEvidenceInput = z.object({
+    source: z.string().trim().min(1).max(4096),
+    revision: z.string().trim().min(1).max(512),
+    observed_fact: z.string().trim().min(1).max(8000),
+    lineage: z.string().trim().min(1).max(512),
+    validator: z.string().trim().min(1).max(4096).optional(),
+  });
+  const proposalContentInput = {
+    id: proposalId,
+    operation: z.enum(["add", "update", "supersede", "retire"]),
+    targets: z.array(proposalTargetInput).min(1).max(2),
+    evidence: z.array(proposalEvidenceInput).min(1).max(100),
+    rationale: z.string().trim().min(1).max(32000),
+    future_use: z.string().trim().min(1).max(32000),
+    applicability_and_exceptions: z.string().trim().min(1).max(32000),
+    assumptions_and_unresolved_checks: z.string().trim().min(1).max(32000),
+    intended_destination: z.string().trim().min(1).max(4096),
+    proposed_entry: z.string().min(1).max(256000).optional(),
+    retirement_reason: z.string().trim().min(1).max(32000).optional(),
+  } as const;
+
+  server.registerTool(
+    "proposal_create",
+    {
+      title: "Create Common Knowledge Proposal",
+      description:
+        "Create one validated pending proposal. Present-target fingerprints and timestamps are calculated from the configured checkout.",
+      inputSchema: {
+        ...proposalContentInput,
+        created_by: actor,
+      },
+      outputSchema: toolOutcomeSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (input) => {
+      try {
+        return textResult({
+          status: "ok",
+          proposal: outputInspection(createKnowledgeProposal(checkoutRoot, input)),
+        });
+      } catch (error) {
+        return textResult(failedOutcome(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "proposal_list",
+    {
+      title: "List Common Knowledge Proposals",
+      description:
+        "List pending proposals separately from accepted Entries, including revisions, age assessment, and diagnostics.",
+      outputSchema: toolOutcomeSchema,
+      annotations,
+    },
+    async () => {
+      try {
+        return textResult({
+          status: "ok",
+          proposals: listKnowledgeProposals(checkoutRoot).map(outputSummary),
+        });
+      } catch (error) {
+        return textResult(failedOutcome(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "proposal_read",
+    {
+      title: "Read Common Knowledge Proposal",
+      description:
+        "Read one pending proposal by stable identifier, including its exact revision and current diagnostics.",
+      inputSchema: { id: proposalId },
+      outputSchema: toolOutcomeSchema,
+      annotations,
+    },
+    async ({ id }) => {
+      try {
+        return textResult({
+          status: "ok",
+          proposal: outputInspection(readKnowledgeProposal(checkoutRoot, id)),
+        });
+      } catch (error) {
+        return textResult(failedOutcome(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "proposal_edit",
+    {
+      title: "Edit Common Knowledge Proposal",
+      description:
+        "Replace one pending proposal only when its exact expected revision still matches; creation identity is preserved and revision attribution is recorded.",
+      inputSchema: {
+        ...proposalContentInput,
+        expected_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+        revised_by: actor,
+      },
+      outputSchema: toolOutcomeSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (input) => {
+      try {
+        return textResult({
+          status: "ok",
+          proposal: outputInspection(editKnowledgeProposal(checkoutRoot, input)),
+        });
+      } catch (error) {
+        return textResult(failedOutcome(error));
+      }
+    },
+  );
+
+  server.registerTool(
+    "proposal_discard",
+    {
+      title: "Discard Common Knowledge Proposal",
+      description:
+        "Delete only the pending proposal whose exact expected revision still matches. Accepted Entries and the activity log are unchanged.",
+      inputSchema: {
+        id: proposalId,
+        expected_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+      },
+      outputSchema: toolOutcomeSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ id, expected_revision }) => {
+      try {
+        return textResult({
+          status: "ok",
+          proposal_id: discardKnowledgeProposal(checkoutRoot, id, expected_revision),
+        });
       } catch (error) {
         return textResult(failedOutcome(error));
       }

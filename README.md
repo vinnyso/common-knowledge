@@ -19,8 +19,10 @@ searching, reading, adding, updating, retiring, and validating Entries. The Java
 21 mock repository and [clean-clone two-agent demonstration](docs/two-agent-handoff.md)
 show that one agent can record a lesson and a later independent agent can
 retrieve and apply it through the same packaged CLI and repository filesystem.
-The next-phase local stdio MCP adapter exposes the protected `search`, `read`,
-and `validate` operations to supported Codex clients.
+The next-phase local stdio MCP adapter exposes protected Entry reads plus
+pending-proposal create, list, read, edit, and discard operations to supported
+Codex clients. Pending proposals remain separate from accepted guidance; proposal
+application is a later milestone.
 
 ## Engine and repository installation
 
@@ -40,6 +42,8 @@ consumer-repository/
     log.md
     entries/
       <id>.md
+    proposals/
+      <id>.md             # Pending, not accepted guidance
   src/                    # Project artifacts affected by the knowledge
   tests/                  # Possible deterministic Promotion destinations
   <instruction files>     # Possible instructional Promotion destinations
@@ -82,6 +86,8 @@ node /absolute/path/to/common-knowledge/dist/cli.js init
   log.md          # Append-only activity log
   entries/
     <id>.md       # One Markdown Entry per lesson
+  proposals/
+    <id>.md       # One pending proposal per recommendation
 ```
 
 ## Agent protocol
@@ -121,8 +127,11 @@ codex mcp add common-knowledge -- \
 codex mcp list
 ```
 
-The local adapter exposes typed read-only `search`, `read`, and `validate`
-tools. It never accepts a repository root per tool call. See the
+The local adapter exposes typed read-only `search`, `read`, `validate`,
+`proposal_list`, and `proposal_read` tools, plus protected `proposal_create`,
+`proposal_edit`, and `proposal_discard` mutations. It never accepts a repository
+root per tool call. Pending proposals are presented as `status: proposed` but are
+excluded from normal Entry search and read. See the
 [MCP operation and host guide](docs/mcp.md) for supported roots, outcomes,
 permissions, Codex configuration, and limitations.
 

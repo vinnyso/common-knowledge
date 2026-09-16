@@ -93,6 +93,7 @@ try {
     "README.md",
     "entries",
     "log.md",
+    "proposals",
     "schema.json",
   ]);
 
@@ -105,9 +106,72 @@ try {
   try {
     await client.connect(transport);
     const tools = await client.listTools();
-    assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), ["read", "search", "validate"]);
+    assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), [
+      "proposal_create",
+      "proposal_discard",
+      "proposal_edit",
+      "proposal_list",
+      "proposal_read",
+      "read",
+      "search",
+      "validate",
+    ]);
     const validation = await client.callTool({ name: "validate", arguments: {} });
     assert.deepEqual(validation.structuredContent, { status: "ok", entry_count: 0 });
+
+    const proposalInput = {
+      id: "package-verification",
+      operation: "add",
+      created_by: "package-verifier",
+      targets: [{ id: "package-verification", state: "absent" }],
+      evidence: [{
+        source: "scripts/verify-package.mjs",
+        revision: "installed-package",
+        observed_fact: "The installed MCP server exposes proposal operations.",
+        lineage: "executable check",
+        validator: "npm run verify:package",
+      }],
+      rationale: "Verify pending proposal operations in the packed installation.",
+      future_use: "Use this check when the packaged MCP surface changes.",
+      applicability_and_exceptions: "Applies only to package verification.",
+      assumptions_and_unresolved_checks: "No unresolved checks.",
+      intended_destination: ".repo-memory/entries/package-verification.md",
+      proposed_entry: `---\nschema_version: 1\nid: package-verification\nkind: gotcha\ntitle: Verify the installed package proposal surface\ntriggers:\n  - package proposal verification\nstatus: active\ncreated_at: ${new Date().toISOString()}\ncreated_by: package-verifier\n---\n## Situation\n\nThe package is installed in isolation.\n\n## Resolution\n\nExercise the installed proposal tools.\n`,
+    };
+    const created = await client.callTool({
+      name: "proposal_create",
+      arguments: proposalInput,
+    });
+    assert.equal(created.structuredContent.status, "ok");
+    const firstRevision = created.structuredContent.proposal.summary.revision;
+    assert.match(firstRevision, /^sha256:[a-f0-9]{64}$/u);
+    const proposals = await client.callTool({ name: "proposal_list", arguments: {} });
+    assert.equal(proposals.structuredContent.proposals[0].id, "package-verification");
+    const proposal = await client.callTool({
+      name: "proposal_read",
+      arguments: { id: "package-verification" },
+    });
+    assert.equal(proposal.structuredContent.proposal.summary.revision, firstRevision);
+    const { created_by: _createdBy, ...editableProposal } = proposalInput;
+    const edited = await client.callTool({
+      name: "proposal_edit",
+      arguments: {
+        ...editableProposal,
+        rationale: "Verify revised pending proposal operations in the packed installation.",
+        expected_revision: firstRevision,
+        revised_by: "package-verifier",
+      },
+    });
+    assert.equal(edited.structuredContent.status, "ok");
+    const secondRevision = edited.structuredContent.proposal.summary.revision;
+    const discarded = await client.callTool({
+      name: "proposal_discard",
+      arguments: { id: "package-verification", expected_revision: secondRevision },
+    });
+    assert.deepEqual(discarded.structuredContent, {
+      status: "ok",
+      proposal_id: "package-verification",
+    });
   } finally {
     await client.close();
   }

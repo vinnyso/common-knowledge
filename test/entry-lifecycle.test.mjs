@@ -1024,6 +1024,7 @@ fs.rmSync = (path, options) => {
     "README.md",
     "entries",
     "log.md",
+    "proposals",
     "schema.json",
   ]);
   assert.equal((await invoke(["validate"], cwd)).exitCode, 0);
@@ -1183,6 +1184,7 @@ fs.renameSync = (source, destination) => {
     "README.md",
     "entries",
     "log.md",
+    "proposals",
     "schema.json",
   ]);
 });
