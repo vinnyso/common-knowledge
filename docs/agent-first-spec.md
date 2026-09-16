@@ -81,22 +81,31 @@ Preserve the v1 Entry schema and define a small adjacent versioned proposal
 format in AF-03, without introducing a generic workflow engine.
 
 A proposal identifies its stable proposal ID, intended operation (add, update,
-supersede, or retire), target IDs where applicable, the target revision/content
-fingerprints observed at drafting, proposed Entry content or retirement reason,
-author attribution, creation and last meaningful revision timestamps,
-and concise evidence and rationale. Include the observation, supporting source
-references, future action, applicability/exception, and intended destination.
-For a new Entry, the precondition includes absence of its ID; supersession checks
-both the predecessor and the new ID. Mechanical source checks can detect missing
-repository references where possible, but cannot establish that evidence is true.
+supersede, or retire), proposed Entry content or retirement reason, author
+attribution, creation and last meaningful revision timestamps, concise evidence,
+and rationale. Required authored content is limited to three concerns: what
+supports the change, why the change belongs in shared knowledge, and the exact
+change. Applicability, exceptions, assumptions, future use, and destination may
+appear in the rationale or Entry when material; they are not separate mandatory
+sections.
 
-Before AF-03 implementation, its issue must define the exact versioned schema,
-fingerprint inputs and comparison rules, proposal revision identity, timestamp
-semantics, and operation transition/test matrix. Acceptance binds to the exact
-proposal revision. Attribute the proposal author and applying actor separately
-from the Git commit author; supplied actor names are not authenticated identities.
-Git history and source references provide the audit trail, not cryptographic
-provenance or a tamper-evident store.
+The engine derives target IDs, present-content fingerprints, absence guards, and
+the Entry destination from the operation and proposed Entry. Add guards absence
+of the proposed ID; update guards the active Entry with the same ID; supersede
+guards the active predecessor named by `supersedes` and absence of the proposed
+ID. Retirement has no proposed Entry, so its caller supplies the target ID and
+the engine guards that active Entry. Callers do not construct fingerprints or
+precondition lists.
+
+Proposal v1 remains a small adjacent format rather than a generic workflow
+schema. AF-03 defines its exact fingerprint inputs, proposal revision identity,
+timestamp semantics, and operation transition/test matrix. Acceptance binds to
+the exact proposal revision. Attribute the proposal author and applying actor
+separately from the Git commit author; supplied actor names are not authenticated
+identities. Git history and source references provide the audit trail, not
+cryptographic provenance or a tamper-evident store. Mechanical source checks can
+detect missing repository references where possible, but cannot establish that
+evidence is true.
 
 Target fingerprints detect changes to affected Entries, not the continued truth
 of supporting evidence. Before asking for acceptance, the agent must reassess
@@ -126,19 +135,17 @@ refresh the proposal; automatic merging of overlapping edits is out of scope.
   no separate CK implementation-task approval after normal human PR review.
 - Rejecting/discarding removes the pending proposal and leaves accepted guidance
   unchanged. No permanent rejection archive or proposal telemetry is required.
-- Successful application consumes the proposal. Entry changes, activity events,
-  and proposal consumption must form one recoverable operation. An ordinary
-  failure leaves the original state available for retry; if rollback or cleanup
-  is incomplete, report whether changes applied and retain recovery evidence.
-  Retrying an applied/consumed proposal must not duplicate lifecycle events.
-  AF-03 must verify this boundary, including consumption failure, before enabling
-  writes; existing file-replacement transactions alone do not provide deletion.
-  The transition matrix must distinguish staging failure, mid-apply failure,
-  consumption failure, incomplete rollback, post-application cleanup failure,
-  and process interruption. Do not promise crash-proof recovery: preserve the
-  documented cooperative model and provide an explicit inspection/recovery path
-  for ambiguous outcomes before retrying. Verify that an applied-but-unconsumed
-  proposal cannot be blindly replayed to duplicate effects.
+- Successful application uses the existing protected Entry Lifecycle operation,
+  which commits the Entry and activity log together, and then removes the
+  proposal while retaining the same operation lock. If proposal removal fails
+  after the lifecycle commit, return a typed `applied_cleanup_required` outcome:
+  the accepted change remains applied, the pending file remains for explicit
+  inspection/discard, and its now-stale target guard prevents replay. A process
+  interruption in the same interval has the same safe retry property even when
+  the caller did not receive the outcome. Existing lifecycle recovery diagnostics
+  govern ambiguous Entry-and-log failures. Do not extend the transaction with
+  deletion, add a proposal-specific recovery manifest, or build a generic
+  recovery workflow without an observed need.
 
 An agent that authored a retirement proposal already has its contrary evidence
 and must use that evidence when assessing the still-active Entry. Another session
@@ -199,11 +206,11 @@ escapes, malformed inputs, and insufficient-permission failures. The host owns
 sandbox enforcement; document and test the minimum filesystem permissions needed
 for supported operations rather than requiring unrestricted filesystem access.
 
-The adapter must account for transaction recovery directories outside the checkout
-when testing host filesystem permissions. Pin and record tested SDK, Node, and
-client versions in the implementation issue. Resource subscriptions are optional
-future work: MCP access does not itself synchronize Git or ensure that an agent
-receives or acts on an update.
+The adapter must account for existing lifecycle transaction recovery directories
+outside the checkout when testing host filesystem permissions. Pin and record
+tested SDK, Node, and client versions in the implementation issue. Resource
+subscriptions are optional future work: MCP access does not itself synchronize
+Git or ensure that an agent receives or acts on an update.
 
 AF-03 exposes proposal authoring and inspection plus a narrow application path.
 Raw active-entry mutations must not be advertised as routine agent authoring.
@@ -348,10 +355,11 @@ CLI safety tests and add focused MCP/filesystem and proposal-transition tests;
 verify skill behavior with realistic tasks rather than exact prose matching.
 AF-03's automated transition tests must cover malformed proposals independently
 of Entry retrieval, stale accepted revisions, simultaneous proposals for one
-Entry, overlapping edits rejected by freshness checks, mid-apply and consumption
-failures, and retries. MCP boundary tests cover configured-root isolation and
-permission failures. Keep scenarios finite and tied to the supported process
-model; the demonstration complements these checks rather than replacing them.
+Entry, overlapping edits rejected by freshness checks, lifecycle failures,
+post-apply proposal-cleanup failure, and safe retries without duplicate events.
+MCP boundary tests cover configured-root isolation and permission failures. Keep
+scenarios finite and tied to the supported process model; the demonstration
+complements these checks rather than replacing them.
 
 In AF-06, record useful reuse, rejected/noisy proposals, missed consultation,
 corrections, and review effort in one short development note. Compare a few
