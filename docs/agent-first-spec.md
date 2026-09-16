@@ -117,7 +117,9 @@ refresh the proposal; automatic merging of overlapping edits is out of scope.
 
 - Creation and editing persist a draft without changing Entries or their activity
   log. Correcting, superseding, or retiring an Entry leaves accepted content and
-  lifecycle unchanged while pending.
+  lifecycle unchanged while pending. Edit and discard require the exact proposal
+  revision the caller inspected; a mismatch changes nothing and requires a fresh
+  read.
 - The user reviews a concrete proposal in the active session. Acceptance is
   scoped to that proposal's content and observed targets. The host/session
   workflow conveys the user's instruction to the applying agent; CK does not
@@ -259,27 +261,36 @@ not authorize starting it while the driving user has paused implementation.
 | --- | --- |
 | AF-01 | [#35](https://github.com/vinnyso/common-knowledge/issues/35) |
 | AF-02 | [#38](https://github.com/vinnyso/common-knowledge/issues/38) |
-| AF-03 | [#39](https://github.com/vinnyso/common-knowledge/issues/39) |
-| AF-03E | [#40](https://github.com/vinnyso/common-knowledge/issues/40) |
+| AF-03A | [#39](https://github.com/vinnyso/common-knowledge/issues/39) |
+| AF-03L | [#53](https://github.com/vinnyso/common-knowledge/issues/53) |
+| AF-03B | [#49](https://github.com/vinnyso/common-knowledge/issues/49) |
+| AF-03E-P | [#40](https://github.com/vinnyso/common-knowledge/issues/40) |
+| AF-03E-R | [#50](https://github.com/vinnyso/common-knowledge/issues/50) |
 | AF-04 | [#41](https://github.com/vinnyso/common-knowledge/issues/41) |
-| AF-05 | [#42](https://github.com/vinnyso/common-knowledge/issues/42) |
+| AF-05P | [#42](https://github.com/vinnyso/common-knowledge/issues/42) |
+| AF-05D | [#51](https://github.com/vinnyso/common-knowledge/issues/51) |
 | AF-06 | [#43](https://github.com/vinnyso/common-knowledge/issues/43) |
 
 | Label | Scope and completion evidence | Dependency |
 | --- | --- | --- |
 | AF-01 | This contract, acceptance ADR, terminology, and authority links reviewed in a docs PR. | Completed prototype |
 | AF-02 | Safe structured MCP search/read/validate in a real client; CLI regression checks; ordinary-task consultation with temporary short instructions tested early. | AF-01 merged |
-| AF-03 | Versioned proposal format and safe operations covering every lifecycle change, freshness, rejection, application failure, and retry. | AF-02 merged |
-| AF-03E | Two to three controlled scenarios comparing baseline and actual CK-assisted task outcomes, with transparent local results. | AF-03 merged |
-| AF-04 | Recall and Reflection skills cause consultation and pre-handoff proposal drafting during normal tasks; zero-proposal cases work. | AF-03E merged |
-| AF-05 | Packaged setup and complete fresh-install, session-acceptance, PR-publication, fresh-session reuse demo. | AF-04 merged |
-| AF-06 | Five to ten real tasks, feedback from three to five engineers, and concise beta documentation informed by observed reuse and review effort. | AF-05 merged |
+| AF-03A | Versioned pending Proposal format, safe draft operations, exact revisions, target guards, and accepted-retrieval isolation. | AF-02 merged |
+| AF-03L | Lean authoring inputs and engine-derived targets/destination without changing the safety model. | AF-03A merged |
+| AF-03B | Session-accepted application for every lifecycle change, stale-target protection, replay-safe cleanup, and retry outcomes. | AF-03L merged |
+| AF-03E-P | Freeze and verify the bounded application fixture, tasks, conditions, and evaluator without scored trials. | AF-03B merged |
+| AF-03E-R | Run two to three controlled scenarios comparing baseline and actual CK-assisted task outcomes, with transparent local results. | AF-03E-P merged |
+| AF-04 | Recall and Reflection skills cause consultation and pre-handoff proposal drafting during normal tasks; zero-proposal cases work. | AF-03E-R merged |
+| AF-05P | Package, install, diagnose, upgrade, and uninstall CK while preserving repository-owned content. | AF-04 merged |
+| AF-05D | Complete the fresh-install, session-acceptance, PR-publication, fresh-session reuse proof. | AF-05P merged |
+| AF-06 | Five to ten real tasks, feedback from three to five engineers, and concise beta documentation informed by observed reuse and review effort. | AF-05D merged |
 
 AF-02's early client test probes consultation before building the full authoring
-loop. AF-03 tests concurrent operations and proposal isolation before enabling
-agent writes. Temporary skill installation can support AF-04 before final
-packaging. Each milestone retains the repository's CI and independent review
-requirements; no runtime capability is delivered by AF-01.
+loop. AF-03A through AF-03B test concurrent operations, proposal isolation, and
+replay safety before enabling agent application. Temporary skill installation
+can support AF-04 before final packaging. Each milestone retains the repository's
+CI and independent review requirements; no runtime capability is delivered by
+AF-01.
 
 ## Minimal outcome evaluation (AF-03E)
 

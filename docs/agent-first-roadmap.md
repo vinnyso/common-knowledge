@@ -56,9 +56,8 @@ line endings. YAML front matter contains:
 
 The package is not registry-published and this repository contains no stored
 Proposal artifacts, so AF-03L revises proposal v1 in place. Do not add a second
-format or migration framework. If a supported external trial artifact is found
-before implementation, preserve read compatibility without retaining the verbose
-authoring API.
+format or migration framework. If a supported external trial artifact is found,
+preserve read compatibility without retaining the verbose authoring API.
 
 The Markdown body requires only `Evidence`, `Rationale`, and the exact change.
 Each evidence item identifies its source path or artifact, repository revision,
@@ -107,9 +106,10 @@ lock immediately before mutation.
 ### Revision, time, and actors
 
 The proposal revision is a reported `sha256` digest of the exact proposal file
-bytes, not a mutable self-referential field. `apply` accepts the proposal ID,
-expected revision digest, and applying actor. A mismatch changes nothing and
-requires the revised proposal to be presented for fresh session acceptance.
+bytes, not a mutable self-referential field. Edit, discard, and apply each require
+the proposal ID and expected revision digest; edit and apply also identify their
+actor. A mismatch changes nothing and requires a fresh read. Applying a revised
+proposal additionally requires fresh session acceptance.
 
 Creation time never changes. An engine-mediated content change sets
 `revised_at` and `revised_by`; reads, lists, reminders, and acceptance do not.
@@ -144,7 +144,7 @@ separately and never block valid Entry retrieval.
 | Proposed unit | Depends on | Outcome and exit evidence |
 | --- | --- | --- |
 | **AF-03A — proposal format and pending operations** ([#39](https://github.com/vinnyso/common-knowledge/issues/39), Done) | #38 Done | PR #52 delivered separate pending storage, exact proposal revisions, target guards, safe draft operations, age assessment, and retrieval isolation. |
-| **AF-03L — lean proposal authoring and derived targets** ([#53](https://github.com/vinnyso/common-knowledge/issues/53)) | AF-03A | Reduce required authored content to Evidence, Rationale, and the exact change; derive guards/destination from operation and Entry content; keep the merged format readable only if real stored proposals require it. No apply tool. |
+| **AF-03L — lean proposal authoring and derived targets** ([#53](https://github.com/vinnyso/common-knowledge/issues/53)) | AF-03A | Reduce required authored content to Evidence, Rationale, and the exact change; derive guards/destination from operation and Entry content; preserve exact-revision edit/discard guards; keep the merged format readable only if real stored proposals require it. No apply tool. |
 | **AF-03B — accepted apply and cleanup** (revise [#49](https://github.com/vinnyso/common-knowledge/issues/49)) | AF-03L | Apply all four operations through the existing Entry/log transaction, delete afterward under the same lock, return typed stale/cleanup outcomes, and prove retry cannot duplicate a lifecycle event. No delete-capable transaction or proposal recovery subsystem. |
 | **AF-03E-P — freeze the minimal evaluation** (revise #40) | AF-03B | Require an explicit local bundle path and reject any digest other than the pinned 92,824-byte artifact; revalidate the full application; freeze reference-import correction and dispatch-export constraints plus CSV quoting as the low-context control, hidden checks, condition manifests, leakage audit, and runbook. Do not publish or vendor the separate project's artifact without authorization. No scored trials. |
 | **AF-03E-R — run and report the initial comparison** (new) | AF-03E-P | Fresh matched baseline/current-CK sessions using actual MCP access; immutable results and application checks; recall, reading, applicability, behavior, and preparation/review effort reported separately; null and negative runs retained. This measures the installed retrieval intervention, not verified curation. |
