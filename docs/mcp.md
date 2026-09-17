@@ -11,7 +11,7 @@ one explicit Git checkout or linked worktree.
 | `validate` | None | Count of valid Entries |
 | `proposal_list` | None | Pending proposal summaries with exact revisions, targets, age assessment, and diagnostics |
 | `proposal_read` | Stable proposal `id` | Pending proposal source and summary |
-| `proposal_create` | Proposal ID, operation, actor, evidence, rationale, and proposed Entry; retirement instead takes `target_id` and a reason | Canonical pending proposal with engine-derived targets, destination, timestamp, fingerprints, and revision |
+| `proposal_create` | Proposal ID, operation, actor, evidence, rationale, and proposed Entry; retirement instead takes `target_id` and a reason | Canonical pending proposal with engine-derived targets, timestamp, fingerprints, and revision; the destination is implicit from the Entry ID |
 | `proposal_edit` | Complete lean replacement content, exact `expected_revision`, and revision actor | Revised proposal with freshly derived targets while preserving creation attribution |
 | `proposal_discard` | Stable proposal `id` and exact `expected_revision` | Deleted pending proposal ID |
 
@@ -26,7 +26,8 @@ Proposal Markdown contains only `Evidence`, `Rationale`, and `Proposed Entry` or
 guard from the proposed Entry ID. Update derives a present guard from that ID.
 Supersede derives its present predecessor from `supersedes` and an absent guard
 from the new ID. Retire alone accepts `target_id`. Callers never provide target
-states, fingerprints, or destination paths.
+states, fingerprints, or destination paths; each destination is the canonical
+Entry path implied by its ID.
 
 Each call acquires the existing checkout-wide cooperative lock for one operation
 and releases it before returning. Calls read the current Corpus and schema, so an

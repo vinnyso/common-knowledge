@@ -284,6 +284,9 @@ function validateDraftAgainstCurrent(cwd: string, proposal: ParsedProposal): voi
     ) {
       throw new ProposalCommandError("updated proposed Entries must preserve created_at and created_by");
     }
+    if (proposed.metadata.supersedes !== current.metadata.supersedes) {
+      throw new ProposalCommandError("updated proposed Entries must preserve the supersedes relationship");
+    }
   }
   if (operation === "supersede" || operation === "retire") {
     const target = preconditions[0] as ProposalPrecondition;

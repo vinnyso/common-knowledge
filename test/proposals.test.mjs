@@ -60,6 +60,7 @@ function entrySource(id, overrides = {}) {
     ...overrides,
   };
   const yaml = Object.entries(metadata)
+    .filter(([, value]) => value !== undefined)
     .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
     .join("\n");
   return `---\n${yaml}\n---\n## Situation\n\nA recurring condition.\n\n## Resolution\n\nApply the repository rule.\n`;
@@ -234,6 +235,7 @@ test("all four proposal operations calculate exact target fingerprints and enfor
   const cwd = await repository();
   const updateSource = await installEntry(cwd, "update-rule");
   const oldSource = await installEntry(cwd, "old-rule");
+  await installEntry(cwd, "superseding-update-rule", { supersedes: "old-rule" });
   const retireSource = await installEntry(cwd, "retire-rule");
   const logBefore = await readFile(join(cwd, ".repo-memory", "log.md"), "utf8");
 
@@ -248,6 +250,14 @@ test("all four proposal operations calculate exact target fingerprints and enfor
     id: "supersede-proposal",
     operation: "supersede",
     proposed_entry: entrySource("replacement-rule", { supersedes: "old-rule" }),
+  }));
+  createProposal(cwd, draft({
+    id: "update-superseding-proposal",
+    operation: "update",
+    proposed_entry: entrySource("superseding-update-rule", {
+      supersedes: "old-rule",
+      title: "Use the updated superseding repository rule",
+    }),
   }));
   const retire = createProposal(cwd, {
     ...draft({
@@ -283,6 +293,7 @@ test("all four proposal operations calculate exact target fingerprints and enfor
   assert.deepEqual((await readdir(join(cwd, ".repo-memory", "entries"))).sort(), [
     "old-rule.md",
     "retire-rule.md",
+    "superseding-update-rule.md",
     "update-rule.md",
   ]);
 
@@ -302,6 +313,30 @@ test("all four proposal operations calculate exact target fingerprints and enfor
       proposed_entry: entrySource("update-rule", { created_by: "different-author" }),
     })),
     /preserve created_at and created_by/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, draft({
+      id: "bad-update-adds-supersedes",
+      operation: "update",
+      proposed_entry: entrySource("update-rule", { supersedes: "old-rule" }),
+    })),
+    /preserve the supersedes relationship/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, draft({
+      id: "bad-update-removes-supersedes",
+      operation: "update",
+      proposed_entry: entrySource("superseding-update-rule", { supersedes: undefined }),
+    })),
+    /preserve the supersedes relationship/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, draft({
+      id: "bad-update-changes-supersedes",
+      operation: "update",
+      proposed_entry: entrySource("superseding-update-rule", { supersedes: "retire-rule" }),
+    })),
+    /preserve the supersedes relationship/u,
   );
   assert.throws(
     () => createProposal(cwd, draft({
