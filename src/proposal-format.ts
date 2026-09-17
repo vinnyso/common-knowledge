@@ -27,15 +27,6 @@ const metadataKeys = new Set([
   "revised_by",
   "preconditions",
 ]);
-const sectionNames = [
-  "Evidence",
-  "Rationale",
-  "Future use",
-  "Applicability and exceptions",
-  "Assumptions and unresolved checks",
-  "Intended destination",
-] as const;
-
 function fail(label: string, detail: string): never {
   throw new ProposalCommandError(`${label}: ${detail}`);
 }
@@ -164,7 +155,9 @@ function parseEvidence(value: string): readonly ProposalEvidence[] {
       source: nonBlank(item.source, `Proposal body Evidence/${index}/source`),
       revision: nonBlank(item.revision, `Proposal body Evidence/${index}/revision`),
       observed_fact: nonBlank(item.observed_fact, `Proposal body Evidence/${index}/observed_fact`),
-      lineage: nonBlank(item.lineage, `Proposal body Evidence/${index}/lineage`),
+      ...(item.lineage === undefined
+        ? {}
+        : { lineage: nonBlank(item.lineage, `Proposal body Evidence/${index}/lineage`) }),
       ...(item.validator === undefined ? {} : { validator: nonBlank(item.validator, `Proposal body Evidence/${index}/validator`) }),
     };
   });
@@ -182,28 +175,17 @@ export function parseProposal(source: string, label: string, now = new Date()): 
     return fail(label, `malformed YAML front matter: ${detail}`);
   }
   const metadata = parseMetadata(rawMetadata, label, now);
-  let rest = match[2] ?? "";
-  const values: string[] = [];
-  for (let index = 0; index < sectionNames.length - 1; index += 1) {
-    const parsedSection = section(rest, sectionNames[index] as string, sectionNames[index + 1] as string);
-    values.push(parsedSection.value);
-    rest = parsedSection.rest;
-  }
   const terminal = metadata.operation === "retire" ? "Retirement reason" : "Proposed Entry";
-  const finalSection = section(rest, "Intended destination", terminal);
-  values.push(finalSection.value);
-  rest = finalSection.rest;
+  const evidence = section(match[2] ?? "", "Evidence", "Rationale");
+  const rationale = section(evidence.rest, "Rationale", terminal);
+  const rest = rationale.rest;
   const terminalPrefix = `## ${terminal}\n\n`;
   if (!rest.startsWith(terminalPrefix)) return fail("Proposal body", `missing required Markdown section ${JSON.stringify(`## ${terminal}`)}`);
   const terminalValue = rest.slice(terminalPrefix.length).trim();
   if (terminalValue === "") return fail("Proposal body", `${JSON.stringify(`## ${terminal}`)} must not be empty`);
   const content: ProposalContent = {
-    evidence: parseEvidence(values[0] as string),
-    rationale: values[1] as string,
-    future_use: values[2] as string,
-    applicability_and_exceptions: values[3] as string,
-    assumptions_and_unresolved_checks: values[4] as string,
-    intended_destination: values[5] as string,
+    evidence: parseEvidence(evidence.value),
+    rationale: rationale.value,
     ...(metadata.operation === "retire"
       ? { retirement_reason: terminalValue }
       : { proposed_entry: terminalValue.endsWith("\n") ? terminalValue : `${terminalValue}\n` }),
@@ -227,10 +209,6 @@ export function serializeProposal(proposal: ParsedProposal): string {
   return `---\n${metadata}\n---\n` +
     `## Evidence\n\n${evidence}\n\n` +
     `## Rationale\n\n${normalizedBlock(proposal.content.rationale)}\n\n` +
-    `## Future use\n\n${normalizedBlock(proposal.content.future_use)}\n\n` +
-    `## Applicability and exceptions\n\n${normalizedBlock(proposal.content.applicability_and_exceptions)}\n\n` +
-    `## Assumptions and unresolved checks\n\n${normalizedBlock(proposal.content.assumptions_and_unresolved_checks)}\n\n` +
-    `## Intended destination\n\n${normalizedBlock(proposal.content.intended_destination)}\n\n` +
     `## ${terminal}\n\n${normalizedBlock(terminalValue)}\n`;
 }
 

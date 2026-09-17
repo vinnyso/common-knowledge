@@ -11,14 +11,23 @@ one explicit Git checkout or linked worktree.
 | `validate` | None | Count of valid Entries |
 | `proposal_list` | None | Pending proposal summaries with exact revisions, targets, age assessment, and diagnostics |
 | `proposal_read` | Stable proposal `id` | Pending proposal source and summary |
-| `proposal_create` | Typed operation, actor, target states, evidence, rationale, applicability, destination, and proposed Entry or retirement reason | Canonical pending proposal with engine-calculated timestamp, target fingerprints, and revision |
-| `proposal_edit` | Complete replacement content, exact `expected_revision`, and revision actor | Revised proposal preserving creation attribution and reporting a new exact revision |
+| `proposal_create` | Proposal ID, operation, actor, evidence, rationale, and proposed Entry; retirement instead takes `target_id` and a reason | Canonical pending proposal with engine-derived targets, timestamp, fingerprints, and revision; the destination is implicit from the Entry ID |
+| `proposal_edit` | Complete lean replacement content, exact `expected_revision`, and revision actor | Revised proposal with freshly derived targets while preserving creation attribution |
 | `proposal_discard` | Stable proposal `id` and exact `expected_revision` | Deleted pending proposal ID |
 
 `search`, `read`, and `validate` operate only on accepted Entry state.
 `proposal_list` and `proposal_read` are read-only. The remaining proposal tools
 write only `.repo-memory/proposals/`; they do not mutate Entries or `log.md` and
 there is no proposal-apply tool in this milestone.
+
+Proposal Markdown contains only `Evidence`, `Rationale`, and `Proposed Entry` or
+`Retirement reason`. Each evidence item requires `source`, `revision`, and
+`observed_fact`; `lineage` and `validator` are optional. Add derives an absent
+guard from the proposed Entry ID. Update derives a present guard from that ID.
+Supersede derives its present predecessor from `supersedes` and an absent guard
+from the new ID. Retire alone accepts `target_id`. Callers never provide target
+states, fingerprints, or destination paths; each destination is the canonical
+Entry path implied by its ID.
 
 Each call acquires the existing checkout-wide cooperative lock for one operation
 and releases it before returning. Calls read the current Corpus and schema, so an

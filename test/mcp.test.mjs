@@ -84,19 +84,13 @@ function proposalArguments(overrides = {}) {
     id: "pending-rule",
     operation: "add",
     created_by: "mcp-agent",
-    targets: [{ id: "pending-rule", state: "absent" }],
     evidence: [{
       source: "src/example.ts",
       revision: "abc123",
       observed_fact: "The implementation uses the repository-specific behavior.",
-      lineage: "implementation",
       validator: "npm test",
     }],
     rationale: "Preserve a reusable project-specific constraint.",
-    future_use: "Consult before changing the affected implementation.",
-    applicability_and_exceptions: "Applies while the cited implementation remains current.",
-    assumptions_and_unresolved_checks: "No unresolved checks.",
-    intended_destination: ".repo-memory/entries/pending-rule.md",
     proposed_entry: entrySource({
       id: "pending-rule",
       title: "Use the pending repository rule",
@@ -156,6 +150,24 @@ test("discovers typed MCP tools and performs successful read operations", async 
       );
       assert.ok(tool.outputSchema);
     }
+    const createTool = listed.tools.find((tool) => tool.name === "proposal_create");
+    assert.deepEqual(Object.keys(createTool.inputSchema.properties).sort(), [
+      "created_by",
+      "evidence",
+      "id",
+      "operation",
+      "proposed_entry",
+      "rationale",
+      "retirement_reason",
+      "target_id",
+    ]);
+    assert.deepEqual(createTool.inputSchema.required.sort(), [
+      "created_by",
+      "evidence",
+      "id",
+      "operation",
+      "rationale",
+    ]);
 
     const search = await connection.client.callTool({
       name: "search",
@@ -266,6 +278,10 @@ test("proposal MCP tools round trip exact revisions without changing accepted kn
     });
     assert.equal(read.structuredContent.proposal.summary.revision, firstRevision);
     assert.match(read.structuredContent.proposal.source, /## Proposed Entry/u);
+    assert.doesNotMatch(
+      read.structuredContent.proposal.source,
+      /## Future use|## Applicability|## Assumptions|## Intended destination/u,
+    );
 
     const pendingSearch = await connection.client.callTool({
       name: "search",
