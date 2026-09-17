@@ -70,7 +70,6 @@ function evidence() {
     source: "src/example.ts",
     revision: "abc123",
     observed_fact: "The repository requires the documented behavior.",
-    lineage: "implementation",
     validator: "npm test",
   }];
 }
@@ -80,13 +79,8 @@ function draft(overrides = {}) {
     id: "add-rule",
     operation: "add",
     created_by: "agent-a",
-    targets: [{ id: "add-rule", state: "absent" }],
     evidence: evidence(),
     rationale: "Preserve the observed project-specific constraint.",
-    future_use: "Consult this before changing the affected behavior.",
-    applicability_and_exceptions: "Applies to this repository; reassess when the implementation changes.",
-    assumptions_and_unresolved_checks: "No unresolved checks.",
-    intended_destination: ".repo-memory/entries/add-rule.md",
     proposed_entry: entrySource("add-rule"),
     ...overrides,
   };
@@ -187,7 +181,11 @@ test("create, inspect, edit, and discard preserve proposal isolation and exact r
   assert.deepEqual(created.summary.diagnostics, []);
   assert.doesNotMatch(created.source, /\r/u);
   assert.match(created.source, /^---\nproposal_version: 1\n/u);
+  assert.match(created.source, /\n## Evidence\n/u);
+  assert.match(created.source, /\n## Rationale\n/u);
   assert.match(created.source, /\n## Proposed Entry\n\n---\nschema_version: 1\n/u);
+  assert.doesNotMatch(created.source, /## Future use|## Applicability|## Assumptions|## Intended destination/u);
+  assert.doesNotMatch(created.source, /lineage:/u);
   assert.deepEqual(await readdir(join(cwd, ".repo-memory", "entries")), []);
   assert.equal(await readFile(logPath, "utf8"), logBefore);
   assert.deepEqual(searchEntries(cwd, "add-rule cue"), []);
@@ -208,7 +206,10 @@ test("create, inspect, edit, and discard preserve proposal isolation and exact r
   const edited = editProposal(
     cwd,
     {
-      ...draft({ rationale: "Preserve the corrected project-specific constraint." }),
+      ...draft({
+        rationale: "Preserve the corrected project-specific constraint.",
+        proposed_entry: entrySource("revised-add-rule"),
+      }),
       expected_revision: created.summary.revision,
       revised_by: "agent-b",
     },
@@ -219,6 +220,7 @@ test("create, inspect, edit, and discard preserve proposal isolation and exact r
   assert.match(edited.source, /created_by: agent-a/u);
   assert.match(edited.source, /revised_at: 2026-09-02T12:00:00\.000Z/u);
   assert.match(edited.source, /revised_by: agent-b/u);
+  assert.deepEqual(edited.summary.targets, [{ id: "revised-add-rule", state: "absent" }]);
   assert.throws(
     () => discardProposal(cwd, "add-rule", created.summary.revision),
     StaleProposalRevisionError,
@@ -235,37 +237,46 @@ test("all four proposal operations calculate exact target fingerprints and enfor
   const retireSource = await installEntry(cwd, "retire-rule");
   const logBefore = await readFile(join(cwd, ".repo-memory", "log.md"), "utf8");
 
-  createProposal(cwd, draft({ id: "new-rule", targets: [{ id: "new-rule", state: "absent" }], proposed_entry: entrySource("new-rule") }));
+  const add = createProposal(cwd, draft({ id: "new-rule", proposed_entry: entrySource("new-rule") }));
   const update = createProposal(cwd, draft({
     id: "update-proposal",
     operation: "update",
-    targets: [{ id: "update-rule", state: "present" }],
-    intended_destination: ".repo-memory/entries/update-rule.md",
+    evidence: [{ ...evidence()[0], lineage: "implementation" }],
     proposed_entry: entrySource("update-rule", { title: "Use the updated repository rule" }),
   }));
   const supersede = createProposal(cwd, draft({
     id: "supersede-proposal",
     operation: "supersede",
-    targets: [
-      { id: "old-rule", state: "present" },
-      { id: "replacement-rule", state: "absent" },
-    ],
-    intended_destination: ".repo-memory/entries/replacement-rule.md",
     proposed_entry: entrySource("replacement-rule", { supersedes: "old-rule" }),
   }));
   const retire = createProposal(cwd, {
     ...draft({
       id: "retire-proposal",
       operation: "retire",
-      targets: [{ id: "retire-rule", state: "present" }],
-      intended_destination: ".repo-memory/entries/retire-rule.md",
+      target_id: "retire-rule",
     }),
     proposed_entry: undefined,
     retirement_reason: "The behavior no longer exists.",
   });
 
   const digest = (source) => `sha256:${createHash("sha256").update(source, "utf8").digest("hex")}`;
+  assert.deepEqual(add.summary.targets, [{ id: "new-rule", state: "absent" }]);
+  assert.deepEqual(update.summary.targets, [{
+    id: "update-rule",
+    state: "present",
+    fingerprint: digest(updateSource),
+  }]);
+  assert.deepEqual(supersede.summary.targets, [
+    { id: "old-rule", state: "present", fingerprint: digest(oldSource) },
+    { id: "replacement-rule", state: "absent" },
+  ]);
+  assert.deepEqual(retire.summary.targets, [{
+    id: "retire-rule",
+    state: "present",
+    fingerprint: digest(retireSource),
+  }]);
   assert.equal(update.summary.targets[0].fingerprint, digest(updateSource));
+  assert.match(readProposal(cwd, "update-proposal").source, /lineage: implementation/u);
   assert.equal(supersede.summary.targets[0].fingerprint, digest(oldSource));
   assert.equal(retire.summary.targets[0].fingerprint, digest(retireSource));
   assert.equal(await readFile(join(cwd, ".repo-memory", "log.md"), "utf8"), logBefore);
@@ -288,7 +299,6 @@ test("all four proposal operations calculate exact target fingerprints and enfor
     () => createProposal(cwd, draft({
       id: "bad-update",
       operation: "update",
-      targets: [{ id: "update-rule", state: "present" }],
       proposed_entry: entrySource("update-rule", { created_by: "different-author" }),
     })),
     /preserve created_at and created_by/u,
@@ -296,10 +306,43 @@ test("all four proposal operations calculate exact target fingerprints and enfor
   assert.throws(
     () => createProposal(cwd, draft({
       id: "bad-add",
-      targets: [{ id: "update-rule", state: "absent" }],
       proposed_entry: entrySource("update-rule"),
     })),
     /must be absent/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, draft({ target_id: "retire-rule" })),
+    /without target_id/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, draft({
+      id: "bad-add-supersedes",
+      proposed_entry: entrySource("bad-add-entry", { supersedes: "old-rule" }),
+    })),
+    /cannot use a Proposed Entry with supersedes/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, draft({
+      id: "bad-supersede",
+      operation: "supersede",
+      proposed_entry: entrySource("replacement-without-predecessor"),
+    })),
+    /metadata\/supersedes/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, {
+      ...draft({ id: "bad-retire", operation: "retire", target_id: "retire-rule" }),
+      retirement_reason: "No longer applies.",
+    }),
+    /without Proposed Entry/u,
+  );
+  assert.throws(
+    () => createProposal(cwd, {
+      ...draft({ id: "missing-retire-target", operation: "retire" }),
+      proposed_entry: undefined,
+      retirement_reason: "No longer applies.",
+    }),
+    /require target_id/u,
   );
 });
 
@@ -358,7 +401,7 @@ test("existing Corpora gain a safe proposals directory and reject linked or trav
   assert.deepEqual(await readdir(join(cwd, ".repo-memory", "proposals")), ["add-rule.md"]);
 
   assert.throws(
-    () => createProposal(cwd, draft({ id: "../../outside", targets: [{ id: "outside", state: "absent" }] })),
+    () => createProposal(cwd, draft({ id: "../../outside" })),
     /invalid proposal ID/u,
   );
 
@@ -377,8 +420,6 @@ test("simultaneous proposal mutations are isolated by the cooperative checkout l
     cwd,
     draft({
       id: "held-rule",
-      targets: [{ id: "held-rule", state: "absent" }],
-      intended_destination: ".repo-memory/entries/held-rule.md",
       proposed_entry: entrySource("held-rule"),
     }),
   );
@@ -387,8 +428,6 @@ test("simultaneous proposal mutations are isolated by the cooperative checkout l
       cwd,
       draft({
         id: "competing-rule",
-        targets: [{ id: "competing-rule", state: "absent" }],
-        intended_destination: ".repo-memory/entries/competing-rule.md",
         proposed_entry: entrySource("competing-rule"),
       }),
     ),

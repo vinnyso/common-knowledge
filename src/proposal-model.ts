@@ -10,7 +10,7 @@ export interface ProposalEvidence {
   readonly source: string;
   readonly revision: string;
   readonly observed_fact: string;
-  readonly lineage: string;
+  readonly lineage?: string | undefined;
   readonly validator?: string | undefined;
 }
 
@@ -28,10 +28,6 @@ export interface ProposalMetadata {
 export interface ProposalContent {
   readonly evidence: readonly ProposalEvidence[];
   readonly rationale: string;
-  readonly future_use: string;
-  readonly applicability_and_exceptions: string;
-  readonly assumptions_and_unresolved_checks: string;
-  readonly intended_destination: string;
   readonly proposed_entry?: string | undefined;
   readonly retirement_reason?: string | undefined;
 }
@@ -47,17 +43,17 @@ export interface LoadedProposal extends ParsedProposal {
   readonly revision: string;
 }
 
-export interface ProposalDraftInput extends ProposalContent {
+interface ProposalAuthoringInput extends ProposalContent {
   readonly id: string;
   readonly operation: ProposalOperation;
-  readonly created_by: string;
-  readonly targets: readonly {
-    readonly id: string;
-    readonly state: "absent" | "present";
-  }[];
+  readonly target_id?: string | undefined;
 }
 
-export interface ProposalEditInput extends Omit<ProposalDraftInput, "created_by"> {
+export interface ProposalDraftInput extends ProposalAuthoringInput {
+  readonly created_by: string;
+}
+
+export interface ProposalEditInput extends ProposalAuthoringInput {
   readonly expected_revision: string;
   readonly revised_by: string;
 }

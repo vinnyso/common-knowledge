@@ -64,6 +64,11 @@ effectiveness claim.
 
 ## AF-03 proposal-operation proof
 
+This section preserves the exact pre-AF-03L payload tested at the recorded
+candidate. It is historical evidence, not current invocation guidance. The
+current lean authoring inputs are documented in [the MCP guide](mcp.md) and
+verified through the package test.
+
 On 2026-09-16, `codex exec` `0.151.0` used Node.js `v26.4.0`, npm
 `11.17.0`, and `@modelcontextprotocol/sdk` `1.30.0` against implementation
 commit `ffe65b21a28c125b944a007f1af2b3ddeaa61106`. The client ran with

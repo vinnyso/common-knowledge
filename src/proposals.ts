@@ -89,7 +89,7 @@ function readTargetEntry(
 
 function targetPreconditions(
   cwd: string,
-  targets: ProposalDraftInput["targets"],
+  targets: readonly { readonly id: string; readonly state: "absent" | "present" }[],
 ): readonly ProposalPrecondition[] {
   if (targets.length === 0) throw new ProposalCommandError("proposal targets must not be empty");
   const seen = new Set<string>();
@@ -112,6 +112,48 @@ function targetPreconditions(
   });
   assertEntryDirectoryIdentity(cwd, directory.identity);
   return result;
+}
+
+function derivedTargets(
+  input: ProposalDraftInput,
+  proposed: ParsedEntry | undefined,
+): readonly { readonly id: string; readonly state: "absent" | "present" }[] {
+  if (input.operation === "retire") {
+    if (
+      input.target_id === undefined || input.retirement_reason === undefined ||
+      input.proposed_entry !== undefined
+    ) {
+      throw new ProposalCommandError(
+        "retire proposals require target_id and Retirement reason without Proposed Entry",
+      );
+    }
+    return [{ id: input.target_id, state: "present" }];
+  }
+
+  if (
+    proposed === undefined || input.retirement_reason !== undefined ||
+    input.target_id !== undefined
+  ) {
+    throw new ProposalCommandError(
+      `${input.operation} proposals require Proposed Entry without target_id or Retirement reason`,
+    );
+  }
+  if (input.operation === "add") {
+    if (proposed.metadata.supersedes !== undefined) {
+      throw new ProposalCommandError("add proposals cannot use a Proposed Entry with supersedes");
+    }
+    return [{ id: proposed.metadata.id, state: "absent" }];
+  }
+  if (input.operation === "update") {
+    return [{ id: proposed.metadata.id, state: "present" }];
+  }
+  if (typeof proposed.metadata.supersedes !== "string") {
+    throw new ProposalCommandError("supersede proposals require Proposed Entry metadata/supersedes");
+  }
+  return [
+    { id: proposed.metadata.supersedes, state: "present" },
+    { id: proposed.metadata.id, state: "absent" },
+  ];
 }
 
 function canonicalEntry(cwd: string, source: string, label: string): ParsedEntry {
@@ -155,6 +197,9 @@ function validateOperation(
     }
     if (proposed.metadata.status !== "active") {
       throw new ProposalCommandError("an added proposed Entry must have status active");
+    }
+    if (proposed.metadata.supersedes !== undefined) {
+      throw new ProposalCommandError("add proposals cannot use a Proposed Entry with supersedes");
     }
   }
 
@@ -252,14 +297,15 @@ function buildProposal(
   timestamps: { readonly created_at: string; readonly revised_at?: string; readonly revised_by?: string },
 ): ParsedProposal {
   requireProposalId(input.id);
-  const preconditions = targetPreconditions(cwd, input.targets);
-  const canonicalProposedEntry = input.proposed_entry === undefined
+  const proposed = input.proposed_entry === undefined
     ? undefined
-    : serializeEntry(canonicalEntry(
+    : canonicalEntry(
       cwd,
       input.proposed_entry,
       `Proposal ${JSON.stringify(input.id)} Proposed Entry`,
-    ));
+    );
+  const preconditions = targetPreconditions(cwd, derivedTargets(input, proposed));
+  const canonicalProposedEntry = proposed === undefined ? undefined : serializeEntry(proposed);
   const proposal: ParsedProposal = {
     metadata: {
       proposal_version: 1,
@@ -275,10 +321,6 @@ function buildProposal(
     content: {
       evidence: input.evidence,
       rationale: input.rationale,
-      future_use: input.future_use,
-      applicability_and_exceptions: input.applicability_and_exceptions,
-      assumptions_and_unresolved_checks: input.assumptions_and_unresolved_checks,
-      intended_destination: input.intended_destination,
       ...(canonicalProposedEntry === undefined ? {} : { proposed_entry: canonicalProposedEntry }),
       ...(input.retirement_reason === undefined ? {} : { retirement_reason: input.retirement_reason }),
     },

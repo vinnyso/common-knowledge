@@ -252,27 +252,19 @@ export function createMcpServer(checkoutRoot: string): McpServer {
   const actor = z.string().min(1).max(256).refine((value) => value === value.trim() && !/[|\r\n]/u.test(value), {
     message: "actor must be unpadded, single-line, and must not contain |",
   });
-  const proposalTargetInput = z.object({
-    id: proposalId,
-    state: z.enum(["absent", "present"]),
-  });
   const proposalEvidenceInput = z.object({
     source: z.string().trim().min(1).max(4096),
     revision: z.string().trim().min(1).max(512),
     observed_fact: z.string().trim().min(1).max(8000),
-    lineage: z.string().trim().min(1).max(512),
+    lineage: z.string().trim().min(1).max(512).optional(),
     validator: z.string().trim().min(1).max(4096).optional(),
   });
   const proposalContentInput = {
     id: proposalId,
     operation: z.enum(["add", "update", "supersede", "retire"]),
-    targets: z.array(proposalTargetInput).min(1).max(2),
+    target_id: proposalId.optional(),
     evidence: z.array(proposalEvidenceInput).min(1).max(100),
     rationale: z.string().trim().min(1).max(32000),
-    future_use: z.string().trim().min(1).max(32000),
-    applicability_and_exceptions: z.string().trim().min(1).max(32000),
-    assumptions_and_unresolved_checks: z.string().trim().min(1).max(32000),
-    intended_destination: z.string().trim().min(1).max(4096),
     proposed_entry: z.string().min(1).max(256000).optional(),
     retirement_reason: z.string().trim().min(1).max(32000).optional(),
   } as const;
@@ -282,7 +274,7 @@ export function createMcpServer(checkoutRoot: string): McpServer {
     {
       title: "Create Common Knowledge Proposal",
       description:
-        "Create one validated pending proposal. Present-target fingerprints and timestamps are calculated from the configured checkout.",
+        "Create one validated pending proposal from evidence, rationale, and an exact change. Targets, fingerprints, destination, and timestamps are derived from the configured checkout.",
       inputSchema: {
         ...proposalContentInput,
         created_by: actor,

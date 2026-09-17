@@ -123,19 +123,13 @@ try {
       id: "package-verification",
       operation: "add",
       created_by: "package-verifier",
-      targets: [{ id: "package-verification", state: "absent" }],
       evidence: [{
         source: "scripts/verify-package.mjs",
         revision: "installed-package",
         observed_fact: "The installed MCP server exposes proposal operations.",
-        lineage: "executable check",
         validator: "npm run verify:package",
       }],
       rationale: "Verify pending proposal operations in the packed installation.",
-      future_use: "Use this check when the packaged MCP surface changes.",
-      applicability_and_exceptions: "Applies only to package verification.",
-      assumptions_and_unresolved_checks: "No unresolved checks.",
-      intended_destination: ".repo-memory/entries/package-verification.md",
       proposed_entry: `---\nschema_version: 1\nid: package-verification\nkind: gotcha\ntitle: Verify the installed package proposal surface\ntriggers:\n  - package proposal verification\nstatus: active\ncreated_at: ${new Date().toISOString()}\ncreated_by: package-verifier\n---\n## Situation\n\nThe package is installed in isolation.\n\n## Resolution\n\nExercise the installed proposal tools.\n`,
     };
     const created = await client.callTool({
