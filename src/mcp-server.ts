@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import * as z from "zod/v4";
 
 import {
+  applyKnowledgeProposal,
   createKnowledgeProposal,
   discardKnowledgeProposal,
   editKnowledgeProposal,
@@ -15,7 +16,7 @@ import {
   validateKnowledge,
 } from "./application.js";
 import { EntryCommandError } from "./entries.js";
-import { ProposalCommandError, StaleProposalRevisionError } from "./proposal-model.js";
+import { ProposalCommandError, StaleProposalRevisionError, StaleProposalTargetError } from "./proposal-model.js";
 
 const outcomeStatus = z.enum([
   "ok",
@@ -24,6 +25,8 @@ const outcomeStatus = z.enum([
   "invalid_entry",
   "invalid_proposal",
   "stale_revision",
+  "stale_target",
+  "applied_cleanup_required",
   "lock_contention",
   "not_found",
   "permission_denied",
@@ -69,6 +72,7 @@ const toolOutcomeSchema = {
   proposals: z.array(proposalSummarySchema).optional(),
   proposal: proposalInspectionSchema.optional(),
   proposal_id: z.string().optional(),
+  entry_id: z.string().optional(),
 };
 
 type ToolOutcome = z.infer<z.ZodObject<typeof toolOutcomeSchema>>;
@@ -135,6 +139,9 @@ function failedOutcome(error: unknown): ToolOutcome {
   if (error instanceof StaleProposalRevisionError) {
     return { status: "stale_revision", message };
   }
+  if (error instanceof StaleProposalTargetError) {
+    return { status: "stale_target", message };
+  }
   if (error instanceof ProposalCommandError) {
     return { status: "invalid_proposal", message };
   }
@@ -161,7 +168,7 @@ export function createMcpServer(checkoutRoot: string): McpServer {
     { name: "common-knowledge", version: "0.1.0" },
     {
       instructions:
-        "Common Knowledge tools are bound to one configured Git checkout. Search and read expose accepted active Entries. Proposal tools author and inspect separate pending artifacts shown as proposed; they do not apply proposals or change accepted Entries. Verify retrieved guidance and proposal evidence against current code.",
+        "Common Knowledge tools are bound to one configured Git checkout. Search and read expose accepted Entries. Pending proposals are separate artifacts shown as proposed. Call proposal_apply only for an exact session-accepted revision after verifying evidence against current code; revised content or stale targets require fresh acceptance. Application changes local Entries and the activity log; normal PR merge publishes them.",
     },
   );
   const annotations = {
@@ -268,6 +275,34 @@ export function createMcpServer(checkoutRoot: string): McpServer {
     proposed_entry: z.string().min(1).max(256000).optional(),
     retirement_reason: z.string().trim().min(1).max(32000).optional(),
   } as const;
+
+  server.registerTool(
+    "proposal_apply",
+    {
+      title: "Apply Accepted Common Knowledge Proposal",
+      description:
+        "Apply an exact session-accepted proposal revision against unchanged targets, then remove the pending file. If applied_cleanup_required is returned, inspect the accepted Entry and explicitly discard the residue; retry cannot replay the lifecycle change. Actor names are unauthenticated attribution, and calling this tool conveys session acceptance without an approval boolean.",
+      inputSchema: z.strictObject({
+        id: proposalId,
+        expected_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+        applied_by: actor,
+      }),
+      outputSchema: toolOutcomeSchema,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (input) => {
+      try {
+        return textResult(applyKnowledgeProposal(checkoutRoot, input));
+      } catch (error) {
+        return textResult(failedOutcome(error));
+      }
+    },
+  );
 
   server.registerTool(
     "proposal_create",

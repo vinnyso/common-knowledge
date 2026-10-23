@@ -58,6 +58,19 @@ export interface ProposalEditInput extends ProposalAuthoringInput {
   readonly revised_by: string;
 }
 
+export interface ProposalApplyInput {
+  readonly id: string;
+  readonly expected_revision: string;
+  readonly applied_by: string;
+}
+
+export interface ProposalApplication {
+  readonly status: "ok" | "applied_cleanup_required";
+  readonly proposal_id: string;
+  readonly entry_id: string;
+  readonly message?: string;
+}
+
 export interface ProposalSummary {
   readonly id: string;
   readonly status: "proposed";
@@ -85,5 +98,12 @@ export class StaleProposalRevisionError extends ProposalCommandError {
   constructor(id: string) {
     super(`Proposal ${JSON.stringify(id)} changed; read the latest revision and try again`);
     this.name = "StaleProposalRevisionError";
+  }
+}
+
+export class StaleProposalTargetError extends ProposalCommandError {
+  constructor(id: string, diagnostics: readonly string[]) {
+    super(`Proposal ${JSON.stringify(id)} has stale targets: ${diagnostics.join("; ")}; refresh and present the proposal for acceptance again`);
+    this.name = "StaleProposalTargetError";
   }
 }

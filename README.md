@@ -20,9 +20,9 @@ searching, reading, adding, updating, retiring, and validating Entries. The Java
 show that one agent can record a lesson and a later independent agent can
 retrieve and apply it through the same packaged CLI and repository filesystem.
 The next-phase local stdio MCP adapter exposes protected Entry reads plus
-pending-proposal create, list, read, edit, and discard operations to supported
-Codex clients. Pending proposals remain separate from accepted guidance; proposal
-application is a later milestone.
+pending-proposal create, list, read, edit, discard, and session-accepted apply
+operations to supported Codex clients. Pending proposals remain separate from
+accepted guidance until applied; normal PR merge publishes accepted changes.
 
 ## Engine and repository installation
 
@@ -129,7 +129,9 @@ codex mcp list
 
 The local adapter exposes typed read-only `search`, `read`, `validate`,
 `proposal_list`, and `proposal_read` tools, plus protected `proposal_create`,
-`proposal_edit`, and `proposal_discard` mutations. It never accepts a repository
+`proposal_edit`, `proposal_discard`, and `proposal_apply` mutations. Apply requires
+the exact session-accepted revision and applying actor, protects target freshness,
+and reports cleanup residue without replaying lifecycle events. It never accepts a repository
 root per tool call. Pending proposals are presented as `status: proposed` but are
 excluded from normal Entry search and read. See the
 [MCP operation and host guide](docs/mcp.md) for supported roots, outcomes,

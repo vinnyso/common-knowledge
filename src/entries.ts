@@ -261,9 +261,16 @@ function nowUtc(): string {
 }
 
 export function addEntry(cwd: string, inputFile: string): string {
+  const entry = readInputEntry(cwd, inputFile, loadSchemaValidator(cwd));
+  return addEntryContent(cwd, entry);
+}
+
+// Internal lifecycle seam shared by CLI input files and accepted proposals.
+// Callers hold the checkout lock for validation and the complete transaction.
+export function addEntryContent(cwd: string, entry: ParsedEntry, actor = entry.metadata.created_by): string {
   validateCorpus(cwd);
   const validator = loadSchemaValidator(cwd);
-  const entry = readInputEntry(cwd, inputFile, validator);
+  validateParsedEntry(entry, validator, "proposed Entry");
   requireEntryId(entry.metadata.id);
   if (entry.metadata.status !== "active") {
     throw new EntryCommandError("a new Entry must have status active");
@@ -305,7 +312,7 @@ export function addEntry(cwd: string, inputFile: string): string {
       timestamp,
       event: "entry.superseded",
       id: predecessor.metadata.id,
-      actor: entry.metadata.created_by,
+      actor,
       summary: `Superseded by ${entry.metadata.id}.`,
     });
   }
@@ -315,7 +322,7 @@ export function addEntry(cwd: string, inputFile: string): string {
     timestamp,
     event: "entry.created",
     id: entry.metadata.id,
-    actor: entry.metadata.created_by,
+    actor,
     summary: generatedSummary("Created: ", entry.metadata.title),
   });
   const nextLog = appendEvents(log.contents, events);
@@ -404,9 +411,14 @@ export function searchEntriesWithScopePatternCompiler(
 }
 
 export function updateEntry(cwd: string, inputFile: string): string {
+  const replacement = readInputEntry(cwd, inputFile, loadSchemaValidator(cwd));
+  return updateEntryContent(cwd, replacement);
+}
+
+export function updateEntryContent(cwd: string, replacement: ParsedEntry, actor?: string): string {
   validateCorpus(cwd);
   const validator = loadSchemaValidator(cwd);
-  const replacement = readInputEntry(cwd, inputFile, validator);
+  validateParsedEntry(replacement, validator, "proposed Entry");
   requireEntryId(replacement.metadata.id);
   const existing = loadEntry(cwd, replacement.metadata.id, validator);
   if (replacement.metadata.status !== existing.metadata.status) {
@@ -418,7 +430,12 @@ export function updateEntry(cwd: string, inputFile: string): string {
     throw new EntryCommandError("update cannot change an Entry's supersedes relationship");
   }
 
-  const timestamp = nowUtc();
+  // A proposal update must invalidate its fingerprint even for identical content
+  // and two calls in the same clock tick. Keep the direct CLI timestamp contract.
+  const timestamp = actor === undefined ? nowUtc() : new Date(Math.max(
+    Date.now(),
+    Date.parse(existing.metadata.updated_at ?? existing.metadata.created_at) + 1,
+  )).toISOString();
   const updated: ParsedEntry = {
     metadata: {
       ...replacement.metadata,
@@ -439,7 +456,7 @@ export function updateEntry(cwd: string, inputFile: string): string {
       timestamp,
       event: "entry.updated",
       id: existing.metadata.id,
-      actor: existing.metadata.created_by,
+      actor: actor ?? existing.metadata.created_by,
       summary: generatedSummary("Updated: ", updated.metadata.title),
     },
   ]);
@@ -451,7 +468,7 @@ export function updateEntry(cwd: string, inputFile: string): string {
   return existing.metadata.id;
 }
 
-export function retireEntry(cwd: string, id: string, reason: string): void {
+export function retireEntry(cwd: string, id: string, reason: string, actor?: string): void {
   requireEntryId(id);
   validateLogField(reason, "retirement reason", 160);
   const retirementSummary = /[.!?]$/.test(reason) ? reason : `${reason}.`;
@@ -476,7 +493,7 @@ export function retireEntry(cwd: string, id: string, reason: string): void {
       timestamp,
       event: "entry.retired",
       id,
-      actor: existing.metadata.created_by,
+      actor: actor ?? existing.metadata.created_by,
       summary: retirementSummary,
     },
   ]);
