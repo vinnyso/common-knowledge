@@ -1,13 +1,23 @@
 import { readEntry, searchEntries, validateCorpus } from "./entries.js";
 import { withCheckoutLock } from "./lock.js";
-import type { ProposalDraftInput, ProposalEditInput } from "./proposal-model.js";
+import type { ProposalApplyInput, ProposalDraftInput, ProposalEditInput } from "./proposal-model.js";
 import {
+  applyProposal,
   createProposal,
   discardProposal,
   editProposal,
   listProposals,
   readProposal,
 } from "./proposals.js";
+
+export function applyKnowledgeProposal(
+  checkoutRoot: string,
+  input: ProposalApplyInput,
+): ReturnType<typeof applyProposal> {
+  return withCheckoutLock(checkoutRoot, "proposal_apply", () =>
+    applyProposal(checkoutRoot, input),
+  );
+}
 
 export interface SearchKnowledgeInput {
   readonly query: string;

@@ -9,6 +9,8 @@ import {
   validateParsedEntry,
 } from "./entry-format.js";
 import type { ParsedEntry } from "./entry-model.js";
+import { addEntryContent, retireEntry, updateEntryContent } from "./entries.js";
+import { validateLogField } from "./activity-log.js";
 import {
   parseProposal,
   proposalIdPattern,
@@ -18,6 +20,8 @@ import {
 } from "./proposal-format.js";
 import {
   type LoadedProposal,
+  type ProposalApplication,
+  type ProposalApplyInput,
   type ParsedProposal,
   type ProposalDraftInput,
   type ProposalEditInput,
@@ -26,6 +30,7 @@ import {
   type ProposalSummary,
   ProposalCommandError,
   StaleProposalRevisionError,
+  StaleProposalTargetError,
 } from "./proposal-model.js";
 import {
   assertEntryDirectoryIdentity,
@@ -334,7 +339,7 @@ function buildProposal(
   return canonical;
 }
 
-function loadProposal(cwd: string, id: string, now = new Date()): LoadedProposal {
+function loadProposal(cwd: string, id: string, now = new Date(), expectedRevision?: string): LoadedProposal {
   requireProposalId(id);
   if (!pathExists(join(corpusPath(cwd), "proposals"))) {
     throw new ProposalCommandError(`Proposal ${JSON.stringify(id)} does not exist`);
@@ -344,6 +349,9 @@ function loadProposal(cwd: string, id: string, now = new Date()): LoadedProposal
   if (!pathExists(path)) throw new ProposalCommandError(`Proposal ${JSON.stringify(id)} does not exist`);
   const source = readSafeCorpusFile(cwd, path, `Proposal ${JSON.stringify(id)}`);
   assertProposalDirectoryIdentity(cwd, directory.identity);
+  if (expectedRevision !== undefined && sha256Revision(source) !== expectedRevision) {
+    throw new StaleProposalRevisionError(id);
+  }
   const parsed = parseProposal(source, `Proposal ${JSON.stringify(id)}`, now);
   if (parsed.metadata.id !== id) {
     throw new ProposalCommandError(
@@ -352,6 +360,58 @@ function loadProposal(cwd: string, id: string, now = new Date()): LoadedProposal
   }
   validateOperation(cwd, parsed, false);
   return { ...parsed, path, source, revision: sha256Revision(source) };
+}
+
+export function applyProposal(cwd: string, input: ProposalApplyInput): ProposalApplication {
+  if (!proposalRevisionPattern.test(input.expected_revision)) {
+    throw new ProposalCommandError("expected_revision must be sha256 followed by 64 lowercase hex characters");
+  }
+  validateLogField(input.applied_by, "applying actor", 256);
+  if (input.applied_by !== input.applied_by.trim()) {
+    throw new ProposalCommandError("applying actor must not have surrounding whitespace");
+  }
+  const proposal = loadProposal(cwd, input.id, new Date(), input.expected_revision);
+  const directory = entryDirectoryIdentity(cwd);
+  const diagnostics: string[] = [];
+  for (const target of proposal.metadata.preconditions) {
+    const path = entryPath(cwd, target.id);
+    const present = pathExists(path);
+    if (target.state === "absent") {
+      if (present) diagnostics.push(`target ${target.id} is now present`);
+    } else if (!present) {
+      diagnostics.push(`target ${target.id} is now absent`);
+    } else if (entryFingerprint(readSafeCorpusFile(cwd, path, `Proposal target ${JSON.stringify(target.id)}`)) !== target.fingerprint) {
+      diagnostics.push(`target ${target.id} fingerprint is stale`);
+    }
+  }
+  assertEntryDirectoryIdentity(cwd, directory.identity);
+  if (diagnostics.length > 0) throw new StaleProposalTargetError(input.id, diagnostics);
+  validateDraftAgainstCurrent(cwd, proposal);
+
+  let entryId: string;
+  if (proposal.metadata.operation === "retire") {
+    entryId = (proposal.metadata.preconditions[0] as ProposalPrecondition).id;
+    retireEntry(cwd, entryId, proposal.content.retirement_reason as string, input.applied_by);
+  } else {
+    const entry = canonicalEntry(cwd, proposal.content.proposed_entry as string, `Proposal ${JSON.stringify(input.id)} Proposed Entry`);
+    entryId = proposal.metadata.operation === "update"
+      ? updateEntryContent(cwd, entry, input.applied_by)
+      : addEntryContent(cwd, entry, input.applied_by);
+  }
+
+  // The Entry/log transaction has committed. Cleanup is deliberately separate;
+  // any residue is now stale and must never cause a second lifecycle event.
+  try {
+    discardProposal(cwd, input.id, input.expected_revision);
+  } catch (error) {
+    return {
+      status: "applied_cleanup_required",
+      proposal_id: input.id,
+      entry_id: entryId,
+      message: `Entry/log changes remain applied; proposal cleanup failed: ${detail(error)}; inspect the accepted Entry and discard the pending proposal`,
+    };
+  }
+  return { status: "ok", proposal_id: input.id, entry_id: entryId };
 }
 
 function summaryWithCurrentDiagnostics(cwd: string, proposal: LoadedProposal, now: Date): ProposalSummary {

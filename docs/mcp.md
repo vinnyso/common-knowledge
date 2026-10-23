@@ -14,11 +14,14 @@ one explicit Git checkout or linked worktree.
 | `proposal_create` | Proposal ID, operation, actor, evidence, rationale, and proposed Entry; retirement instead takes `target_id` and a reason | Canonical pending proposal with engine-derived targets, timestamp, fingerprints, and revision; the destination is implicit from the Entry ID |
 | `proposal_edit` | Complete lean replacement content, exact `expected_revision`, and revision actor | Revised proposal with freshly derived targets while preserving creation attribution |
 | `proposal_discard` | Stable proposal `id` and exact `expected_revision` | Deleted pending proposal ID |
+| `proposal_apply` | Stable proposal `id`, exact `expected_revision`, and `applied_by` actor | Applied proposal ID and Entry ID; deletes the pending file after Entry/log commit |
 
 `search`, `read`, and `validate` operate only on accepted Entry state.
-`proposal_list` and `proposal_read` are read-only. The remaining proposal tools
-write only `.repo-memory/proposals/`; they do not mutate Entries or `log.md` and
-there is no proposal-apply tool in this milestone.
+`proposal_list` and `proposal_read` are read-only. Create, edit, and discard write
+only `.repo-memory/proposals/`. Apply changes accepted Entries and `log.md`
+through the existing lifecycle transaction, then removes the pending proposal.
+Normal Entry search excludes non-active Entries; Entry read retains the CLI's
+ability to inspect accepted lifecycle history by ID.
 
 Proposal Markdown contains only `Evidence`, `Rationale`, and `Proposed Entry` or
 `Retirement reason`. Each evidence item requires `source`, `revision`, and
@@ -82,18 +85,48 @@ Codex session to inspect connected servers where that client exposes the command
 Successful calls return structured content with a `status` value. `ok` carries
 results, Entry Markdown, or an Entry count. The adapter distinguishes
 `no_match`, `missing_corpus`, `invalid_entry`, `lock_contention`, `not_found`,
-`permission_denied`, `invalid_input`, `invalid_proposal`, `stale_revision`, and
-`operation_failed`. MCP schema errors for malformed arguments are protocol tool
+`permission_denied`, `invalid_input`, `invalid_proposal`, `stale_revision`,
+`stale_target`, `applied_cleanup_required`, and `operation_failed`.
+MCP schema errors for malformed arguments are protocol tool
 errors. Human-readable JSON mirrors the structured result in each tool's text
 content. Malformed proposal files are diagnosed independently and never block
 valid Entry retrieval.
 
 Proposal revisions and present-target fingerprints use `sha256:<64 lowercase
 hex>` over the exact safely read UTF-8 file bytes. Absent targets have no hash.
-Edit and discard compare the caller's exact expected proposal revision while
+Edit, discard, and apply compare the caller's exact expected proposal revision while
 holding the brief checkout lock; a mismatch changes nothing. Reads and lists do
 not change proposal timestamps. A proposal becomes due for reassessment after
 30 elapsed 24-hour periods from its last meaningful revision or creation.
+
+Call `proposal_apply` only after the user accepts that exact proposal in the
+session. Its three required inputs are `id`, `expected_revision`, and
+`applied_by`; additional fields, including an approval boolean or repository
+root, are rejected. The call conveys acceptance; CK does not authenticate it.
+Changed proposal content returns `stale_revision`; changed target state returns
+`stale_target`. Refresh and present the proposal again for acceptance. Invalid
+proposal content is `invalid_proposal`. These failures leave accepted state and
+the pending file unchanged.
+
+Apply checks every derived guard and commits the lifecycle change under one
+checkout lock. Add installs the proposed Entry; supersede also marks its active
+predecessor superseded; update preserves ID, creation attribution, and supersedes
+lineage while setting `updated_at`; retire uses its recorded target and reason.
+All new activity events use `applied_by`, independently of Entry/proposal authors.
+Direct CLI attribution remains unchanged. Actor strings are not authenticated
+identities. Application makes the change locally visible; normal PR merge
+publishes it.
+
+The lock remains held until proposal removal completes. If removal fails after
+Entry/log commit, `applied_cleanup_required` includes `proposal_id`, `entry_id`,
+and a diagnostic: accepted changes remain applied and the pending file remains
+for inspection and explicit `proposal_discard`. Retry sees a stale target before
+writing another event. An interrupted process in that interval has the same
+replay protection; first follow the documented manual stale-lock recovery.
+Entry/log failures retain their existing rollback and external recovery
+diagnostics as `operation_failed` (or `permission_denied` for access failures),
+including when transaction recovery cleanup fails after commit. Inspect that
+evidence before retrying; no proposal-specific recovery state is added.
 
 Stdout contains MCP protocol traffic only. Startup and fatal adapter diagnostics
 go to stderr. Lock-contention results retain the existing retry and manual stale
@@ -116,9 +149,15 @@ the checkout's parent directory. Transactions create
 so atomic renames remain on the checkout filesystem. A host sandbox must grant
 that parent path explicitly when it permits writes.
 
+Apply additionally needs read/write access to affected Entry files and `log.md`,
+replacement/rename access in their Corpus directories, and delete access in
+`proposals/`. Denial before or during the lifecycle transaction returns a typed
+failure with the existing rollback/recovery diagnostic. Denial of proposal
+removal after commit returns `applied_cleanup_required` instead.
+
 MCP is an interface to Common Knowledge, not a sandbox. The host remains
 responsible for process and filesystem isolation. The adapter does not fetch,
 merge, switch, or synchronize Git state, notify other checkouts, execute arbitrary
 commands from tool input, or coordinate filesystem writers that ignore the CK
-lock. Resource subscriptions, proposal application, acceptance authentication,
+lock. Resource subscriptions, acceptance authentication,
 Git operations, and cross-checkout synchronization are outside this adapter.

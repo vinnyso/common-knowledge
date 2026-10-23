@@ -15,7 +15,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, test } from "node:test";
 
-import { createKnowledgeProposal } from "../dist/application.js";
+import { applyKnowledgeProposal, createKnowledgeProposal, readKnowledge, validateKnowledge } from "../dist/application.js";
 import { initializeCorpus } from "../dist/corpus.js";
 import { searchEntries } from "../dist/entries.js";
 import {
@@ -25,7 +25,7 @@ import {
   listProposals,
   readProposal,
 } from "../dist/proposals.js";
-import { StaleProposalRevisionError } from "../dist/proposal-model.js";
+import { StaleProposalRevisionError, StaleProposalTargetError } from "../dist/proposal-model.js";
 
 const temporaryDirectories = [];
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -93,11 +93,11 @@ async function installEntry(cwd, id, overrides = {}) {
   return source;
 }
 
-function invokeProposalCreate(cwd, input, environment) {
+function invokeProposalCreate(cwd, input, environment, operation = "createKnowledgeProposal") {
   const applicationUrl = pathToFileURL(join(projectRoot, "dist", "application.js")).href;
   const source =
-    `import { createKnowledgeProposal } from ${JSON.stringify(applicationUrl)};` +
-    `createKnowledgeProposal(process.cwd(), JSON.parse(process.env.CK_PROPOSAL_INPUT));`;
+    `import { ${operation} as mutate } from ${JSON.stringify(applicationUrl)};` +
+    `mutate(process.cwd(), JSON.parse(process.env.CK_PROPOSAL_INPUT));`;
   return new Promise((resolveResult, reject) => {
     const child = spawn(
       process.execPath,
@@ -121,7 +121,7 @@ function invokeProposalCreate(cwd, input, environment) {
   });
 }
 
-async function startHeldProposalCreate(cwd, input) {
+async function startHeldProposalCreate(cwd, input, operation) {
   const signal = join(cwd, "proposal-lock-acquired.signal");
   const release = join(cwd, "proposal-lock-release.signal");
   const preload = join(cwd, "hold-proposal-lock.mjs");
@@ -150,7 +150,7 @@ syncBuiltinESMExports();
     CK_LOCK_SIGNAL: signal,
     CK_LOCK_RELEASE: release,
   };
-  const completion = invokeProposalCreate(cwd, input, environment);
+  const completion = invokeProposalCreate(cwd, input, environment, operation);
   for (let attempt = 0; attempt < 500; attempt += 1) {
     try {
       await readFile(signal, "utf8");
@@ -482,4 +482,159 @@ test("simultaneous proposal mutations are isolated by the cooperative checkout l
   assert.deepEqual(await readdir(join(cwd, ".repo-memory", "entries")), []);
   assert.equal(await readFile(logPath, "utf8"), logBefore);
   await assert.rejects(readFile(join(cwd, ".repo-memory.lock"), "utf8"), { code: "ENOENT" });
+});
+
+function accepted(inspection, applied_by = "applying-agent") {
+  return { id: inspection.summary.id, expected_revision: inspection.summary.revision, applied_by };
+}
+
+async function snapshot(cwd) {
+  const corpus = join(cwd, ".repo-memory");
+  const result = {};
+  for (const directory of ["entries", "proposals"]) {
+    for (const name of await readdir(join(corpus, directory))) {
+      result[`${directory}/${name}`] = await readFile(join(corpus, directory, name), "utf8");
+    }
+  }
+  result.log = await readFile(join(corpus, "log.md"), "utf8");
+  return result;
+}
+
+test("accepted add, supersede, update, and retire share lifecycle rules and attribute the applying actor", async () => {
+  const cwd = await repository();
+  const add = createKnowledgeProposal(cwd, draft());
+  assert.deepEqual(searchEntries(cwd, "add-rule cue"), []);
+  assert.deepEqual(applyKnowledgeProposal(cwd, accepted(add)), {
+    status: "ok", proposal_id: "add-rule", entry_id: "add-rule",
+  });
+  assert.equal(searchEntries(cwd, "add-rule cue")[0].id, "add-rule");
+  const supersede = createKnowledgeProposal(cwd, draft({
+    id: "replacement-proposal", operation: "supersede",
+    proposed_entry: entrySource("replacement-rule", { supersedes: "add-rule" }),
+  }));
+  applyKnowledgeProposal(cwd, accepted(supersede));
+  const update = createKnowledgeProposal(cwd, draft({
+    id: "update-proposal", operation: "update",
+    proposed_entry: entrySource("replacement-rule", {
+      supersedes: "add-rule", title: "Use the corrected repository rule",
+    }),
+  }));
+  applyKnowledgeProposal(cwd, accepted(update, "updating-agent"));
+  const updated = await readFile(join(cwd, ".repo-memory/entries/replacement-rule.md"), "utf8");
+  assert.match(updated, /created_by: proposal-test/u);
+  assert.match(updated, /created_at: 2026-09-01T12:00:00Z/u);
+  assert.match(updated, /supersedes: add-rule/u);
+  assert.match(updated, /title: Use the corrected repository rule/u);
+  assert.match(updated, /updated_at:/u);
+  const retire = createKnowledgeProposal(cwd, draft({
+    id: "retire-proposal", operation: "retire", target_id: "replacement-rule",
+    proposed_entry: undefined, retirement_reason: "The old behavior was removed.",
+  }));
+  applyKnowledgeProposal(cwd, accepted(retire, "retiring-agent"));
+  const state = await snapshot(cwd);
+  assert.match(state["entries/add-rule.md"], /status: superseded/u);
+  assert.match(state["entries/replacement-rule.md"], /status: retired/u);
+  assert.deepEqual(await readdir(join(cwd, ".repo-memory/proposals")), []);
+  const events = state.log.split("\n").filter((line) => line.startsWith("- "));
+  assert.equal(events.length, 5);
+  assert.match(events[0], /entry.created \| add-rule \| applying-agent/u);
+  assert.match(events[1], /entry.superseded \| add-rule \| applying-agent/u);
+  assert.match(events[2], /entry.created \| replacement-rule \| applying-agent/u);
+  assert.match(events[3], /entry.updated \| replacement-rule \| updating-agent/u);
+  assert.match(events[4], /entry.retired \| replacement-rule \| retiring-agent \| The old behavior was removed\./u);
+  assert.equal(validateKnowledge(cwd), 2);
+});
+
+test("apply rejects edited revisions, malformed proposals, changed targets, and immutable lineage without mutation", async () => {
+  const cwd = await repository();
+  const initial = createKnowledgeProposal(cwd, draft());
+  const edited = editProposal(cwd, {
+    ...draft({ rationale: "Corrected evidence and rationale." }),
+    expected_revision: initial.summary.revision, revised_by: "revising-agent",
+  });
+  const before = await snapshot(cwd);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(initial)), StaleProposalRevisionError);
+  assert.deepEqual(await snapshot(cwd), before);
+  const proposalFile = join(cwd, ".repo-memory/proposals/add-rule.md");
+  await writeFile(proposalFile, "malformed\n");
+  const malformed = await snapshot(cwd);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(edited)), StaleProposalRevisionError);
+  assert.throws(() => applyKnowledgeProposal(cwd, {
+    ...accepted(edited), expected_revision: `sha256:${createHash("sha256").update("malformed\n").digest("hex")}`,
+  }), /front matter/u);
+  assert.deepEqual(await snapshot(cwd), malformed);
+  await writeFile(proposalFile, edited.source);
+  await installEntry(cwd, "add-rule");
+  const occupied = await snapshot(cwd);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(edited)), StaleProposalTargetError);
+  assert.deepEqual(await snapshot(cwd), occupied);
+
+  const update = createKnowledgeProposal(cwd, draft({
+    id: "update-proposal", operation: "update", proposed_entry: entrySource("add-rule"),
+  }));
+  for (const change of ["changed", "removed"]) {
+    if (change === "changed") await installEntry(cwd, "add-rule", { title: "Use a changed rule" });
+    else await rm(join(cwd, ".repo-memory/entries/add-rule.md"));
+    const state = await snapshot(cwd);
+    assert.throws(() => applyKnowledgeProposal(cwd, accepted(update)), StaleProposalTargetError);
+    assert.deepEqual(await snapshot(cwd), state);
+  }
+  await installEntry(cwd, "add-rule");
+  // Manually altered pending content must still obey immutable update lineage.
+  for (const replacement of [
+    entrySource("add-rule", { supersedes: "another-rule" }),
+    entrySource("add-rule", { created_by: "another-author" }),
+  ]) {
+    // Change the stored Proposed Entry directly, retaining the original guards.
+    const path = join(cwd, ".repo-memory/proposals/update-proposal.md");
+    const source = update.source.slice(0, update.source.indexOf("## Proposed Entry\n")) + `## Proposed Entry\n\n${replacement}`;
+    await writeFile(path, source);
+    const state = await snapshot(cwd);
+    assert.throws(() => applyKnowledgeProposal(cwd, {
+      ...accepted(update), expected_revision: `sha256:${createHash("sha256").update(source).digest("hex")}`,
+    }), /preserve/u);
+    assert.deepEqual(await snapshot(cwd), state);
+  }
+});
+
+test("competing accepted proposals become stale after the first target change, including both supersede guards", async () => {
+  const cwd = await repository();
+  await installEntry(cwd, "old-rule");
+  const first = createKnowledgeProposal(cwd, draft({
+    id: "first", operation: "update", proposed_entry: entrySource("old-rule", { title: "Use the first rule" }),
+  }));
+  const second = createKnowledgeProposal(cwd, draft({
+    id: "second", operation: "retire", target_id: "old-rule", proposed_entry: undefined,
+    retirement_reason: "No longer relevant.",
+  }));
+  const supersede = createKnowledgeProposal(cwd, draft({
+    id: "supersede", operation: "supersede", proposed_entry: entrySource("new-rule", { supersedes: "old-rule" }),
+  }));
+  await installEntry(cwd, "new-rule");
+  const before = await snapshot(cwd);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(supersede)), /new-rule is now present/u);
+  assert.deepEqual(await snapshot(cwd), before);
+  await rm(join(cwd, ".repo-memory/entries/new-rule.md"));
+  applyKnowledgeProposal(cwd, accepted(first));
+  const applied = await snapshot(cwd);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(second)), StaleProposalTargetError);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(supersede)), /old-rule fingerprint is stale/u);
+  assert.deepEqual(await snapshot(cwd), applied);
+});
+
+test("simultaneous apply attempts and reads cannot pass the cooperative operation lock", async () => {
+  const cwd = await repository();
+  const created = createKnowledgeProposal(cwd, draft());
+  const before = await snapshot(cwd);
+  const held = await startHeldProposalCreate(cwd, accepted(created), "applyKnowledgeProposal");
+  try {
+    assert.throws(() => applyKnowledgeProposal(cwd, accepted(created)), /checkout lock .* is held/u);
+    assert.throws(() => readKnowledge(cwd, "add-rule"), /checkout lock .* is held/u);
+    assert.throws(() => createKnowledgeProposal(cwd, draft({ id: "competing" })), /checkout lock .* is held/u);
+    assert.deepEqual(await snapshot(cwd), before);
+  } finally {
+    assert.equal((await held.release()).exitCode, 0);
+  }
+  assert.equal((await snapshot(cwd)).log.split("entry.created").length - 1, 1);
+  assert.throws(() => applyKnowledgeProposal(cwd, accepted(created)), /does not exist/u);
 });

@@ -107,6 +107,7 @@ try {
     await client.connect(transport);
     const tools = await client.listTools();
     assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), [
+      "proposal_apply",
       "proposal_create",
       "proposal_discard",
       "proposal_edit",
@@ -166,6 +167,21 @@ try {
       status: "ok",
       proposal_id: "package-verification",
     });
+    const pending = await client.callTool({ name: "proposal_create", arguments: proposalInput });
+    const applied = await client.callTool({
+      name: "proposal_apply",
+      arguments: {
+        id: "package-verification",
+        expected_revision: pending.structuredContent.proposal.summary.revision,
+        applied_by: "package-applying-actor",
+      },
+    });
+    assert.deepEqual(applied.structuredContent, {
+      status: "ok", proposal_id: "package-verification", entry_id: "package-verification",
+    });
+    const accepted = await client.callTool({ name: "search", arguments: { query: "package proposal verification" } });
+    assert.equal(accepted.structuredContent.results[0].id, "package-verification");
+    assert.equal((await client.callTool({ name: "proposal_list", arguments: {} })).structuredContent.proposals.length, 0);
   } finally {
     await client.close();
   }

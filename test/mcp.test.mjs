@@ -6,6 +6,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  readdir,
   realpath,
   rm,
   symlink,
@@ -13,7 +14,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { afterEach, test } from "node:test";
 
@@ -109,11 +110,12 @@ async function initializeWithEntry(repository, entry) {
   await rm(input);
 }
 
-async function connect(root) {
+async function connect(root, env) {
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [mcpPath, "--root", root],
     stderr: "pipe",
+    ...(env === undefined ? {} : { env }),
   });
   let stderr = "";
   transport.stderr?.setEncoding("utf8");
@@ -134,6 +136,7 @@ test("discovers typed MCP tools and performs successful read operations", async 
   try {
     const listed = await connection.client.listTools();
     assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), [
+      "proposal_apply",
       "proposal_create",
       "proposal_discard",
       "proposal_edit",
@@ -476,5 +479,344 @@ test("reports insufficient checkout permissions as a typed outcome", async () =>
   } finally {
     await chmod(repository, 0o755);
     await connection.client.close();
+  }
+});
+
+async function applyFixture(operation, preloadSource = "") {
+  const repository = await makeRepository();
+  assert.equal((await invokeCli(["init"], repository)).exitCode, 0);
+  const proposed = proposalArguments();
+  if (operation !== "add") {
+    await writeFile(join(repository, ".repo-memory/entries/pending-rule.md"), proposed.proposed_entry);
+  }
+  if (operation === "update") {
+    proposed.proposed_entry = proposed.proposed_entry.replace("Use the pending repository rule", "Use the updated repository rule");
+  } else if (operation === "supersede") {
+    proposed.proposed_entry = proposed.proposed_entry.replace("id: pending-rule", "id: replacement-rule\nsupersedes: pending-rule");
+  } else if (operation === "retire") {
+    delete proposed.proposed_entry;
+    proposed.target_id = "pending-rule";
+    proposed.retirement_reason = "The behavior was removed.";
+  }
+  proposed.operation = operation;
+  let environment;
+  if (preloadSource) {
+    const preload = join(repository, "filesystem-fault.mjs");
+    await writeFile(preload, `import fs from "node:fs";\nimport { syncBuiltinESMExports } from "node:module";\n${preloadSource}\nsyncBuiltinESMExports();\n`);
+    environment = {
+      ...process.env,
+      NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --import=${pathToFileURL(preload).href}`.trim(),
+    };
+  }
+  // Draft creation completes before fault injection is activated.
+  const drafting = await connect(repository);
+  let created;
+  try {
+    created = (await drafting.client.callTool({ name: "proposal_create", arguments: proposed })).structuredContent;
+    assert.equal(created.status, "ok", created.message);
+  } finally {
+    await drafting.client.close();
+  }
+  const connection = await connect(repository, environment);
+  const args = { id: "pending-rule", expected_revision: created.proposal.summary.revision, applied_by: "session-applying-actor" };
+  return { repository, connection, args, proposed, created };
+}
+
+async function corpusState(repository) {
+  const corpus = join(repository, ".repo-memory");
+  const state = {};
+  for (const directory of ["entries", "proposals"]) {
+    for (const name of await readdir(join(corpus, directory))) {
+      state[`${directory}/${name}`] = await readFile(join(corpus, directory, name), "utf8");
+    }
+  }
+  state.log = await readFile(join(corpus, "log.md"), "utf8");
+  return state;
+}
+
+async function applyCall(fixture, overrides = {}) {
+  return fixture.connection.client.callTool({ name: "proposal_apply", arguments: { ...fixture.args, ...overrides } });
+}
+
+test("proposal_apply advertises only exact acceptance inputs and distinguishes stale and invalid outcomes", async () => {
+  const fixture = await applyFixture("update");
+  const { connection, repository } = fixture;
+  try {
+    const tools = await connection.client.listTools();
+    const apply = tools.tools.find((tool) => tool.name === "proposal_apply");
+    assert.deepEqual(Object.keys(apply.inputSchema.properties).sort(), ["applied_by", "expected_revision", "id"]);
+    assert.deepEqual(apply.inputSchema.required.sort(), ["applied_by", "expected_revision", "id"]);
+    assert.equal(apply.inputSchema.additionalProperties, false);
+    const before = await corpusState(repository);
+    for (const invalid of [
+      { id: "../escape" }, { expected_revision: "not-a-digest" }, { applied_by: " bad " },
+      { applied_by: "bad|actor" }, { applied_by: 123 }, { approval: true }, { root: "/tmp" },
+    ]) {
+      const result = await applyCall(fixture, invalid);
+      assert.equal(result.isError, true, JSON.stringify(invalid));
+      assert.deepEqual(await corpusState(repository), before);
+    }
+    const stale = await applyCall(fixture, { expected_revision: `sha256:${"0".repeat(64)}` });
+    assert.equal(stale.structuredContent.status, "stale_revision");
+    assert.deepEqual(await corpusState(repository), before);
+    const target = join(repository, ".repo-memory/entries/pending-rule.md");
+    await writeFile(target, before["entries/pending-rule.md"].replace("Use the pending", "Use the changed"));
+    const changed = await corpusState(repository);
+    assert.equal((await applyCall(fixture)).structuredContent.status, "stale_target");
+    assert.deepEqual(await corpusState(repository), changed);
+    await writeFile(target, before["entries/pending-rule.md"]);
+    const proposal = join(repository, ".repo-memory/proposals/pending-rule.md");
+    await writeFile(proposal, "invalid proposal\n");
+    const read = await connection.client.callTool({ name: "proposal_read", arguments: { id: "pending-rule" } });
+    const invalid = await applyCall(fixture, { expected_revision: read.structuredContent.proposal.summary.revision });
+    assert.equal(invalid.structuredContent.status, "invalid_proposal");
+  } finally {
+    await connection.client.close();
+  }
+});
+
+test("all four cleanup failures retain applied state and cannot replay a lifecycle event", async () => {
+  for (const operation of ["add", "update", "supersede", "retire"]) {
+    const fixture = await applyFixture(operation, `
+const originalUnlink = fs.unlinkSync.bind(fs);
+fs.unlinkSync = (path) => {
+  if (String(path).endsWith("/proposals/pending-rule.md")) {
+    if (!fs.existsSync(new URL(".repo-memory.lock", "file://" + process.cwd() + "/"))) throw new Error("cleanup escaped operation lock");
+    throw Object.assign(new Error("injected proposal removal denial"), { code: "EACCES" });
+  }
+  return originalUnlink(path);
+};`);
+    const { connection, repository } = fixture;
+    try {
+      const before = await corpusState(repository);
+      const applied = (await applyCall(fixture)).structuredContent;
+      assert.equal(applied.status, "applied_cleanup_required", operation);
+      assert.match(applied.message, /Entry\/log changes remain applied.*inspect.*discard/u);
+      const after = await corpusState(repository);
+      assert.equal(after["proposals/pending-rule.md"], before["proposals/pending-rule.md"]);
+      const events = after.log.split("\n").filter((line) => line.startsWith("- "));
+      assert.equal(events.length, operation === "supersede" ? 2 : 1);
+      assert.ok(events.every((line) => line.includes(" | session-applying-actor | ")));
+      assert.equal((await applyCall(fixture)).structuredContent.status, "stale_target", operation);
+      assert.deepEqual(await corpusState(repository), after);
+      assert.equal((await connection.client.callTool({ name: "validate", arguments: {} })).structuredContent.status, "ok");
+      // Explicit inspection/discard from an unfaulted process removes only residue.
+      const cleanup = await connect(repository);
+      try {
+        const read = await cleanup.client.callTool({ name: "proposal_read", arguments: { id: fixture.args.id } });
+        assert.ok(read.structuredContent.proposal.summary.diagnostics.length > 0);
+        assert.equal((await cleanup.client.callTool({ name: "proposal_discard", arguments: {
+          id: fixture.args.id, expected_revision: fixture.args.expected_revision,
+        } })).structuredContent.status, "ok");
+        const cleaned = await corpusState(repository);
+        delete after["proposals/pending-rule.md"];
+        assert.deepEqual(cleaned, after);
+      } finally { await cleanup.client.close(); }
+    } finally { await connection.client.close(); }
+  }
+});
+
+test("identical-content update in the same clock tick still makes retained proposal stale", async () => {
+  const fixture = await applyFixture("add");
+  const { connection, repository } = fixture;
+  try {
+    assert.equal((await applyCall(fixture)).structuredContent.status, "ok");
+  } finally { await connection.client.close(); }
+  const entryPath = join(repository, ".repo-memory/entries/pending-rule.md");
+  const timestamp = new Date().toISOString();
+  const source = (await readFile(entryPath, "utf8")).replace("status: active", `updated_at: ${timestamp}\nstatus: active`);
+  await writeFile(entryPath, source);
+  const draft = await connect(repository);
+  let pending;
+  try {
+    pending = await draft.client.callTool({ name: "proposal_create", arguments: proposalArguments({
+      operation: "update", proposed_entry: source,
+    }) });
+    assert.equal(pending.structuredContent.status, "ok");
+  } finally { await draft.client.close(); }
+  const preload = join(repository, "fixed-clock.mjs");
+  await writeFile(preload, `import fs from "node:fs";\nDate.now = () => ${Date.parse(timestamp)};\nconst unlink = fs.unlinkSync.bind(fs);\nfs.unlinkSync = (path) => { if (String(path).endsWith("/proposals/pending-rule.md")) throw new Error("retain proposal"); return unlink(path); };\nimport { syncBuiltinESMExports } from "node:module";\nsyncBuiltinESMExports();\n`);
+  const fixed = await connect(repository, { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(preload).href}` });
+  const accepted = { connection: fixed, args: { ...fixture.args, expected_revision: pending.structuredContent.proposal.summary.revision } };
+  try {
+    assert.equal((await applyCall(accepted)).structuredContent.status, "applied_cleanup_required");
+    const after = await corpusState(repository);
+    assert.notEqual(after["entries/pending-rule.md"], source);
+    assert.equal((await applyCall(accepted)).structuredContent.status, "stale_target");
+    assert.deepEqual(await corpusState(repository), after);
+  } finally { await fixed.client.close(); }
+});
+
+test("process interruption after lifecycle commit retains a stale proposal without duplicate effects", async () => {
+  const fixture = await applyFixture("supersede", `
+const unlink = fs.unlinkSync.bind(fs);
+fs.unlinkSync = (path) => {
+  if (String(path).endsWith("/proposals/pending-rule.md")) process.exit(86);
+  return unlink(path);
+};`);
+  try {
+    await assert.rejects(applyCall(fixture), /closed/u);
+  } finally { await fixture.connection.client.close(); }
+  const after = await corpusState(fixture.repository);
+  assert.match(after["entries/pending-rule.md"], /status: superseded/u);
+  assert.ok(after["entries/replacement-rule.md"]);
+  assert.equal(after.log.split("entry.created").length - 1, 1);
+  // The exited process no longer owns the stale lock: perform documented manual recovery.
+  await rm(join(fixture.repository, ".repo-memory.lock"));
+  const retry = await connect(fixture.repository);
+  try {
+    assert.equal((await retry.client.callTool({ name: "proposal_apply", arguments: fixture.args })).structuredContent.status, "stale_target");
+    assert.deepEqual(await corpusState(fixture.repository), after);
+  } finally { await retry.client.close(); }
+});
+
+test("Entry/log install failure rolls back exactly and retains the proposal for a safe retry", async () => {
+  for (const operation of ["add", "update", "supersede", "retire"]) {
+    const fixture = await applyFixture(operation, `
+const rename = fs.renameSync.bind(fs);
+fs.renameSync = (source, target) => {
+  if (String(source).endsWith(".staged") && String(target).endsWith("/log.md")) throw new Error("injected log installation failure");
+  return rename(source, target);
+};`);
+    const before = await corpusState(fixture.repository);
+    try {
+      const result = (await applyCall(fixture)).structuredContent;
+      assert.equal(result.status, "operation_failed", operation);
+      assert.match(result.message, /transaction failed after installing .*rollback completed/u);
+      assert.deepEqual(await corpusState(fixture.repository), before);
+    } finally { await fixture.connection.client.close(); }
+    const retry = await connect(fixture.repository);
+    try {
+      assert.equal((await retry.client.callTool({ name: "proposal_apply", arguments: fixture.args })).structuredContent.status, "ok");
+    } finally { await retry.client.close(); }
+  }
+});
+
+test("ambiguous rollback and transaction recovery cleanup preserve existing recovery diagnostics", async () => {
+  for (const mode of ["rollback", "committed-cleanup"]) {
+    const fault = mode === "rollback" ? `
+const rename = fs.renameSync.bind(fs);
+fs.renameSync = (source, target) => {
+  if (String(source).endsWith(".staged") && String(target).endsWith("/log.md")) throw new Error("injected log failure");
+  if (String(source).endsWith(".backup")) throw new Error("injected restoration failure");
+  return rename(source, target);
+};` : `
+const rm = fs.rmSync.bind(fs);
+fs.rmSync = (path, options) => {
+  if (String(path).includes(".common-knowledge-transaction-")) throw new Error("injected recovery cleanup failure");
+  return rm(path, options);
+};`;
+    const fixture = await applyFixture("supersede", fault);
+    const before = await corpusState(fixture.repository);
+    try {
+      const result = (await applyCall(fixture)).structuredContent;
+      assert.equal(result.status, "operation_failed");
+      const match = /(?:original recovery copies retained at |external recovery evidence is retained at )(.+)$/u.exec(result.message);
+      assert.ok(match, result.message);
+      const recovery = match[1];
+      temporaryDirectories.push(recovery);
+      assert.equal(dirname(recovery), dirname(fixture.repository));
+      const files = await readdir(recovery);
+      assert.ok(files.some((name) => name.endsWith("pending-rule.md.backup")));
+      const backup = files.find((name) => name.endsWith("pending-rule.md.backup"));
+      assert.equal(await readFile(join(recovery, backup), "utf8"), before["entries/pending-rule.md"]);
+      const after = await corpusState(fixture.repository);
+      assert.equal(after["proposals/pending-rule.md"], before["proposals/pending-rule.md"]);
+      if (mode === "rollback") {
+        assert.match(result.message, /rollback incomplete/u);
+        assert.equal(after.log, before.log);
+        assert.deepEqual(Object.keys(after).sort(), ["log", "proposals/pending-rule.md"]);
+      } else {
+        assert.match(result.message, /transaction committed.*Corpus changes remain applied/u);
+        assert.match(after["entries/pending-rule.md"], /status: superseded/u);
+        assert.ok(after["entries/replacement-rule.md"]);
+        assert.equal(after.log.split("entry.created").length - 1, 1);
+        assert.equal((await applyCall(fixture)).structuredContent.status, "stale_target");
+        assert.deepEqual(await corpusState(fixture.repository), after);
+      }
+    } finally { await fixture.connection.client.close(); }
+  }
+});
+
+test("apply respects proposal, target, parent-staging, and checkout permission boundaries", async () => {
+  const fixture = await applyFixture("update");
+  const corpus = join(fixture.repository, ".repo-memory");
+  const target = join(corpus, "entries/pending-rule.md");
+  const proposal = join(corpus, "proposals/pending-rule.md");
+  const before = await corpusState(fixture.repository);
+  try {
+    for (const path of [proposal, target]) {
+      await chmod(path, 0o000);
+      try { assert.equal((await applyCall(fixture)).structuredContent.status, "permission_denied"); }
+      finally { await chmod(path, 0o644); }
+      assert.deepEqual(await corpusState(fixture.repository), before);
+    }
+    await chmod(fixture.repository, 0o555);
+    try { assert.equal((await applyCall(fixture)).structuredContent.status, "permission_denied"); }
+    finally { await chmod(fixture.repository, 0o755); }
+    const external = await temporaryDirectory();
+    const externalFile = join(external, "outside.md");
+    await writeFile(externalFile, before["entries/pending-rule.md"]);
+    await rm(target);
+    await symlink(externalFile, target);
+    assert.equal((await applyCall(fixture)).structuredContent.status, "invalid_proposal");
+    assert.equal(await readFile(externalFile, "utf8"), before["entries/pending-rule.md"]);
+    await rm(target);
+    await writeFile(target, before["entries/pending-rule.md"]);
+    await rm(proposal);
+    await symlink(externalFile, proposal);
+    assert.equal((await applyCall(fixture)).structuredContent.status, "invalid_proposal");
+    assert.equal(await readFile(externalFile, "utf8"), before["entries/pending-rule.md"]);
+  } finally { await fixture.connection.client.close(); }
+
+  const parent = await temporaryDirectory();
+  const child = join(parent, "checkout");
+  await mkdir(child);
+  await git(child, "init", "-q", "-b", "main");
+  assert.equal((await invokeCli(["init"], child)).exitCode, 0);
+  const connection = await connect(child);
+  try {
+    const created = await connection.client.callTool({ name: "proposal_create", arguments: proposalArguments() });
+    const state = await corpusState(child);
+    await chmod(parent, 0o555);
+    try {
+      const result = await connection.client.callTool({ name: "proposal_apply", arguments: {
+        id: "pending-rule", expected_revision: created.structuredContent.proposal.summary.revision, applied_by: "actor",
+      } });
+      assert.equal(result.structuredContent.status, "permission_denied");
+      assert.deepEqual(await corpusState(child), state);
+    } finally { await chmod(parent, 0o755); }
+  } finally { await connection.client.close(); }
+});
+
+test("apply staging failure leaves Entries, log, and pending proposal byte-identical", async () => {
+  const fixture = await applyFixture("supersede", `
+const write = fs.writeFileSync.bind(fs);
+fs.writeFileSync = (path, ...args) => {
+  if (String(path).endsWith(".staged")) throw new Error("injected staging failure");
+  return write(path, ...args);
+};`);
+  const before = await corpusState(fixture.repository);
+  try {
+    const result = (await applyCall(fixture)).structuredContent;
+    assert.equal(result.status, "operation_failed");
+    assert.match(result.message, /^injected staging failure$/u);
+    assert.deepEqual(await corpusState(fixture.repository), before);
+  } finally { await fixture.connection.client.close(); }
+});
+
+test("proposal_apply changes only the configured checkout when another root contains the same proposal ID", async () => {
+  const first = await applyFixture("add");
+  const second = await applyFixture("add");
+  const beforeSecond = await corpusState(second.repository);
+  try {
+    assert.equal((await applyCall(first)).structuredContent.status, "ok");
+    assert.deepEqual(await corpusState(second.repository), beforeSecond);
+    assert.equal((await second.connection.client.callTool({ name: "search", arguments: { query: "pending-only-needle" } })).structuredContent.status, "no_match");
+    assert.equal((await first.connection.client.callTool({ name: "search", arguments: { query: "pending-only-needle" } })).structuredContent.status, "ok");
+    assert.equal((await applyCall(second)).structuredContent.status, "ok");
+  } finally {
+    await first.connection.client.close();
+    await second.connection.client.close();
   }
 });
