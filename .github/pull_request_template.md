@@ -37,14 +37,6 @@ Closes #
 | --- | --- |
 |  |  |
 
-## Common Knowledge impact
-
-<!-- Optional during v1. State what repository knowledge was searched and whether an Entry was added, updated, superseded, or not needed. Use N/A while this repository does not self-host Common Knowledge. -->
-
-- Search performed:
-- Entry change:
-- Rationale:
-
 ## Review context
 
 <!-- Identify the review fixed point, noteworthy risks, tradeoffs, and follow-up work. -->
