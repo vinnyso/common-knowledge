@@ -1,13 +1,13 @@
 # Common Knowledge agent-first delivery roadmap
 
 **Status:** Active planning handoff; not implementation authority.
-**Reviewed:** 2026-09-16 after AF-03A merged in PR #52.
+**Reviewed:** 2026-10-24 after AF-03B merged in PR #56.
 
 The [agent-first specification](agent-first-spec.md) remains the product and
 design authority. GitHub Issues remain the implementation tracker. This roadmap
-turns the approved direction into small delivery units and proposes the design
-decisions needed to make AF-03 ready. Converting this roadmap into issues does
-not itself authorize implementation.
+records delivered capabilities and the remaining dependency-gated delivery
+units. Issue contracts authorize each implementation unit; this reconciliation
+does not claim an issue, start scored trials, or authorize a new runtime route.
 
 ## Direction
 
@@ -24,24 +24,67 @@ operations. Retain one in-session human acceptance and normal PR merge as
 publication. Do not add transcript ingestion, a curator service, hosted state,
 automatic commits, a second approval ceremony, or a generic evaluation platform.
 
-## Current blocker disposition
+## Current state and next claim
 
-| Current issue | Disposition for issue conversion |
+| Unit | Current disposition |
 | --- | --- |
-| [#39](https://github.com/vinnyso/common-knowledge/issues/39) AF-03A | Done in PR #52. Its safety model is sound, but the authored contract and caller-supplied targets are broader than the learning loop needs. Add one bounded simplification before application. |
-| [#49](https://github.com/vinnyso/common-knowledge/issues/49) AF-03B | Remove from agent readiness until the lean authoring/API revision is merged. Reconcile application around the existing Entry/log transaction and stale-target replay protection rather than a delete-capable recovery subsystem. |
-| [#40](https://github.com/vinnyso/common-knowledge/issues/40) AF-03E | The checkpoint-2 bundle exists and verifies as complete history at `67ee69584ce0122a26b017b2e559bed3cb5c90e8`; its SHA-256 is `d1ff2602b4c3ad50ca75b9d1de139bb6985a8e78d6e2375a98f9a62973e4655c`. Split fixture/rubric preparation from trial execution. Full-stack revalidation and private checks remain required preparation, not presumed evidence. |
-| [#41](https://github.com/vinnyso/common-knowledge/issues/41) AF-04 | Default to short checked-in activation instructions plus an invocable Reflection skill. Add a host hook only after a supported-client trial shows a repeatable missed invocation. |
-| [#42](https://github.com/vinnyso/common-knowledge/issues/42) AF-05 | Split installer/doctor lifecycle from the human-accepted A-to-B demonstration. Installation uses an explicit named instruction file or bounded managed block and must never guess or rewrite client instructions. |
-| [#43](https://github.com/vinnyso/common-knowledge/issues/43) AF-06 | Participant availability and consent are start gates that cannot be manufactured early. Keep the issue dependency-gated until the full-loop proof exists; lack of a cohort is a reported gap, not product evidence. |
+| [#39](https://github.com/vinnyso/common-knowledge/issues/39) AF-03A | Done in PR #52: separate pending proposals, inspection, revisions, and guarded draft operations. |
+| [#53](https://github.com/vinnyso/common-knowledge/issues/53) AF-03L | Done in PR #55 after the canonical lean-contract amendment in PR #54: bounded authored content and engine-derived guards/destinations. |
+| [#49](https://github.com/vinnyso/common-knowledge/issues/49) AF-03B | Done in PR #56, merged 2026-10-23 UTC at `078532627fba2becbea2e5ebf34ac0944b8222a5`. All four accepted operations, post-commit cleanup, and replay protection are delivered. |
+| [#40](https://github.com/vinnyso/common-knowledge/issues/40) AF-03E-P | Next claim: fully specified and labeled `ready-for-agent`; its only implementation dependency, #49, is complete. The explicit local bundle path and fresh preparation evidence are still required. |
+| [#50](https://github.com/vinnyso/common-knowledge/issues/50) AF-03E-R | Blocked on #40. Bind exact frozen manifest revisions and execution prerequisites before marking ready. |
+| [#41](https://github.com/vinnyso/common-knowledge/issues/41) AF-04 | Blocked on #50; use observed outcomes to bound recall/Reflection changes. |
+| [#42](https://github.com/vinnyso/common-knowledge/issues/42) AF-05P | Blocked on #41; packaging precedes the separate #51 two-session proof. |
+| [#51](https://github.com/vinnyso/common-knowledge/issues/51) AF-05D | Blocked on #42; bind packaged assets and prepared tasks before readiness. |
+| [#43](https://github.com/vinnyso/common-knowledge/issues/43) AF-06 | Blocked on #51 plus authorized participants and evidence handling. |
 
-During conversion, replace the stale pre-AF-01 branch links with `main`, remove
-obsolete “pending #35/#36” wording, and record the current authorization state in
-one issue comment rather than copying a historical pause into every issue. Set a
-Project status only when the resulting issue satisfies the repository's normal
-readiness rules.
+PR #56 records passing preflight, full tests, package verification, exact-candidate
+CI, and independent review. Reuse that completed apply-and-cleanup evidence;
+evaluation does not require another proposal engine or cleanup milestone.
+The historical lean-contract/start-pause gates are no longer outstanding AF-03
+prerequisites. Preserve normal issue claiming, dependency, review, and merge rules.
+Project status must be checked at claim time; labels alone do not establish it.
 
-## AF-03 contract proposed for conversion
+## Immediate execution plan: #40 only
+
+1. Confirm #40 has no competing claim, record the contract, and move its Project
+   status to `In Progress` before implementation. Do not claim #50 or #41 early.
+2. Supply the explicit local Legacy Orders checkpoint-2 bundle path. Verify size
+   92,824 bytes, SHA-256
+   `d1ff2602b4c3ad50ca75b9d1de139bb6985a8e78d6e2375a98f9a62973e4655c`,
+   and complete-history `main` at `67ee69584ce0122a26b017b2e559bed3cb5c90e8`.
+   Historical verification is not proof of availability in a new environment.
+   A missing path or mismatch stops fixture preparation. Do not publish or vendor
+   the separate project's artifact without explicit authorization.
+3. Restore independent clean application clones, re-establish the dependency
+   cache, and record the current full application gate. Do not reuse historical
+   application results as fresh checks.
+4. Freeze exact task packets for reference-import correction, dispatch-export
+   constraints, and CSV quoting as the low-context control. Author private checks
+   before any task-agent run. Calibrate each substantive scenario against at
+   least one correct and one functional-but-architecturally-wrong fixture;
+   functional and architectural outcomes must be separately observable.
+5. Freeze application and CK revisions, task/guidance bytes, model/settings,
+   tools/runtime, condition and isolation manifests, content hashes, JSON/JSONL
+   records, and the runbook. Preserve ordinary public guidance in both conditions;
+   vary only recorded CK availability and temporary consultation instructions.
+   Keep author material, private checks, reference answers, other runs, and
+   persistent agent memory outside task-agent access.
+6. Verify provenance, calibration, isolation, hashes, and applicable CK checks;
+   obtain exact-candidate CI and independent review before human merge. Stop
+   before scored agent trials. #40 is Done only after that reviewed PR merges;
+   then reconcile #50 against the exact frozen inputs and claim it separately.
+
+Keep the CK issue/PR convention failure as a separate future scenario candidate.
+Legacy Orders does not establish that failure. Do not add Reflection, installers,
+Docker support, runtime evaluation APIs, a generic runner, or effectiveness claims
+to #40. These are preparation steps within one reviewable issue, not new blockers
+or a replacement roadmap.
+
+## Delivered AF-03 design summary
+
+The canonical specification and merged implementations govern these mechanics;
+the following summary is retained for context, not as unimplemented work.
 
 ### Proposal document
 
@@ -54,10 +97,9 @@ line endings. YAML front matter contains:
 - ordered `preconditions`, each naming an Entry ID and either `state: absent` or
   `state: present` with `sha256:<64 lowercase hex>`.
 
-The package is not registry-published and this repository contains no stored
-Proposal artifacts, so AF-03L revises proposal v1 in place. Do not add a second
-format or migration framework. If a supported external trial artifact is found,
-preserve read compatibility without retaining the verbose authoring API.
+AF-03L revised proposal v1 in place while the package was not registry-published
+and this repository had no stored Proposal artifacts. No second format or
+migration framework was needed for that delivered correction.
 
 The Markdown body requires only `Evidence`, `Rationale`, and the exact change.
 Each evidence item identifies its source path or artifact, repository revision,
@@ -139,23 +181,59 @@ guard stale, so a retained proposal or a retry after an interrupted cleanup fail
 before another lifecycle event can be written. Malformed proposals are reported
 separately and never block valid Entry retrieval.
 
-## Issue conversion queue
+## Delivery sequence
 
-| Proposed unit | Depends on | Outcome and exit evidence |
+| Unit | Depends on | Outcome and exit evidence |
 | --- | --- | --- |
 | **AF-03A — proposal format and pending operations** ([#39](https://github.com/vinnyso/common-knowledge/issues/39), Done) | #38 Done | PR #52 delivered separate pending storage, exact proposal revisions, target guards, safe draft operations, age assessment, and retrieval isolation. |
-| **AF-03L — lean proposal authoring and derived targets** ([#53](https://github.com/vinnyso/common-knowledge/issues/53)) | AF-03A | Reduce required authored content to Evidence, Rationale, and the exact change; derive guards/destination from operation and Entry content; preserve exact-revision edit/discard guards; keep the merged format readable only if real stored proposals require it. No apply tool. |
-| **AF-03B — accepted apply and cleanup** (revise [#49](https://github.com/vinnyso/common-knowledge/issues/49)) | AF-03L | Apply all four operations through the existing Entry/log transaction, delete afterward under the same lock, return typed stale/cleanup outcomes, and prove retry cannot duplicate a lifecycle event. No delete-capable transaction or proposal recovery subsystem. |
-| **AF-03E-P — freeze the minimal evaluation** (revise #40) | AF-03B | Require an explicit local bundle path and reject any digest other than the pinned 92,824-byte artifact; revalidate the full application; freeze reference-import correction and dispatch-export constraints plus CSV quoting as the low-context control, hidden checks, condition manifests, leakage audit, and runbook. Do not publish or vendor the separate project's artifact without authorization. No scored trials. |
-| **AF-03E-R — run and report the initial comparison** (new) | AF-03E-P | Fresh matched baseline/current-CK sessions using actual MCP access; immutable results and application checks; recall, reading, applicability, behavior, and preparation/review effort reported separately; null and negative runs retained. This measures the installed retrieval intervention, not verified curation. |
-| **AF-04 — ordinary recall and verified Reflection** (revise #41) | AF-03E-R | Managed activation plus invocable skill produces consultation and zero-or-one evidence-backed proposal in ordinary tasks. Before presentation, use read-only repository tools to verify supporting sources, search for conflicting knowledge and plausible counterexamples, record unresolved assumptions, and narrow, reject, or abstain when support is insufficient. No hook unless the default demonstrably misses. |
-| **AF-05P — package, install, doctor, and uninstall** (revise #42) | AF-04 | Identifiable prebuilt artifacts, checksum/source record, explicit managed activation, clean-clone failure tests, upgrades preserving knowledge, doctor verification, and uninstall preserving the Corpus. |
-| **AF-05D — prove published two-session reuse** (new) | AF-05P | Agent A performs verified Reflection, the user accepts once, PR merge publishes, and fresh Agent B retrieves from a checkout containing that revision before the relevant decision. Repeat affected AF-03E cases with current proposal drafting versus verified Reflection while holding retrieval, task, tools, and accepted Corpus constant where practical. Operation/reuse and curation evidence are separated from productivity claims. |
-| **AF-06 — bounded beta decision** (revise #43) | AF-05D | Five to ten authorized tasks and three to five engineers where available; matched simple skill-plus-Markdown comparison; capture, review, and maintenance cost; explicit continue, simplify, or stop decision. |
+| **AF-03L — lean proposal authoring and derived targets** ([#53](https://github.com/vinnyso/common-knowledge/issues/53), Done in PR #55) | #39 Done | Delivered: reduce required authored content to Evidence, Rationale, and the exact change; derive guards/destination from operation and Entry content; preserve exact-revision edit/discard guards; keep the merged format readable only if real stored proposals require it. No apply tool. |
+| **AF-03B — accepted apply and cleanup** ([#49](https://github.com/vinnyso/common-knowledge/issues/49), Done in PR #56) | #53 Done | Delivered: apply all four operations through the existing Entry/log transaction, delete afterward under the same lock, return typed stale/cleanup outcomes, and prove retry cannot duplicate a lifecycle event. No delete-capable transaction or proposal recovery subsystem. |
+| **AF-03E-P — freeze the minimal evaluation** ([#40](https://github.com/vinnyso/common-knowledge/issues/40), next claim) | #49 Done | Require an explicit local bundle path and reject any digest other than the pinned 92,824-byte artifact; revalidate the full application; freeze reference-import correction and dispatch-export constraints plus CSV quoting as the low-context control, hidden checks, condition manifests, leakage audit, and runbook. Do not publish or vendor the separate project's artifact without authorization. No scored trials. |
+| **AF-03E-R — run and report the initial comparison** ([#50](https://github.com/vinnyso/common-knowledge/issues/50)) | #40 | Fresh matched baseline/current-CK sessions using actual MCP access; immutable results and application checks; recall, reading, applicability, behavior, and preparation/review effort reported separately; null and negative runs retained. This measures the installed retrieval intervention, not verified curation. |
+| **AF-04 — ordinary recall and verified Reflection** ([#41](https://github.com/vinnyso/common-knowledge/issues/41)) | #50 | Managed activation plus invocable skill produces consultation and zero-or-one evidence-backed proposal in ordinary tasks. Before presentation, use read-only repository tools to verify supporting sources, search for conflicting knowledge and plausible counterexamples, record unresolved assumptions, and narrow, reject, or abstain when support is insufficient. No hook unless the default demonstrably misses. |
+| **AF-05P — package, install, doctor, and uninstall** ([#42](https://github.com/vinnyso/common-knowledge/issues/42)) | #41 | Identifiable prebuilt artifacts, checksum/source record, explicit managed activation, clean-clone failure tests, upgrades preserving knowledge, doctor verification, and uninstall preserving the Corpus. |
+| **AF-05D — prove published two-session reuse** ([#51](https://github.com/vinnyso/common-knowledge/issues/51)) | #42 | Agent A performs verified Reflection, the user accepts once, PR merge publishes, and fresh Agent B retrieves from a checkout containing that revision before the relevant decision. Repeat affected AF-03E cases with current proposal drafting versus verified Reflection while holding retrieval, task, tools, and accepted Corpus constant where practical. Operation/reuse and curation evidence are separated from productivity claims. |
+| **AF-06 — bounded beta decision** ([#43](https://github.com/vinnyso/common-knowledge/issues/43)) | #51 | Five to ten authorized tasks and three to five engineers where available; matched simple skill-plus-Markdown comparison; capture, review, and maintenance cost; explicit continue, simplify, or stop decision. |
 
-The existing human-reading-guide trial began with PR #46. AF-03A was trial two;
-use the lean contract PR as the next review sample and reassess the guide after
-AF-03B rather than extending the trial to AF-03E automatically.
+The human-reading-guide trial began with PR #46 and was bounded by actual
+implementation PRs, not the original issue batch. Do not extend or restart it for
+#40 from its historical comment. Current review-policy requirements for a short
+human reading guide still apply; this maintenance reconciliation does not reset
+the trial count or establish that the guide reduced review effort.
+
+## Packaging option to assess in #42: Docker
+
+A container is a feasible candidate distribution route for the existing local
+stdio MCP adapter, not a delivered or tested CK capability. The client could
+launch `docker run --rm -i` against a pinned image containing CK, Node, and Git;
+no TTY, HTTP transport, exposed port, or resident service is needed for this
+approach. Compare it with the prebuilt Node package during #42 readiness work;
+Docker must not gate #40, #50, or #41 or change frozen evaluation conditions.
+
+The assessment must account for current implementation constraints:
+
+- Bind one explicit consumer checkout, including Git metadata. Linked worktrees
+  may refer to Git directories outside the mounted checkout; resolve those paths
+  deliberately rather than assuming a single repository mount is sufficient.
+- Retain write permission for the cooperative lock even for retrieval. Proposal
+  application additionally needs writable Corpus/proposals and transaction
+  recovery storage beside the checkout. Persist external recovery evidence on
+  the host and keep staging/targets on the same filesystem: mounting only the
+  checkout while staging in the container layer can cause cross-device renames.
+  Do not solve this by broadening mounts to unrelated repositories by default.
+- Test host file ownership, Git ownership checks, root/path validation, lock
+  contention across native/container calls, stale/replay outcomes, and crash
+  recovery under the chosen mount layout. Container removal must not destroy
+  the recovery evidence needed to inspect an ambiguous failure.
+- Pin image source/digest and runtime; verify supported host architectures,
+  startup, client lifecycle, and ordinary MCP calls. Installation, managed agent
+  activation, doctor, upgrade, and uninstall remain #42 responsibilities.
+
+Docker can remove consumer Node/npm setup when Docker is already installed. It
+adds a daemon and filesystem mapping concerns for other users and does not cause
+agents to consult CK or perform Reflection. Prefer the simpler proven route for
+the first evaluation; choose container packaging only from a bounded supported-
+client proof. This note records an option, not authorization to implement it.
 
 ## Evidence-gated future direction
 
@@ -179,10 +257,12 @@ tool calls, self-report, or a successful demo alone.
 Human direction is required at these points; no other approval ceremony is
 introduced:
 
-1. Review and merge the lean AF-03 contract amendment before either implementation
-   issue becomes agent-ready.
-2. Explicitly lift the historical implementation pause before giving the first
-   dependency-satisfied unit `ready-for-agent` and Project `Ready` status.
+1. The lean AF-03 contract gate was satisfied by merged PR #54; #53 and #49
+   subsequently completed in PRs #55 and #56. Do not reopen this historical gate.
+2. The historical first-unit implementation pause is not a fresh permission
+   requirement for this sequence. Claim each authorized dependency-satisfied
+   issue through the normal lifecycle; missing external inputs still gate the
+   affected preparation work.
 3. Accept each concrete knowledge proposal in the active session before local
    application. Drafting and verification do not require prior permission.
 4. Review and merge every implementation PR to publish code or accepted
