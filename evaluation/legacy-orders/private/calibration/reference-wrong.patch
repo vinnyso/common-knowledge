@@ -1,0 +1,38 @@
+diff --git a/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java b/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java
+index 0249d46..01feea7 100644
+--- a/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java
++++ b/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java
+@@ -2,0 +3,3 @@ package com.northstar.orders.legacy.web;
++import com.fasterxml.jackson.databind.JsonNode;
++import com.northstar.orders.application.AuditLog;
++import com.northstar.orders.domain.CustomerReference;
+@@ -5 +8,2 @@ import jakarta.validation.Valid;
+-import jakarta.validation.constraints.*;
++import jakarta.validation.constraints.Positive;
++import java.time.Clock;
+@@ -7 +11,2 @@ import java.util.Map;
+-import org.springframework.http.HttpStatus;
++import org.springframework.dao.DataAccessException;
++import org.springframework.http.*;
+@@ -16 +21,3 @@ public class ReferenceImportController {
+-    public ReferenceImportController(OrderDao orders) { this.orders = orders; }
++    private final AuditLog audit;
++    private final Clock clock;
++    public ReferenceImportController(OrderDao orders,AuditLog audit,Clock clock) { this.orders=orders;this.audit=audit;this.clock=clock; }
+@@ -19,3 +26,8 @@ public class ReferenceImportController {
+-    public Map<String, Long> update(@Valid @RequestBody ReferenceImport request) {
+-        if (!orders.replaceReference(request.orderId(), request.customerReference().strip())) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+-        return Map.of("orderId", request.orderId());
++    public Map<String,Long> update(@Valid @RequestBody Request request) {
++        if(request.customerReference()==null || !request.customerReference().isTextual()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
++        String reference;
++        try { reference=new CustomerReference(request.customerReference().textValue()).value(); }
++        catch(IllegalArgumentException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); }
++        if(!orders.replaceReference(request.orderId(),reference)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
++        audit.append(request.orderId(),"REFERENCE_AMENDED",reference,clock.instant());
++        return Map.of("orderId",request.orderId());
+@@ -23 +35,3 @@ public class ReferenceImportController {
+-    public record ReferenceImport(@Positive long orderId, @NotBlank @Size(max=20) String customerReference) {}
++    @ExceptionHandler(DataAccessException.class)
++    ResponseEntity<Void> failed() { return ResponseEntity.internalServerError().build(); }
++    public record Request(@Positive long orderId,JsonNode customerReference) {}

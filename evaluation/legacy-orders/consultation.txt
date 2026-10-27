@@ -1,0 +1,2 @@
+Before changing code, search Common Knowledge with the task terms and affected path. Read any relevant Entry and verify it against the current repository. Re-query when a new error or unfamiliar behavior appears. An empty result is normal; continue with repository evidence.
+This comparison uses retrieval only: use search, read and validate. Do not draft, edit, apply or discard knowledge proposals.

@@ -1,0 +1,683 @@
+{
+  "version": 1,
+  "record_type": "preparation",
+  "date": "2026-10-27",
+  "scored_trials": 0,
+  "application_revision": "67ee69584ce0122a26b017b2e559bed3cb5c90e8",
+  "bundle": {
+    "bytes": 92824,
+    "sha256": "d1ff2602b4c3ad50ca75b9d1de139bb6985a8e78d6e2375a98f9a62973e4655c",
+    "complete_history_verified_in_empty_object_database": true
+  },
+  "full_application_gate": {
+    "command": "JAVA_HOME=<JDK21> npm_config_cache=<author>/cache npm_config_offline=true ./mvnw -o -B -ntp -Dmaven.repo.local=<author>/cache/m2 -Pconsole clean verify",
+    "exit_code": 0,
+    "log_sha256": "f3afb63ae2a51cd28b4227f58dba5654a49ca78da9c4c803ee6a3e5b0c24d97e",
+    "frontend_tests": 11,
+    "java_unit_tests": 18,
+    "java_integration_architecture_tests": 7,
+    "historical_results_reused": false
+  },
+  "prepared_cache": {
+    "maven_artifact_files": 595,
+    "maven_artifact_inventory_sha256": "30495d9c47f9d12ae8529556a0eaae981cbeb05fc1b258ab26a1cb231645d364",
+    "audit": "Only third-party JAR/POM artifacts; no local project/SNAPSHOT artifacts. User Maven settings/credentials are excluded. Broad seeded author npm cache is never exposed to tasks; isolated operational gate uses a clean frontend-only npm cache.",
+    "wrapper": "Maven 3.9.11 distribution copied into run-owned MAVEN_USER_HOME; record per-run inventory before dispatch."
+  },
+  "calibration": [
+    {
+      "record_type": "evaluator-result",
+      "scored": false,
+      "candidate": "16042b0329012652e1542d2afe67d3ba99d3a2cc",
+      "scenario": "reference-import",
+      "public": {
+        "exit_code": 0,
+        "seconds": 30.543,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Pconsole",
+          "clean",
+          "verify"
+        ],
+        "log": "<author>/eval-reference-correct-public.log",
+        "log_sha256": "4719810a431152ce3b0fa6b6e5c8e8d6eafaa34040402706421e1f7b2bd3162a",
+        "test_totals": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "functional": {
+        "exit_code": 0,
+        "seconds": 13.468,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKReferenceTest",
+          "test"
+        ],
+        "log": "<author>/eval-reference-correct-functional-final.log",
+        "log_sha256": "75032a8212322b1f6b1a7f97dacbdd99e852458d22cdbacccd6602b17bff2bd8",
+        "test_totals": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKReferenceTest"
+        ]
+      },
+      "architectural": {
+        "exit_code": 0,
+        "seconds": 13.005,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKBoundaryTest",
+          "-Dck.scenario=reference-import",
+          "test"
+        ],
+        "log": "<author>/eval-reference-correct-architectural.log",
+        "log_sha256": "320525a5d5b1a68075af300c7bca87f5ef51222e4bd0dfd2387a6dac5767d0d8",
+        "test_totals": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKBoundaryTest"
+        ]
+      },
+      "limits": [
+        "Architectural checks inspect the mapped handler and reachable public application bean; independent review assesses residual semantic boundaries."
+      ],
+      "fixture": "reference-correct",
+      "check_sha256": {
+        "CKBoundaryTest.java": "06dd3dc60d1d204a17bf163e3a0d40a97dcadc7f6406c5388fa55938a4f6f2b4",
+        "CKReferenceTest.java": "ed59a3f8822a98e131382acf0396e2f3b97190f7f1e70997c0c7afe79dccd0c4"
+      }
+    },
+    {
+      "record_type": "evaluator-result",
+      "scored": false,
+      "candidate": "0144fd2e46500ce2a5dd267d53524576b32df023",
+      "scenario": "reference-import",
+      "public": {
+        "exit_code": 0,
+        "seconds": 40.592,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Pconsole",
+          "clean",
+          "verify"
+        ],
+        "log": "<author>/eval-reference-wrong-public.log",
+        "log_sha256": "eb6a2d911022786e1bcfff8d5c014f250f8828fd6a3a64d41c72eb66ba54002b",
+        "test_totals": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "functional": {
+        "exit_code": 0,
+        "seconds": 13.202,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKReferenceTest",
+          "test"
+        ],
+        "log": "<author>/eval-reference-wrong-functional-final.log",
+        "log_sha256": "f99dbe4cce526b3641dd08e19de61baa32c8ff43574f97ec7db2fea88392cd27",
+        "test_totals": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKReferenceTest"
+        ]
+      },
+      "architectural": {
+        "exit_code": 1,
+        "seconds": 13.653,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKBoundaryTest",
+          "-Dck.scenario=reference-import",
+          "test"
+        ],
+        "log": "<author>/eval-reference-wrong-architectural.log",
+        "log_sha256": "5b40809f158a116bf16a177ff8d376d0502f05c0062030e6e1b2671bf5ed2731",
+        "test_totals": {
+          "tests": 1,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKBoundaryTest"
+        ]
+      },
+      "limits": [
+        "Architectural checks inspect the mapped handler and reachable public application bean; independent review assesses residual semantic boundaries."
+      ],
+      "fixture": "reference-wrong",
+      "check_sha256": {
+        "CKBoundaryTest.java": "06dd3dc60d1d204a17bf163e3a0d40a97dcadc7f6406c5388fa55938a4f6f2b4",
+        "CKReferenceTest.java": "ed59a3f8822a98e131382acf0396e2f3b97190f7f1e70997c0c7afe79dccd0c4"
+      }
+    },
+    {
+      "record_type": "evaluator-result",
+      "scored": false,
+      "candidate": "46b471f88120c2de3a3fc07900965455d17ac9a4",
+      "scenario": "dispatch-export",
+      "public": {
+        "exit_code": 0,
+        "seconds": 32.037,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Pconsole",
+          "clean",
+          "verify"
+        ],
+        "log": "<author>/eval-dispatch-correct-final-public.log",
+        "log_sha256": "3c321a6d94b0827f184e0f22e164d9f6aaab76d4700a1d56411686918e447950",
+        "test_totals": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "functional": {
+        "exit_code": 0,
+        "seconds": 13.75,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKDispatchTest",
+          "test"
+        ],
+        "log": "<author>/eval-dispatch-correct-final-functional.log",
+        "log_sha256": "e1f28f84bea5d99f334799dbb667516b4d262d2f374fba23ce0a858c97ec1932",
+        "test_totals": {
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKDispatchTest"
+        ]
+      },
+      "architectural": {
+        "exit_code": 0,
+        "seconds": 13.486,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKBoundaryTest",
+          "-Dck.scenario=dispatch-export",
+          "test"
+        ],
+        "log": "<author>/eval-dispatch-correct-final-architectural.log",
+        "log_sha256": "eaad1a3e1437a2d26042d6485d52f481d2be79778bde046ed66bb0795ef1a7c4",
+        "test_totals": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKBoundaryTest"
+        ]
+      },
+      "limits": [
+        "Architectural checks inspect the mapped handler and reachable public application bean; independent review assesses residual semantic boundaries."
+      ],
+      "fixture": "dispatch-correct-final",
+      "check_sha256": {
+        "CKBoundaryTest.java": "06dd3dc60d1d204a17bf163e3a0d40a97dcadc7f6406c5388fa55938a4f6f2b4",
+        "CKDispatchTest.java": "5a7ea7e2778293b958c19308d57814c245dc9dd910ccd866066b280ace40a5d6"
+      }
+    },
+    {
+      "record_type": "evaluator-result",
+      "scored": false,
+      "candidate": "5f28027ba190d456291bb169bac241e6d35135b6",
+      "scenario": "dispatch-export",
+      "public": {
+        "exit_code": 0,
+        "seconds": 32.016,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Pconsole",
+          "clean",
+          "verify"
+        ],
+        "log": "<author>/eval-dispatch-wrong-final-public.log",
+        "log_sha256": "ccef6bc2d67cb953ae13552d197582de5fa1c623587eac571b46d39a4dec56c0",
+        "test_totals": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "functional": {
+        "exit_code": 0,
+        "seconds": 13.71,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKDispatchTest",
+          "test"
+        ],
+        "log": "<author>/eval-dispatch-wrong-final-functional.log",
+        "log_sha256": "be35291f37d1cc3ea4d545b7075952e3891e6e8e5726646e727b8abae10f86ae",
+        "test_totals": {
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKDispatchTest"
+        ]
+      },
+      "architectural": {
+        "exit_code": 1,
+        "seconds": 13.454,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKBoundaryTest",
+          "-Dck.scenario=dispatch-export",
+          "test"
+        ],
+        "log": "<author>/eval-dispatch-wrong-final-architectural.log",
+        "log_sha256": "58234dc209f48e0ff1e9c1cf8255c06bac9554fdcd2d12223b8059da6804f82f",
+        "test_totals": {
+          "tests": 1,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKBoundaryTest"
+        ]
+      },
+      "limits": [
+        "Architectural checks inspect the mapped handler and reachable public application bean; independent review assesses residual semantic boundaries."
+      ],
+      "fixture": "dispatch-wrong-final",
+      "check_sha256": {
+        "CKBoundaryTest.java": "06dd3dc60d1d204a17bf163e3a0d40a97dcadc7f6406c5388fa55938a4f6f2b4",
+        "CKDispatchTest.java": "5a7ea7e2778293b958c19308d57814c245dc9dd910ccd866066b280ace40a5d6"
+      }
+    },
+    {
+      "record_type": "evaluator-result",
+      "scored": false,
+      "candidate": "e5b3931660141ee5f128a6a132bc2a4a2b587e19",
+      "scenario": "csv-quoting",
+      "public": {
+        "exit_code": 0,
+        "seconds": 41.142,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Pconsole",
+          "clean",
+          "verify"
+        ],
+        "log": "<author>/eval-csv-correct-public.log",
+        "log_sha256": "e60d5ad4b2cbb706c5bf5362f5e68cb553f2d0db4c76257602459e70dd1340ca",
+        "test_totals": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "functional": {
+        "exit_code": 0,
+        "seconds": 15.395,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKCsvTest,CKCsvEndpointTest",
+          "test"
+        ],
+        "log": "<author>/eval-csv-correct-functional.log",
+        "log_sha256": "f0f81d31545a69b8827ae9272baae08f1393af366a4e3827404caba441032e50",
+        "test_totals": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKCsvEndpointTest",
+          "com.northstar.orders.CKCsvTest"
+        ]
+      },
+      "architectural": null,
+      "limits": [
+        "Architectural checks inspect the mapped handler and reachable public application bean; independent review assesses residual semantic boundaries."
+      ],
+      "fixture": "csv-correct",
+      "check_sha256": {
+        "CKCsvTest.java": "1a1834ce4433a7531fede323a1b169c7abe7a1e57d19c4fea5a8b29c777e2c64",
+        "CKCsvEndpointTest.java": "9967dd0c18e4eba08edaa1c998dc3206e8d797a4ed500561d61fa51eca959e00"
+      }
+    },
+    {
+      "record_type": "evaluator-result",
+      "scored": false,
+      "candidate": "67ee69584ce0122a26b017b2e559bed3cb5c90e8",
+      "scenario": "csv-quoting",
+      "public": {
+        "exit_code": 0,
+        "seconds": 37.078,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Pconsole",
+          "clean",
+          "verify"
+        ],
+        "log": "<author>/eval-baseline-public.log",
+        "log_sha256": "5a80ecfe1841054fb70cb51ec84e4c846c8c8ea3e4b4d2ac6195a294bcd414b8",
+        "test_totals": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "functional": {
+        "exit_code": 1,
+        "seconds": 13.062,
+        "command": [
+          "./mvnw",
+          "-o",
+          "-B",
+          "-ntp",
+          "-Dmaven.repo.local=<author>/cache/m2",
+          "-Dtest=CKCsvTest,CKCsvEndpointTest",
+          "test"
+        ],
+        "log": "<author>/eval-baseline-functional.log",
+        "log_sha256": "dcbf62bf4e0c7ee408b6d2316b75c2f24a7146c412d7568d7e83619a48299aeb",
+        "test_totals": {
+          "tests": 2,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 0
+        },
+        "test_classes": [
+          "com.northstar.orders.CKCsvEndpointTest",
+          "com.northstar.orders.CKCsvTest"
+        ]
+      },
+      "architectural": null,
+      "limits": [
+        "Architectural checks inspect the mapped handler and reachable public application bean; independent review assesses residual semantic boundaries."
+      ],
+      "fixture": "baseline",
+      "check_sha256": {
+        "CKCsvTest.java": "1a1834ce4433a7531fede323a1b169c7abe7a1e57d19c4fea5a8b29c777e2c64",
+        "CKCsvEndpointTest.java": "9967dd0c18e4eba08edaa1c998dc3206e8d797a4ed500561d61fa51eca959e00"
+      }
+    }
+  ],
+  "isolation": {
+    "record_type": "isolation-preparation",
+    "scored": false,
+    "run": "<run>",
+    "probes": [
+      {
+        "name": "read-public",
+        "command": [
+          "/bin/cat",
+          "<run>/app/visible"
+        ],
+        "expected": "allow",
+        "exit_code": 0,
+        "stderr": "",
+        "passed": true
+      },
+      {
+        "name": "resolve-own-directory",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "cd \"$PWD\" && pwd -P"
+        ],
+        "expected": "allow",
+        "exit_code": 0,
+        "stderr": "",
+        "passed": true
+      },
+      {
+        "name": "write-own-checkout",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "printf probe > writable"
+        ],
+        "expected": "allow",
+        "exit_code": 0,
+        "stderr": "",
+        "passed": true
+      },
+      {
+        "name": "read-author-material",
+        "command": [
+          "/bin/cat",
+          "<author>/make-calibration.py"
+        ],
+        "expected": "deny",
+        "exit_code": 1,
+        "stderr": "cat: <author>/make-calibration.py: Operation not permitted\n",
+        "passed": true
+      },
+      {
+        "name": "read-other-session",
+        "command": [
+          "/bin/cat",
+          "<run>-other/answer"
+        ],
+        "expected": "deny",
+        "exit_code": 1,
+        "stderr": "cat: <run>-other/answer: Operation not permitted\n",
+        "passed": true
+      },
+      {
+        "name": "read-original-user-memory",
+        "command": [
+          "/bin/cat",
+          "<original-home>/.codex/memories/MEMORY.md"
+        ],
+        "expected": "deny",
+        "exit_code": 1,
+        "stderr": "cat: <original-home>/.codex/memories/MEMORY.md: Operation not permitted\n",
+        "passed": true
+      },
+      {
+        "name": "symlink-escape",
+        "command": [
+          "/bin/cat",
+          "<run>/app/escape"
+        ],
+        "expected": "deny",
+        "exit_code": 1,
+        "stderr": "cat: <run>/app/escape: Operation not permitted\n",
+        "passed": true
+      },
+      {
+        "name": "write-author-material",
+        "command": [
+          "/usr/bin/touch",
+          "<run>-other/forbidden"
+        ],
+        "expected": "deny",
+        "exit_code": 1,
+        "stderr": "touch: <run>-other/forbidden: Operation not permitted\n",
+        "passed": true
+      },
+      {
+        "name": "client-shell-network-denied",
+        "command": [
+          "/usr/bin/curl",
+          "--silent",
+          "--show-error",
+          "--fail",
+          "--max-time",
+          "3",
+          "http://127.0.0.1:51260/"
+        ],
+        "expected": "deny",
+        "exit_code": 7,
+        "stderr": "curl: (7) Failed to connect to 127.0.0.1 port 51260 after 0 ms: Couldn't connect to server\n",
+        "passed": true
+      }
+    ],
+    "limits": [
+      "No model/task-agent was invoked; repeat these probes against each actual #50 launch binding.",
+      "The native permission profile restricts agent tool reads and writes. The client itself uses a fresh HOME/CODEX_HOME and only the allowlisted config; audit executable locations and exclude other tools/configuration stores.",
+      "Network is allowed for the outer model client; task-shell network must remain disabled through the tested client sandbox. No browser, web or remote connector tool may be exposed."
+    ],
+    "excluded_subtree_count": 25,
+    "binding_evidence_sha256": "04c841f64efa15e7238e63d68ae429213299f6d6eb0f124b95acfe95dd74bd31"
+  },
+  "local_evidence": "<author> contains original logs, results, saved fixtures, and baseline; local isolation bindings live under the unique probe root. Restore/recompute from the bundle and patches if temporary evidence is unavailable.",
+  "preparation_corrections": [
+    {
+      "issue": "Initial dispatch draft used orderId; pinned source uses id.",
+      "resolution": "Corrected packet/check/reference before freeze; functional checks rerun for both dispatch fixtures. Original failing draft evidence retained locally."
+    },
+    {
+      "issue": "Initial CSV smoke query returned scope-only matches from overly broad Entry paths.",
+      "resolution": "Narrowed public-evidence guidance scopes to workflow layers; the control now returns no_match. No scored observations affected."
+    },
+    {
+      "issue": "Initial client network probe could mistake startup failure for blocked networking; nested OS sandbox unsupported and broad temporary-root denial broke directory resolution.",
+      "resolution": "Use documented native permission profile, positive read/write/directory probes, direct curl-process exit verification, and per-subtree exclusions. Earlier attempts are preparation failures, not valid isolation proofs."
+    },
+    {
+      "issue": "Direct Node startup aborted when stdout/stderr pointed to a denied author log path; application subprocesses using pipes were unaffected.",
+      "resolution": "Use pipes or run-local output descriptors, move evidence after exit; installed CK init/add and stdio smoke then passed under the same isolation profile."
+    }
+  ],
+  "limits": [
+    "No scored task-agent run or CK effectiveness result.",
+    "No model-serving snapshot is available; record requested/returned model identity and disclose this limitation in #50.",
+    "Reference and adversarial fixtures calibrate finite checks; independent review assesses residual semantic gaps.",
+    "No immutable global host isolation claim: repeat the local-binding probes and audit the actual client/tool surface before every scored dispatch."
+  ],
+  "isolated_full_application_gate": {
+    "exit_code": 0,
+    "log": "<author>/isolated-full-gate-v4.log",
+    "log_sha256": "9f37b4a2ab0233d6974b35832a536424e2af44e33b60930841253edacb29539d",
+    "conditions": "Native client ck40 permission profile; fresh HOME/CODEX_HOME/TMPDIR; run-owned Maven Wrapper/repository and clean locked-frontend npm cache; offline network; UTC. Same full command and 11 frontend + 18 unit + 7 integration/architecture checks.",
+    "not_a_task_agent_trial": true
+  },
+  "isolated_installed_ck_smoke": {
+    "exit_code": 0,
+    "log": "<run>/isolated-mcp-smoke.log",
+    "log_sha256": "a85c8c9618539b4d041e660a897f76dd43e203ec81f433d294d33de24b50482a",
+    "operations": "CLI init/add three frozen Entries, actual installed stdio validate/search/read, CSV no_match, all through the same native ck40 shell profile and clean environment",
+    "model_calls": 0
+  },
+  "client_mcp_filter": {
+    "enabled_tools": [
+      "search",
+      "read",
+      "validate"
+    ],
+    "config_parser_check": "codex mcp get common_knowledge --json",
+    "evidence_sha256": "264f84c4f7c3cc188e15ecf219c4a4284c336b4f463626bb741db6e8c09dba24",
+    "model_calls": 0
+  },
+  "calibration_patch_replay": {
+    "all_five_patch_trees_match_saved_calibration_candidates": true,
+    "patch_format": "git diff --unified=0; git apply --unidiff-zero against pinned baseline",
+    "scored_trials": 0
+  },
+  "final_isolation_helper": {
+    "exit_code": 0,
+    "probe_count": 9,
+    "all_probes_passed": true,
+    "probe_app_removed_before_restore": true,
+    "binding_evidence_sha256": "65be3ba86de2c4dbdb56ba51b94b7b137781482e54a43baeb627441a795043ce"
+  },
+  "final_evaluator_entrypoint": {
+    "scenario": "csv-quoting",
+    "candidate": "e5b3931660141ee5f128a6a132bc2a4a2b587e19",
+    "public": 0,
+    "functional": 0,
+    "required_suite_evidence_valid": true,
+    "local_result_sha256": "3d8e188bc388b763c3a9bccbac83da335576c0f806bb7a79c1d2d2e259631ff5",
+    "reuse": "Final input-guard/report-validation path ran against the unchanged correct CSV fixture. The subsequent freeze-stability check adds fail-closed detection; underlying checks/calibration are unchanged."
+  }
+}

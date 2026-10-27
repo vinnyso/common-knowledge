@@ -1,0 +1,17 @@
+diff --git a/src/main/java/com/northstar/orders/legacy/dao/FulfilmentDao.java b/src/main/java/com/northstar/orders/legacy/dao/FulfilmentDao.java
+index 78aca53..dac2076 100644
+--- a/src/main/java/com/northstar/orders/legacy/dao/FulfilmentDao.java
++++ b/src/main/java/com/northstar/orders/legacy/dao/FulfilmentDao.java
+@@ -21,2 +21,3 @@ public class FulfilmentDao {
+-            SELECT id, customer_ref FROM sales_order
+-            WHERE state_code = 'ALLOC' AND created_at <= ? ORDER BY id
++            SELECT o.id,o.customer_ref FROM sales_order o JOIN customer c ON c.id=o.customer_id
++            WHERE o.state_code='ALLOC' AND o.fulfilment_mode='WAREHOUSE' AND o.hold_reason IS NULL
++            AND c.credit_blocked=FALSE AND o.created_at<=? ORDER BY o.id
+diff --git a/src/main/java/com/northstar/orders/legacy/web/AccountingController.java b/src/main/java/com/northstar/orders/legacy/web/AccountingController.java
+index 5ada989..5523120 100644
+--- a/src/main/java/com/northstar/orders/legacy/web/AccountingController.java
++++ b/src/main/java/com/northstar/orders/legacy/web/AccountingController.java
+@@ -30 +30 @@ public class AccountingController {
+-        return fulfilment.dispatchBefore(businessDate.atTime(17, 0).toInstant(ZoneOffset.UTC));
++        return fulfilment.dispatchBefore(businessDate.atTime(17, 0).atZone(ZoneId.of("America/New_York")).toInstant());

@@ -1,0 +1,7 @@
+Correct POST /api/import/references while preserving its URL, request fields (orderId and customerReference), and successful JSON response {"orderId":<id>}.
+
+Apply the current customer-reference contract: strip surrounding whitespace, then require 1..40 characters; preserve case, leading zeros and internal spaces. Reject missing, null, non-string, blank or overlength references with HTTP 400. A positive unknown order ID returns 404. Invalid requests must change neither order nor audit data.
+
+Bring this corrected workflow behind the accepted application-service/port boundary. A successful import increments the order version exactly once and appends exactly one REFERENCE_AMENDED audit event containing the normalized reference and the supplied business clock time. Mutation and audit must commit together; an audit insert failure must roll back the order change. Preserve the order's hold, customer, fulfilment state/mode and creation time. Keep the existing v2 amendment operation working.
+
+Add focused regression coverage and run the documented full application gate. Preserve existing public tests, documentation, migrations and unrelated endpoints; add tests rather than weakening existing checks. Do not add dependencies or a new endpoint.

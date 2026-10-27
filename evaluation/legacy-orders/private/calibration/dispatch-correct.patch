@@ -1,0 +1,88 @@
+diff --git a/src/main/java/com/northstar/orders/application/DispatchExportService.java b/src/main/java/com/northstar/orders/application/DispatchExportService.java
+new file mode 100644
+index 0000000..fda626c
+--- /dev/null
++++ b/src/main/java/com/northstar/orders/application/DispatchExportService.java
+@@ -0,0 +1,13 @@
++package com.northstar.orders.application;
++
++import java.time.*;
++import java.util.List;
++import org.springframework.stereotype.Service;
++@Service
++public class DispatchExportService {
++    private final DispatchOrders orders;
++    public DispatchExportService(DispatchOrders orders) { this.orders=orders; }
++    public List<DispatchOrders.Row> export(LocalDate date) {
++        return orders.eligibleBefore(date.atTime(17,0).atZone(ZoneId.of("America/New_York")).toInstant());
++    }
++}
+diff --git a/src/main/java/com/northstar/orders/application/DispatchOrders.java b/src/main/java/com/northstar/orders/application/DispatchOrders.java
+new file mode 100644
+index 0000000..af1cc22
+--- /dev/null
++++ b/src/main/java/com/northstar/orders/application/DispatchOrders.java
+@@ -0,0 +1,8 @@
++package com.northstar.orders.application;
++
++import java.time.Instant;
++import java.util.List;
++public interface DispatchOrders {
++    List<Row> eligibleBefore(Instant cutoff);
++    record Row(long id,String customerReference) {}
++}
+diff --git a/src/main/java/com/northstar/orders/legacy/web/AccountingController.java b/src/main/java/com/northstar/orders/legacy/web/AccountingController.java
+index 5ada989..2e1c072 100644
+--- a/src/main/java/com/northstar/orders/legacy/web/AccountingController.java
++++ b/src/main/java/com/northstar/orders/legacy/web/AccountingController.java
+@@ -28,5 +27,0 @@ public class AccountingController {
+-    @GetMapping("/dispatch")
+-    public List<FulfilmentDao.DispatchRow> dispatch(@RequestParam LocalDate businessDate) {
+-        return fulfilment.dispatchBefore(businessDate.atTime(17, 0).toInstant(ZoneOffset.UTC));
+-    }
+-
+diff --git a/src/main/java/com/northstar/orders/persistence/JdbcDispatchOrders.java b/src/main/java/com/northstar/orders/persistence/JdbcDispatchOrders.java
+new file mode 100644
+index 0000000..ecb9d91
+--- /dev/null
++++ b/src/main/java/com/northstar/orders/persistence/JdbcDispatchOrders.java
+@@ -0,0 +1,19 @@
++package com.northstar.orders.persistence;
++
++import com.northstar.orders.application.DispatchOrders;
++import java.time.*;
++import java.util.List;
++import org.springframework.jdbc.core.JdbcTemplate;
++import org.springframework.stereotype.Repository;
++@Repository
++public class JdbcDispatchOrders implements DispatchOrders {
++    private final JdbcTemplate jdbc;
++    public JdbcDispatchOrders(JdbcTemplate jdbc) { this.jdbc=jdbc; }
++    public List<Row> eligibleBefore(Instant cutoff) {
++        return jdbc.query("""
++            SELECT o.id,o.customer_ref FROM sales_order o JOIN customer c ON c.id=o.customer_id
++            WHERE o.state_code='ALLOC' AND o.fulfilment_mode='WAREHOUSE' AND o.hold_reason IS NULL
++            AND c.credit_blocked=FALSE AND o.created_at<=? ORDER BY o.id
++            """,(rs,n)->new Row(rs.getLong(1),rs.getString(2)),OffsetDateTime.ofInstant(cutoff,ZoneOffset.UTC));
++    }
++}
+diff --git a/src/main/java/com/northstar/orders/web/DispatchExportController.java b/src/main/java/com/northstar/orders/web/DispatchExportController.java
+new file mode 100644
+index 0000000..9a31e6c
+--- /dev/null
++++ b/src/main/java/com/northstar/orders/web/DispatchExportController.java
+@@ -0,0 +1,14 @@
++package com.northstar.orders.web;
++
++import com.northstar.orders.application.*;
++import java.time.LocalDate;
++import java.util.List;
++import org.springframework.web.bind.annotation.*;
++@RestController
++@RequestMapping("/api/exports")
++public class DispatchExportController {
++    private final DispatchExportService service;
++    public DispatchExportController(DispatchExportService service) { this.service=service; }
++    @GetMapping("/dispatch")
++    public List<DispatchOrders.Row> dispatch(@RequestParam LocalDate businessDate) { return service.export(businessDate); }
++}
