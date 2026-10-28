@@ -1,0 +1,376 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CK local outcome record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_type",
+    "run_id",
+    "scenario",
+    "condition",
+    "attempt",
+    "candidate",
+    "freeze_sha256",
+    "application_revision",
+    "ck_revision",
+    "task_sha256",
+    "client",
+    "knowledge",
+    "outcome",
+    "evidence",
+    "effort_seconds",
+    "gaps"
+  ],
+  "properties": {
+    "record_type": {
+      "const": "outcome"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario": {
+      "enum": [
+        "reference-import",
+        "dispatch-export",
+        "csv-quoting"
+      ]
+    },
+    "condition": {
+      "enum": [
+        "baseline",
+        "current_ck"
+      ]
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "completed",
+            "agent_failed",
+            "infrastructure_invalid"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "freeze_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "application_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "ck_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "task_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "client": {
+      "type": "object",
+      "required": [
+        "version",
+        "model",
+        "settings",
+        "runtime"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "object"
+        },
+        "runtime": {
+          "type": "object"
+        }
+      }
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retrieved",
+        "read_before_decision",
+        "applicable",
+        "followed",
+        "stale",
+        "conflicting",
+        "noisy"
+      ],
+      "properties": {
+        "retrieved": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "read_before_decision": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "applicable": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "followed": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "stale": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "conflicting": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        },
+        "noisy": {
+          "type": "string",
+          "enum": [
+            "yes",
+            "no",
+            "unavailable",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "public",
+        "functional",
+        "architectural"
+      ],
+      "properties": {
+        "public": {
+          "enum": [
+            "pass",
+            "fail",
+            "not_run",
+            "not_applicable"
+          ]
+        },
+        "functional": {
+          "enum": [
+            "pass",
+            "fail",
+            "not_run",
+            "not_applicable"
+          ]
+        },
+        "architectural": {
+          "enum": [
+            "pass",
+            "fail",
+            "not_run",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "tool_events",
+        "candidate_diff",
+        "evaluator",
+        "isolation"
+      ],
+      "properties": {
+        "tool_events": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "candidate_diff": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evaluator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isolation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "effort_seconds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preparation",
+        "execution",
+        "correction",
+        "review"
+      ],
+      "properties": {
+        "preparation": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "execution": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "correction": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "review": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "attempt": {
+            "properties": {
+              "status": {
+                "const": "infrastructure_invalid"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "then": {
+        "properties": {
+          "candidate": {
+            "type": "null"
+          },
+          "outcome": {
+            "properties": {
+              "public": {
+                "const": "not_run"
+              },
+              "functional": {
+                "const": "not_run"
+              },
+              "architectural": {
+                "const": "not_run"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "attempt": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "then": {
+        "properties": {
+          "candidate": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          }
+        },
+        "type": "object"
+      }
+    }
+  ]
+}

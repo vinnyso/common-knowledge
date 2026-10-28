@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "scored": false,
+  "application_revision": "67ee69584ce0122a26b017b2e559bed3cb5c90e8",
+  "ck": {
+    "revision": "9bd1f0ad50e71f995787e291a965384a3a75eb2a",
+    "version": "0.1.0",
+    "artifact_sha256": "a588048362bebb4947698ddeba53261c9f3a6bfbdb63843e0548658013c10209",
+    "transport": "stdio",
+    "server_command": [
+      "node",
+      "<run>/tool/node_modules/common-knowledge/dist/mcp.js",
+      "--root",
+      "<run>/app"
+    ]
+  },
+  "common": {
+    "client": "codex-cli 0.151.0",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "medium",
+    "model_backend_snapshot": null,
+    "model_backend_snapshot_gap": "Client exposes the requested model identifier, not an immutable serving snapshot; retain returned metadata and qualify comparison limits.",
+    "node": "v26.4.0",
+    "npm": "11.17.0",
+    "java": "Temurin 21.0.12.1+1-LTS",
+    "maven": "3.9.11",
+    "python": "3.14.6",
+    "host": {
+      "system": "Darwin",
+      "release": "25.6.0",
+      "machine": "arm64"
+    },
+    "timezone": "UTC",
+    "locale": "en_US.UTF-8",
+    "task_inputs": "exact corresponding tasks/*.txt bytes",
+    "public_guidance": "all baseline public application files preserved",
+    "tools": [
+      "shell/repository tools",
+      "Java 21/Maven Wrapper",
+      "Node/npm"
+    ],
+    "client_flags": [
+      "--ignore-rules",
+      "--ephemeral",
+      "--json"
+    ],
+    "network": "model client requires its service; task shell network denied by the client sandbox and must be probed before scored dispatch",
+    "sampling": "one fresh session per scenario per condition in the initial comparison; retain every attempt, no best-of selection",
+    "execution_limit": "one task implementation and final handoff per session; 20 minutes wall time, no replacement of agent failures",
+    "capture": "ordered tool names/exact arguments, candidate SHA, acceptance evidence, observable effort and gaps; no full transcripts committed",
+    "permissions": "default_permissions=ck40 in an otherwise fresh CODEX_HOME/config.toml, generated/probed by isolation.py; approval_policy=never; no sandbox-mode override",
+    "environment_allowlist": [
+      "PATH",
+      "HOME",
+      "CODEX_HOME",
+      "TMPDIR",
+      "TZ",
+      "LANG",
+      "JAVA_HOME",
+      "MAVEN_USER_HOME",
+      "npm_config_cache",
+      "npm_config_offline"
+    ]
+  },
+  "baseline": {
+    "ck_tools": false,
+    "corpus": false,
+    "consultation": null
+  },
+  "current_ck": {
+    "ck_tools": [
+      "search",
+      "read",
+      "validate"
+    ],
+    "corpus_files": [
+      "application-boundary.md",
+      "dispatch-contract.md",
+      "reference-contract.md"
+    ],
+    "consultation": "consultation.txt",
+    "mutation_tools": "Codex MCP enabled_tools filter permits only search/read/validate; verify advertised tools before dispatch"
+  },
+  "deliberate_differences": [
+    "CK tool availability",
+    "accepted CK corpus",
+    "temporary consultation instructions"
+  ],
+  "pre_dispatch": [
+    "verify frozen file inventory and all content hashes",
+    "verify current bundle/application/CK artifact identities",
+    "match requested client/runtime/model/settings/tools",
+    "fresh independent application repository, home, CODEX_HOME, temporary files and writable dependency cache",
+    "enforce and probe OS read/write exclusions plus task-shell network denial",
+    "verify no global skills, memory, hooks, rules, previous sessions or other-run inputs",
+    "confirm no private assets can be reached through source checkout, Git remotes, symlinks, tool paths or network",
+    "record resolved local binding paths and permissions outside task access",
+    "stop on any differing input; amend and review the preparation freeze before scored work"
+  ],
+  "isolation": {
+    "trial_root": "/private/tmp/ck40-runs/<unique-run-id>",
+    "author_root": "/private/tmp/ck-issue40",
+    "task_visible": [
+      "<run>/app with complete original public history",
+      "corresponding task text",
+      "pinned executables and per-run dependency caches",
+      "baseline: common instructions only",
+      "current_ck: same common instructions plus consultation.txt, accepted corpus and installed CK stdio server"
+    ],
+    "excluded": [
+      "CK development repository including evaluation assets and Git objects",
+      "Project Genome source, bundle parent and Benchmark Private material",
+      "original user home, persistent agent memory/configuration/skills/auth unrelated to this run",
+      "all other trial roots",
+      "evaluator checks, reference patches, rubrics and calibration reports"
+    ],
+    "shared_writable_trial_state": false,
+    "credential_handling": "Provide only the client authentication needed for model access in the fresh CODEX_HOME; never copy the full original config or commit credentials. Exclude unrelated connectors and tools. Use only the generated config, not --ignore-user-config (which would skip this intended config).",
+    "proof": "isolation.py generates and probes native Codex permission configuration with positive execution and negative file/network cases; no model calls",
+    "log_handling": "Use pipes or run-local log descriptors for client/tool startup; move bounded evidence to author storage after exit. Hidden checks run only in evaluator copies."
+  }
+}

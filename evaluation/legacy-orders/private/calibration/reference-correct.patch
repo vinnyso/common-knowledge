@@ -1,0 +1,88 @@
+diff --git a/src/main/java/com/northstar/orders/application/ImportReferenceService.java b/src/main/java/com/northstar/orders/application/ImportReferenceService.java
+new file mode 100644
+index 0000000..3aff1c7
+--- /dev/null
++++ b/src/main/java/com/northstar/orders/application/ImportReferenceService.java
+@@ -0,0 +1,21 @@
++package com.northstar.orders.application;
++
++import com.northstar.orders.domain.CustomerReference;
++import java.time.Clock;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++
++@Service
++public class ImportReferenceService {
++    private final OrderStore orders;
++    private final AuditLog audit;
++    private final Clock clock;
++    public ImportReferenceService(OrderStore orders,AuditLog audit,Clock clock) { this.orders=orders;this.audit=audit;this.clock=clock; }
++    @Transactional
++    public void importReference(long id,String value) {
++        var reference=new CustomerReference(value);
++        var order=orders.find(id).orElseThrow(()->new OrderNotFound(id));
++        if(!orders.replaceReference(id,order.version(),reference.value())) throw new ConcurrentOrderChange(id);
++        audit.append(id,"REFERENCE_AMENDED",reference.value(),clock.instant());
++    }
++}
+diff --git a/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java b/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java
+deleted file mode 100644
+index 0249d46..0000000
+--- a/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java
++++ /dev/null
+@@ -1,24 +0,0 @@
+-package com.northstar.orders.legacy.web;
+-
+-import com.northstar.orders.legacy.dao.OrderDao;
+-import jakarta.validation.Valid;
+-import jakarta.validation.constraints.*;
+-import java.util.Map;
+-import org.springframework.http.HttpStatus;
+-import org.springframework.transaction.annotation.Transactional;
+-import org.springframework.web.bind.annotation.*;
+-import org.springframework.web.server.ResponseStatusException;
+-
+-@RestController
+-@RequestMapping("/api/import/references")
+-public class ReferenceImportController {
+-    private final OrderDao orders;
+-    public ReferenceImportController(OrderDao orders) { this.orders = orders; }
+-    @PostMapping
+-    @Transactional
+-    public Map<String, Long> update(@Valid @RequestBody ReferenceImport request) {
+-        if (!orders.replaceReference(request.orderId(), request.customerReference().strip())) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+-        return Map.of("orderId", request.orderId());
+-    }
+-    public record ReferenceImport(@Positive long orderId, @NotBlank @Size(max=20) String customerReference) {}
+-}
+diff --git a/src/main/java/com/northstar/orders/web/ReferenceImportController.java b/src/main/java/com/northstar/orders/web/ReferenceImportController.java
+new file mode 100644
+index 0000000..62649b5
+--- /dev/null
++++ b/src/main/java/com/northstar/orders/web/ReferenceImportController.java
+@@ -0,0 +1,25 @@
++package com.northstar.orders.web;
++
++import com.fasterxml.jackson.databind.JsonNode;
++import com.northstar.orders.application.ImportReferenceService;
++import jakarta.validation.Valid;
++import jakarta.validation.constraints.Positive;
++import java.util.Map;
++import org.springframework.http.HttpStatus;
++import org.springframework.web.bind.annotation.*;
++import org.springframework.web.server.ResponseStatusException;
++
++@RestController
++@RequestMapping("/api/import/references")
++public class ReferenceImportController {
++    private final ImportReferenceService service;
++    public ReferenceImportController(ImportReferenceService service) { this.service=service; }
++    @PostMapping
++    public Map<String,Long> update(@Valid @RequestBody Request request) {
++        if(request.customerReference()==null || !request.customerReference().isTextual())
++            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
++        service.importReference(request.orderId(),request.customerReference().textValue());
++        return Map.of("orderId",request.orderId());
++    }
++    public record Request(@Positive long orderId,JsonNode customerReference) {}
++}

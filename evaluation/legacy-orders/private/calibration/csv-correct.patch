@@ -1,0 +1,15 @@
+diff --git a/src/main/java/com/northstar/orders/accounting/CsvWriter.java b/src/main/java/com/northstar/orders/accounting/CsvWriter.java
+index b80f816..ddc38b0 100644
+--- a/src/main/java/com/northstar/orders/accounting/CsvWriter.java
++++ b/src/main/java/com/northstar/orders/accounting/CsvWriter.java
+@@ -4 +4 @@ import java.util.List;
+-
++import java.util.stream.Collectors;
+@@ -8 +8,6 @@ public final class CsvWriter {
+-        return String.join(",", cells) + "\r\n";
++        return cells.stream().map(CsvWriter::cell).collect(Collectors.joining(","))+"\r\n";
++    }
++    private static String cell(String value) {
++        if(value.indexOf(',')>=0 || value.indexOf('"')>=0 || value.indexOf('\r')>=0 || value.indexOf('\n')>=0)
++            return "\""+value.replace("\"","\"\"")+"\"";
++        return value;

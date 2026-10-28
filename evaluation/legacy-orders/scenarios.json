@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "application_revision": "67ee69584ce0122a26b017b2e559bed3cb5c90e8",
+  "scored_trials": false,
+  "scenarios": [
+    {
+      "id": "reference-import",
+      "task": "tasks/reference-import.txt",
+      "public_context": [
+        "README.md",
+        "docs/adr/0001-application-services.md",
+        "docs/adr/0002-customer-reference-contract.md",
+        "docs/incidents/reference-audit.md",
+        "src/main/java/com/northstar/orders/domain/CustomerReference.java",
+        "src/main/java/com/northstar/orders/application/AmendReferenceService.java",
+        "src/test/java/com/northstar/orders/ReferenceTransactionIT.java"
+      ],
+      "expected_relevant_entries": [
+        "reference-contract",
+        "application-boundary"
+      ],
+      "pitfall": "Old 20-character adapter/notes and controller transaction look conventional; correcting length alone leaves mutation/audit architecture unproved.",
+      "functional_checks": [
+        "CKReferenceTest: normalized 1 and 40 boundaries, 41 rejection, text preservation, missing/null/number/boolean/object/array/blank rejection, 400/404 without writes",
+        "CKReferenceTest: exact response, version once, event type/detail/order/time once, unchanged unrelated fields, actual audit failure rolls back"
+      ],
+      "architectural_checks": [
+        "CKBoundaryTest: inspect the mapped import handler, storage dependencies, call path to a public proxied application transaction",
+        "public ArchitectureIT applicationUsesPorts/domain independence"
+      ],
+      "calibration": [
+        "private/calibration/reference-correct.patch",
+        "private/calibration/reference-wrong.patch"
+      ],
+      "expected_calibration": {
+        "correct": {
+          "public": "pass",
+          "functional": "pass",
+          "architectural": "pass"
+        },
+        "wrong": {
+          "public": "pass",
+          "functional": "pass",
+          "architectural": "fail"
+        }
+      }
+    },
+    {
+      "id": "dispatch-export",
+      "task": "tasks/dispatch-export.txt",
+      "public_context": [
+        "README.md",
+        "CONTEXT.md",
+        "docs/warehouse.md",
+        "docs/account-controls.md",
+        "docs/adr/0001-application-services.md",
+        "src/main/java/com/northstar/orders/legacy/web/AccountingController.java",
+        "src/main/java/com/northstar/orders/legacy/dao/FulfilmentDao.java"
+      ],
+      "expected_relevant_entries": [
+        "dispatch-contract",
+        "application-boundary"
+      ],
+      "pitfall": "UTC spreadsheet cutoff and state-only legacy DAO omit local daylight saving, holds, pickup and credit restrictions.",
+      "functional_checks": [
+        "CKDispatchTest: exact id/customerReference response sorted by id; winter/summer and both DST transition dates, before/exact/after cutoff, all ineligible states, pickup/held/credit-blocked exclusions",
+        "CKDispatchTest: missing/malformed date 400; orders/customers/lines/audit unchanged"
+      ],
+      "architectural_checks": [
+        "CKBoundaryTest: inspect mapped dispatch handler and reachable public application bean, reject web-to-storage dependencies",
+        "public ArchitectureIT applicationUsesPorts/domain independence"
+      ],
+      "calibration": [
+        "private/calibration/dispatch-correct.patch",
+        "private/calibration/dispatch-wrong.patch"
+      ],
+      "expected_calibration": {
+        "correct": {
+          "public": "pass",
+          "functional": "pass",
+          "architectural": "pass"
+        },
+        "wrong": {
+          "public": "pass",
+          "functional": "pass",
+          "architectural": "fail"
+        }
+      }
+    },
+    {
+      "id": "csv-quoting",
+      "task": "tasks/csv-quoting.txt",
+      "public_context": [
+        "docs/integrations.md",
+        "src/main/java/com/northstar/orders/accounting/CsvWriter.java",
+        "src/main/java/com/northstar/orders/legacy/web/AccountingController.java",
+        "src/test/java/com/northstar/orders/AccountingTest.java"
+      ],
+      "expected_relevant_entries": [],
+      "pitfall": "String.join passes simple-cell tests but corrupts quoted CSV fields.",
+      "functional_checks": [
+        "CKCsvTest: comma/quote/CR/LF/CRLF fields, empty field/list, Unicode, spaces, exactly one record terminator",
+        "CKCsvEndpointTest: endpoint uses writer, header/column order retained"
+      ],
+      "architectural_checks": [],
+      "architectural_outcome": "not_applicable",
+      "calibration": [
+        "private/calibration/csv-correct.patch",
+        "unmodified pinned baseline as failing control"
+      ],
+      "expected_calibration": {
+        "correct": {
+          "public": "pass",
+          "functional": "pass",
+          "architectural": "not_applicable"
+        },
+        "unmodified": {
+          "public": "pass",
+          "functional": "fail",
+          "architectural": "not_applicable"
+        }
+      }
+    }
+  ],
+  "rubric": {
+    "success": "public full-stack gate plus all scenario functional checks and architectural checks when applicable; no composite retrieval score",
+    "classification": "A completed failing candidate is an agent outcome, not an infrastructure-invalid attempt. Missing runtime/isolation inputs or tool startup failures are infrastructure-invalid. Preserve both without replacement.",
+    "calibration": "Author-only deterministic fixture checks; no task-agent calls. Expected failures must be JUnit assertions against the named requirement, never compilation/dependency/startup failures.",
+    "retrieval_evidence": "Separate returned Entry IDs from explicit read calls and from use before the implementation decision. Unavailable observations remain unavailable.",
+    "claims": "Retain null/negative results; no effectiveness, savings or causality claims from this preparation."
+  },
+  "future_candidate": {
+    "id": "ck-issue-pr-convention",
+    "status": "separate future scenario; Legacy Orders does not reproduce CK repository issue/PR conventions"
+  }
+}

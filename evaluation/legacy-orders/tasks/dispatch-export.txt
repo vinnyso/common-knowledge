@@ -1,0 +1,7 @@
+Correct GET /api/exports/dispatch?businessDate=YYYY-MM-DD according to the current warehouse and account-control contracts.
+
+Return only allocated WAREHOUSE orders without an order hold and without a customer credit block. Include orders created at or before 17:00 America/New_York on the requested business date, including the cutoff instant. Use that zone's daylight-saving rules rather than the machine timezone or a fixed UTC offset. Keep the JSON array response with id and customerReference fields, sorted by id. Preserve reference text. Missing or malformed businessDate returns HTTP 400. This export must not mutate orders, customers, lines or audit data.
+
+Put the corrected dispatch workflow behind an application service and application-owned port with a persistence adapter. The HTTP handler must not depend on JDBC, persistence implementations or legacy DAOs; legacy controller exemptions are not a design template. Preserve unrelated invoice/discount operations.
+
+Add focused regression coverage and run the documented full application gate. Preserve existing public tests, documentation and migrations; add tests rather than weakening existing checks. Do not add dependencies or a new endpoint.
