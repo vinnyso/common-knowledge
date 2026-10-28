@@ -15,7 +15,7 @@
     ]
   },
   "common": {
-    "client": "codex-cli 0.151.0",
+    "client": "codex-cli 0.165.0",
     "model": "gpt-6.1-sol",
     "reasoning_effort": "medium",
     "model_backend_snapshot": null,
