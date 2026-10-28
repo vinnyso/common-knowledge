@@ -77,10 +77,11 @@
   },
   "files": {
     ".gitignore": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b",
-    "README.md": "38be7b572531a44bd0f02f0f2b33bba0f48fa0ee3200307613640486fef3fb3a",
-    "conditions.json": "abc6bdc7ab1227353a24733a3ea0b013bd0d3587eeb4ab41a6922b364e3ccc49",
+    "README.md": "d90f4b450d2eaac0a2e9ccebf5ad7967629e4d85a605d3d16174940990006a84",
+    "conditions.json": "520ba3a0a78e7e5f38eadd1d6a1b0f34a5e14586fdf2f07651df45e3570c901b",
     "consultation.txt": "3dca40fb2ba5da7b50f84502c2e8480034e13812138cfd7888d60518ad2f473b",
     "evaluate.py": "3941403e9df740f3c57fa93a08671b90afdb7935c48793237105d3d4a1a49f0f",
+    "evidence/client-runtime.json": "eedc0086cb9aae201b4ca74768f1de1f74c97e7a32a5d4d9251514159d8b4cbf",
     "evidence/mcp-smoke.jsonl": "3820fa36bf2579c0a88c64a325d578c4f0667e84e3166a499cd9f56ee10ddd16",
     "evidence/preparation.json": "c1a2fac072c5ae623c40e5a0e64ad6b464366aff1c84de181cf4bee9d1a63750",
     "guidance/application-boundary.md": "57474d55a8af0a5d254bb081960641386c0c975fa8cc8696e7fc86c8759156ef",

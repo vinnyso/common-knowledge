@@ -1,0 +1,207 @@
+{
+  "record_type": "client-runtime-amendment",
+  "observed_date": "2026-10-27 America/New_York",
+  "preparation_base": "56cc4049a5d9f890fcf88ff4bab1c30931457374",
+  "previous_freeze_sha256": "523dca04046ba3f105240d3824ef9436fcc2ea57e88316b3a8522a037d45771c",
+  "scored_trials": 0,
+  "runtime": {
+    "previous_client": "codex-cli 0.151.0",
+    "client": "codex-cli 0.165.0",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "medium",
+    "route": "Codex CLI with ChatGPT account; necessary auth in a fresh CODEX_HOME",
+    "model_backend_snapshot": null
+  },
+  "startup": {
+    "command": [
+      "/opt/homebrew/bin/codex",
+      "exec",
+      "--ignore-rules",
+      "--ephemeral",
+      "--json",
+      "--skip-git-repo-check",
+      "-C",
+      "<startup-run>/app",
+      "-m",
+      "gpt-6.1-sol",
+      "-c",
+      "model_reasoning_effort=\"medium\"",
+      "Reply with READY. Do not inspect files or use tools."
+    ],
+    "path_normalization": "<startup-run> replaces the local binding; exact original arguments/config/environment are retained in the hashed private startup record.",
+    "exit_code": 0,
+    "response": [
+      "READY"
+    ],
+    "completed_item_types": [
+      "agent_message"
+    ],
+    "tool_calls": [],
+    "seconds": 4.724,
+    "record_sha256": "11e89f96b6acce75c1ec4f89b062baabb3f9f976d59c383f52a5f2ca93fb3099",
+    "events_sha256": "3ac8655fb80727e0a035b948771b846e6c3a0023297600d96d05166299dec90e",
+    "isolation_sha256": "60b12dafa3f5cf4657db99880691c3c9dd5c2294828919a51e26bf074f42a09a",
+    "temporary_authentication_copy_removed": true,
+    "inputs": "READY-only prompt; empty application directory; no Legacy Orders, CK MCP, private checks or author material."
+  },
+  "isolation": {
+    "client": "codex-cli 0.165.0",
+    "profile": "same checked-in isolation.py; fresh local bindings",
+    "probes": [
+      {
+        "name": "read-public",
+        "expected": "allow",
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "resolve-own-directory",
+        "expected": "allow",
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "write-own-checkout",
+        "expected": "allow",
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "name": "read-author-material",
+        "expected": "deny",
+        "exit_code": 1,
+        "passed": true
+      },
+      {
+        "name": "read-other-session",
+        "expected": "deny",
+        "exit_code": 1,
+        "passed": true
+      },
+      {
+        "name": "read-original-user-memory",
+        "expected": "deny",
+        "exit_code": 1,
+        "passed": true
+      },
+      {
+        "name": "symlink-escape",
+        "expected": "deny",
+        "exit_code": 1,
+        "passed": true
+      },
+      {
+        "name": "write-author-material",
+        "expected": "deny",
+        "exit_code": 1,
+        "passed": true
+      },
+      {
+        "name": "client-shell-network-denied",
+        "expected": "deny",
+        "exit_code": 7,
+        "passed": true
+      }
+    ],
+    "binding_record_sha256": "e40d8db3051b73bf45a6263d9680da69c2c9ce7f4381597f5ee37f1c38810898",
+    "excluded_subtree_count": 34
+  },
+  "full_application_gate": {
+    "command": [
+      "./mvnw",
+      "-o",
+      "-B",
+      "-ntp",
+      "-Dmaven.repo.local=<run>/cache/m2",
+      "-Pconsole",
+      "clean",
+      "verify"
+    ],
+    "client_wrapper": "codex sandbox --permission-profile ck40 -C <run>/app",
+    "environment": "Clean allowlist, UTC, JDK21, fresh HOME/CODEX_HOME/TMPDIR, run-owned Maven Wrapper and caches; npm offline. Output captured inside the allowed run root.",
+    "application_revision": "67ee69584ce0122a26b017b2e559bed3cb5c90e8",
+    "exit_code": 0,
+    "frontend_tests": 11,
+    "java_unit_tests": 18,
+    "java_integration_architecture_tests": 7,
+    "log_sha256": "c8003d22da26b4b25d517d314e330146e96c181d7053208627c22b9a94b38217"
+  },
+  "installed_ck": {
+    "artifact_sha256": "a588048362bebb4947698ddeba53261c9f3a6bfbdb63843e0548658013c10209",
+    "operations": "CLI init/add the three frozen Entries, followed by installed stdio SDK calls under the same 0.165.0 permission profile",
+    "sdk_calls": [
+      {
+        "name": "validate",
+        "arguments": {},
+        "status": "ok"
+      },
+      {
+        "name": "search",
+        "arguments": {
+          "query": "reference import customerReference",
+          "path": "src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java"
+        },
+        "status": "ok"
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "id": "reference-contract"
+        },
+        "status": "ok"
+      },
+      {
+        "name": "search",
+        "arguments": {
+          "query": "dispatch export businessDate warehouse cutoff",
+          "path": "src/main/java/com/northstar/orders/legacy/web/AccountingController.java"
+        },
+        "status": "ok"
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "id": "dispatch-contract"
+        },
+        "status": "ok"
+      },
+      {
+        "name": "search",
+        "arguments": {
+          "query": "CsvWriter invoice CSV quoting",
+          "path": "src/main/java/com/northstar/orders/accounting/CsvWriter.java"
+        },
+        "status": "no_match"
+      }
+    ],
+    "log_sha256": "14a7cddf5efc8bda47554d81133cacfb119c87d0419e38864ca0de3bebe860b0",
+    "client_filter_command": [
+      "codex",
+      "mcp",
+      "get",
+      "common_knowledge",
+      "--json"
+    ],
+    "enabled_tools": [
+      "search",
+      "read",
+      "validate"
+    ],
+    "client_filter_record_sha256": "a369fdef2be93ec88600ed3628f87bdd94fe8531c00bf092639df5fe06e6adae",
+    "limit": "Config parsing and SDK calls are verified; actual advertised tools remain a per-launch pre-dispatch check."
+  },
+  "retained_failure": {
+    "client": "codex-cli 0.151.0",
+    "model": "gpt-6.1-sol",
+    "exit_code": 1,
+    "classification": "infrastructure-invalid startup; HTTP 400 model_not_found on the old CLI/account route",
+    "record_sha256": "6c6fa659b02249676ddeca625dc69db609e1b2c4d810953898023933c5184a75"
+  },
+  "evidence_reused": "Original application/evaluator calibration and frozen task/guidance/comparison inputs remain unchanged; the new full gate and MCP/probe results answer the changed-client operational question.",
+  "limits": [
+    "No scored task-agent trial or effectiveness/savings claim.",
+    "No immutable backend serving snapshot is exposed.",
+    "Repeat resolved launch-bound input, native isolation and actual advertised-tool checks before scored work.",
+    "Raw startup/operational records remain local; no credentials or full task transcripts are published."
+  ]
+}

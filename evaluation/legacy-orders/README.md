@@ -4,6 +4,8 @@ This author-side preparation belongs to [issue #40](https://github.com/vinnyso/c
 
 Start with [scenarios.json](scenarios.json), [conditions.json](conditions.json), and [preparation evidence](evidence/preparation.json). The canonical requirements remain [the agent-first specification](../../docs/agent-first-spec.md#minimal-outcome-evaluation). The separate CK issue/PR-convention failure remains a future candidate; Legacy Orders does not reproduce it.
 
+The current client pin is Codex CLI 0.165.0 with `gpt-6.1-sol` / medium. [Client runtime evidence](evidence/client-runtime.json) records the successful startup and changed-client operational checks. The original preparation evidence remains historical. The new record retains the CLI 0.151.0 startup failure observed after merge and reuses unchanged application/evaluator calibration. This amendment does not contain scored trials.
+
 ## Boundaries and layout
 
 - `tasks/` contains exact task-agent prompt bytes. Both conditions receive the same corresponding file.
