@@ -1,0 +1,74 @@
+{
+  "scored_task_attempts": 6,
+  "replacement_task_attempts": 0,
+  "scope": "Preparation stops are not additional scored sessions. They did not return private evaluation feedback to task agents.",
+  "stops": [
+    {
+      "cause": "Default Maven repository was outside the run-owned cache; a prefixed XML namespace initially prevented the local settings binding. Corrected before inference.",
+      "evidence_group": "other_retained_evidence"
+    },
+    {
+      "cause": "Saved CLI sign-in rejected by isolated account audit. Sign-in was refreshed externally and the account/backend/inventory audit then passed.",
+      "evidence_group": "failed_authentication_checks"
+    },
+    {
+      "cause": "Dedicated CK dependency cache lacked a lockfile-pinned tarball. Filled using unchanged lockfile/integrities, then repeated offline installation before session 2.",
+      "evidence_group": "other_retained_evidence"
+    },
+    {
+      "cause": "An author-only resume command omitted its PACKAGE binding and failed before inference; corrected without changing task inputs.",
+      "gap": "Exact author command output is in the chat history rather than a separate campaign log."
+    }
+  ],
+  "failed_authentication_checks": [
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-01-reference-baseline-final/client-inventory-before-signin-refresh.json",
+      "sha256": "88c9592d0397e623a4bd804297abb11f60382cb14171c4641d4936e8e419800b",
+      "error": "authenticated ChatGPT account is required",
+      "scored": false,
+      "model_calls": 0
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-01-reference-baseline-final/client-inventory-recheck-20261029T133326132346Z.json",
+      "sha256": "88c9592d0397e623a4bd804297abb11f60382cb14171c4641d4936e8e419800b",
+      "error": "authenticated ChatGPT account is required",
+      "scored": false,
+      "model_calls": 0
+    }
+  ],
+  "other_retained_evidence": [
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-01-reference-baseline-final/stopped-preparation.json",
+      "sha256": "220c6a1b039b3be78fb6ad47fbb78bfce21512fe1e9dfe2e7f15619bc8ebf053"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-01-reference-baseline-final/maven-namespace-failure.log",
+      "sha256": "dc57276f77873c47c490e4ffc54b7987b15b80bff0b1d7cfd77423d656c544a3"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-01-reference-baseline-final/pre-auth-refresh-preparation.json",
+      "sha256": "a024f9a99e5c1c7ffa4a39c9437dd16cede2a20dd2bedfc90d7413b342dd639c"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-02-reference-ck/pre-cache-fill-preparation.json",
+      "sha256": "ab1ed8cf25f6d22ab26b45291d991d3dd8a335fbff27a4352fced505a3dd2718"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-02-reference-ck/install-exact-package.log",
+      "sha256": "99f45381f380d044831e7b0951869d43d0810f386341005a8d5b7bcd516ba31d"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-03-dispatch-ck/install-exact-package.log",
+      "sha256": "601095bc956c9b03a3a6fa3c52c4c698f0f133a74f2c40731e7d1131c5391ffd"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-06-csv-ck/install-exact-package.log",
+      "sha256": "f788c372bac4827c794e74f556cb10cf28f66e747152c7534104cd25c0992cc5"
+    },
+    {
+      "path": "/private/tmp/ck-issue40/issue50-campaign-20261028/ck50-02-reference-ck/package-cache-fill.json",
+      "sha256": "ada41071f3a8f092883b4ec8796cd8c4b340a1f2ab0f13e5bd86796319459be2"
+    }
+  ],
+  "historical_readiness_stops": "Earlier client model-route and default connected-app discovery stops remain in the unchanged frozen client-runtime/client-discovery evidence."
+}
