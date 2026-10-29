@@ -6,6 +6,8 @@ Start with [scenarios.json](scenarios.json), [conditions.json](conditions.json),
 
 The current client pin is Codex CLI 0.165.0 with `gpt-6.1-sol` / medium. [Client runtime evidence](evidence/client-runtime.json) records the successful startup and changed-client operational checks. The original preparation evidence remains historical. The new record retains the CLI 0.151.0 startup failure observed after merge and reuses unchanged application/evaluator calibration. This amendment does not contain scored trials.
 
+[Client discovery evidence](evidence/client-discovery.json) records a later pre-dispatch stop: fresh authenticated CLI homes still advertised connected app tools by default. Explicit common feature exclusions now enforce the existing no-app/browser/hook/memory/delegation contract. The authenticated client inventory must pass before any scored launch. Neither discovery nor the inventory check starts a task turn or measures task performance.
+
 ## Boundaries and layout
 
 - `tasks/` contains exact task-agent prompt bytes. Both conditions receive the same corresponding file.
@@ -92,11 +94,24 @@ The script uses a clean allowlisted environment, generates the native permission
 
 The client itself needs model-service connectivity; its native shell permission profile disables command networking. Disable web search and expose no browser, apps, other MCP servers, hooks, remote tools, user skills or persistent memory. Only the generated config and deliberate CK additions may load. Pin/audit the system executable locations, since ordinary system/tool reads remain allowed. The fresh client home contains only necessary authentication, supplied separately and never committed.
 
+`isolation.py` explicitly disables the features listed in `conditions.json` in both conditions; a fresh home alone does not disable account-connected apps. Retain the generated `[features]` block when adding CK configuration. Client-bundled system skills are allowed in the fresh client home, are inventoried by name/content hash, and must match across both conditions; user, plugin and external skills are excluded. These bundled skills are part of the pinned client, not consumer CK activation.
+
 Restore the run's application independently from the verified bundle, then remove its origin. Copy only audited dependencies into run-owned caches. Execute the full offline application gate through `codex sandbox --permission-profile ck40 -C <run>/app ...` using this run's HOME/CODEX_HOME/TMPDIR, Java, Maven-user home and cache bindings. The preparation evidence records this operational positive check; repeat for changed bindings. Capture process output through pipes or files inside the allowed run root, then copy logs to private author storage after exit. Node initialization can fail when an inherited stdout/stderr file descriptor points to a denied author path. Never put hidden evaluator output in a task run root.
 
 For the CK condition only, install the exact tarball identified by `conditions.json` into `<run>/tool`; run its CLI `init` in `<run>/app`, then `add` each frozen guidance file. Copy guidance into the run before using it; author paths remain denied. Validate the resulting corpus. Configure only its stdio server, bound to `<run>/app`, with `enabled_tools = ["search", "read", "validate"]`, and add exactly `consultation.txt` to its temporary instructions. Baseline receives no CK server/corpus/consultation. Ordinary application instructions remain identical.
 
 Use [the official permission-profile reference](https://developers.openai.com/codex/config-reference/) for the config syntax. The exact command form used by the local probes comes from the installed client's help. Run `mcp-smoke.mjs` against the installed artifact to check real stdio search/read/validate without a task-agent call. The adapter exposes additional proposal tools internally; confirm the client filter advertises only the three retrieval tools for #50. No Reflection or proposal application is measured here.
+
+After supplying only necessary file-based client authentication and configuring the deliberate CK additions, audit the actual authenticated client from the same clean allowlisted environment used for dispatch:
+
+```sh
+"$CK50_PYTHON" evaluation/legacy-orders/client_audit.py \
+  --run /private/tmp/ck40-runs/UNIQUE_ID \
+  --condition baseline \
+  --output /private/tmp/ck-issue40/UNIQUE_ID-client-inventory.json
+```
+
+Bind `CK50_PYTHON` to the absolute pinned Python interpreter; the minimal task PATH may resolve an older system Python. Use `current_ck` for the CK condition. The audit starts a temporary stdio app-server, initializes it, reads MCP/skill inventories, and exits without starting a thread or inference turn. It requires authentication so an unauthenticated empty inventory cannot hide account-connected tools. Baseline must advertise no MCP servers; CK must advertise exactly `common_knowledge` with read/search/validate. Any extra/missing server, extra/missing tool, discovery error, user/plugin skill or missing feature exclusion stops dispatch. Retain its bounded author-only output and verify matching bundled-system-skill hashes across the pair. Remove temporary authentication after the session exits. Repeat the audit against every actual launch binding; an earlier config parse or unauthenticated probe is insufficient.
 
 ## #50 dispatch and evidence contract
 

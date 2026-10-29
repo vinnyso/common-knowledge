@@ -1,0 +1,208 @@
+{
+  "record_type": "client-discovery-amendment",
+  "observed_date": "2026-10-28 America/New_York",
+  "preparation_base": "91ee7b0414dc115e454beca7e1a7eeeeb94b34c6",
+  "scored_trials": 0,
+  "model_calls": 0,
+  "runtime": {
+    "client": "codex-cli 0.165.0",
+    "node": "v26.4.0",
+    "npm": "11.17.0",
+    "python": "Python 3.14.6",
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS\nOpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)\nOpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)",
+    "host": "Darwin 25.6.0 arm64"
+  },
+  "default_client_discovery": {
+    "authenticated": true,
+    "fresh_home": true,
+    "servers": [
+      {
+        "name": "codex_apps",
+        "tool_count": 217
+      }
+    ],
+    "raw_inventory_sha256": "1c3d64b3d121d3a04aa0eef03d9ac148e65227be8ca72e357a181c1989a1c9a8",
+    "disposition": "pre-dispatch stop; no task thread or inference turn started"
+  },
+  "resolution": {
+    "disabled_features": [
+      "apps",
+      "plugins",
+      "remote_plugin",
+      "browser_use",
+      "browser_use_external",
+      "browser_use_full_cdp_access",
+      "in_app_browser",
+      "computer_use",
+      "hooks",
+      "memories",
+      "multi_agent",
+      "skill_search"
+    ],
+    "client_audit_source_sha256": "3c565012116d500d192294afee02c1acdd6ba208ade4ab31770c1f172d6b1f29",
+    "authenticated_baseline": {
+      "record_type": "client-inventory",
+      "scored": false,
+      "model_calls": 0,
+      "condition": "baseline",
+      "mcp": [],
+      "bundled_system_skills": [
+        {
+          "name": "imagegen",
+          "scope": "system",
+          "sha256": "681ddb4ad6d06a2acc78a3535b583f8d0c1ea800ecda3d56370d3310fd2cd4ba"
+        },
+        {
+          "name": "openai-docs",
+          "scope": "system",
+          "sha256": "aa6829e21df2223167c85d2e49b6337a7345c84c1033f1ec10182c7882b36d45"
+        },
+        {
+          "name": "review-agent",
+          "scope": "system",
+          "sha256": "07079efd0dc76f05fade424e5dfb048dce1de2df7626e1a4f56292a4f3f92228"
+        },
+        {
+          "name": "skill-creator",
+          "scope": "system",
+          "sha256": "6656e54755638e8efcf275a472b9672eaa8a9a1b9e59dc210e275b03b59e1e66"
+        },
+        {
+          "name": "skill-installer",
+          "scope": "system",
+          "sha256": "d68b77e5bbb34dedab89d134da52855f140fc4b4299b80104f534e3b9e98f8ee"
+        }
+      ],
+      "passed": true
+    },
+    "authenticated_current_ck": {
+      "record_type": "client-inventory",
+      "scored": false,
+      "model_calls": 0,
+      "condition": "current_ck",
+      "mcp": [
+        {
+          "server": "common_knowledge",
+          "tools": [
+            "read",
+            "search",
+            "validate"
+          ]
+        }
+      ],
+      "bundled_system_skills": [
+        {
+          "name": "imagegen",
+          "scope": "system",
+          "sha256": "681ddb4ad6d06a2acc78a3535b583f8d0c1ea800ecda3d56370d3310fd2cd4ba"
+        },
+        {
+          "name": "openai-docs",
+          "scope": "system",
+          "sha256": "aa6829e21df2223167c85d2e49b6337a7345c84c1033f1ec10182c7882b36d45"
+        },
+        {
+          "name": "review-agent",
+          "scope": "system",
+          "sha256": "07079efd0dc76f05fade424e5dfb048dce1de2df7626e1a4f56292a4f3f92228"
+        },
+        {
+          "name": "skill-creator",
+          "scope": "system",
+          "sha256": "6656e54755638e8efcf275a472b9672eaa8a9a1b9e59dc210e275b03b59e1e66"
+        },
+        {
+          "name": "skill-installer",
+          "scope": "system",
+          "sha256": "d68b77e5bbb34dedab89d134da52855f140fc4b4299b80104f534e3b9e98f8ee"
+        }
+      ],
+      "passed": true
+    },
+    "completion_record_sha256": "01d52268185dbeb090e2c6967bb59b43c08a76309e846dfb299df7a8717fc12e",
+    "temporary_authentication_copy_removed": true
+  },
+  "operational_checks": {
+    "native_isolation": {
+      "sha256": "2cef7208c0a179e343c73fef8fcdae2dcf146e3af946994312e6f98f7a84ef0f"
+    },
+    "full_application_gate": {
+      "name": "full-offline-application-gate",
+      "command": [
+        "codex",
+        "sandbox",
+        "--permission-profile",
+        "ck40",
+        "-C",
+        "<run>/app",
+        "./mvnw",
+        "-o",
+        "-B",
+        "-ntp",
+        "-Dmaven.repo.local=<run>/cache/m2",
+        "-Pconsole",
+        "clean",
+        "verify"
+      ],
+      "exit_code": 0,
+      "seconds": 30.2,
+      "log_sha256": "0368cbe364c21a4b15b986a2352c9b090b72b01dfc3c61cf30a064c31859daa2"
+    },
+    "application_checks": {
+      "frontend_tests": 11,
+      "surefire-reports": 18,
+      "failsafe-reports": 7
+    },
+    "ck_operations": [
+      {
+        "name": "ck-init",
+        "exit_code": 0,
+        "seconds": 0.098,
+        "log_sha256": "706874d913230bfbfdf50e7652857afdab9b036b2e42eff4254cdabba499faab"
+      },
+      {
+        "name": "ck-add-application-boundary",
+        "exit_code": 0,
+        "seconds": 0.124,
+        "log_sha256": "66545bb07573cabe1e476bfc9e5a9c258bd17d71cc1463ed0b7e3083b7446d72"
+      },
+      {
+        "name": "ck-add-dispatch-contract",
+        "exit_code": 0,
+        "seconds": 0.128,
+        "log_sha256": "0e082632ec168f7d7dae6b322b54dce06ab62389e68dc7e50bb7e5dbab8fa6c4"
+      },
+      {
+        "name": "ck-add-reference-contract",
+        "exit_code": 0,
+        "seconds": 0.127,
+        "log_sha256": "2d3e0720df288f7396a4d3dcafc30d43b9dc5dbfbaad777be95b40e0d900027d"
+      },
+      {
+        "name": "installed-mcp-smoke",
+        "exit_code": 0,
+        "seconds": 0.288,
+        "log_sha256": "960321493d72e530016d37bb91a9ce2856b1f0505192202aa7376f41d1cb8b88"
+      }
+    ]
+  },
+  "retained_preparation_errors": [
+    "The author verification script initially expected a clean tree while preparation files were intentionally being amended.",
+    "The minimal task PATH resolved an older system Python for the new author-side audit; invocation was corrected to the pinned absolute Python interpreter. These were not model attempts or application failures."
+  ],
+  "unchanged_inputs": [
+    "application revision and bundle",
+    "CK runtime artifact",
+    "task and consultation bytes",
+    "accepted guidance",
+    "evaluator, private checks and calibration fixtures",
+    "gpt-6.1-sol / medium",
+    "six-session design and 20-minute limit"
+  ],
+  "limits": [
+    "No scored trial or effectiveness claim.",
+    "Authenticated app-server inventory observes the same local client configuration but does not start the later exec task; repeat against each actual launch binding.",
+    "System skill hashes must match across the paired conditions.",
+    "Successful model-startup evidence remains historical; no immutable backend snapshot is exposed."
+  ]
+}

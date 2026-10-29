@@ -60,7 +60,22 @@
       "MAVEN_USER_HOME",
       "npm_config_cache",
       "npm_config_offline"
-    ]
+    ],
+    "disabled_features": [
+      "apps",
+      "plugins",
+      "remote_plugin",
+      "browser_use",
+      "browser_use_external",
+      "browser_use_full_cdp_access",
+      "in_app_browser",
+      "computer_use",
+      "hooks",
+      "memories",
+      "multi_agent",
+      "skill_search"
+    ],
+    "pre_dispatch_client_audit": "client_audit.py: authenticated client must advertise no MCP servers for baseline and only CK read/search/validate for current_ck; only bundled system skills from the fresh client home may be enabled"
   },
   "baseline": {
     "ck_tools": false,

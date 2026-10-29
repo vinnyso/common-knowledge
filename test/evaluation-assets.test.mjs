@@ -76,3 +76,38 @@ assert reports_complete({"reports": [{"name":"acceptance","tests":"4","skipped":
 `], { encoding: "utf8" });
   assert.equal(probe.status, 0, probe.stderr);
 });
+
+test("authenticated client inventory rejects connected apps, mutation tools and external skills", () => {
+  const probe = spawnSync("python3", ["-c", `
+import sys
+from pathlib import Path
+sys.path.insert(0, ${JSON.stringify(assets)})
+from client_audit import validate_inventory
+run=Path("/private/tmp/ck40-runs/synthetic-audit")
+skills={"data":[{"cwd":str(run/"app"),"skills":[],"errors":[]}]}
+empty={"data":[],"nextCursor":None}
+ck={"name":"common_knowledge","tools":{name:{"name":name} for name in ["read","search","validate"]}}
+assert validate_inventory("baseline",empty,skills,run)["mcp"]==[]
+assert validate_inventory("current_ck",{"data":[ck]},skills,run)["mcp"][0]["tools"]==["read","search","validate"]
+def rejected(condition,mcp,found_skills,expected):
+    try:
+        validate_inventory(condition,mcp,found_skills,run)
+    except ValueError as error:
+        assert expected in str(error),str(error)
+    else:
+        raise AssertionError("unsafe inventory accepted")
+apps={"name":"codex_apps","tools":{}}
+rejected("baseline",{"data":[apps]},skills,"unexpected MCP server")
+rejected("current_ck",{"data":[ck,apps]},skills,"unexpected MCP server")
+rejected("current_ck",empty,skills,"unexpected MCP server")
+for names in [["read","search"],["read","search","validate","proposal_apply"]]:
+    server={"name":"common_knowledge","tools":{name:{"name":name} for name in names}}
+    rejected("current_ck",{"data":[server]},skills,"unexpected CK tool")
+rejected("baseline",{"data":[],"nextCursor":"more"},skills,"incomplete")
+rejected("baseline",empty,{"data":[{"cwd":str(run/"app"),"skills":[],"errors":["unreadable"]}]},"discovery failed")
+for scope,path in [("user",run/"codex/skills/user/SKILL.md"),("system",Path("/outside/SKILL.md"))]:
+    external={"data":[{"cwd":str(run/"app"),"skills":[{"enabled":True,"scope":scope,"path":str(path)}]}]}
+    rejected("baseline",empty,external,"unexpected user or plugin skill")
+`], { encoding: "utf8" });
+  assert.equal(probe.status, 0, probe.stderr);
+});
