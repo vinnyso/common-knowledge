@@ -12,6 +12,25 @@ than in one agent's local memory or an ever-growing instruction file. Entries
 are ordinary Markdown files: Git carries them, reviewers can inspect them, and
 any harness can use the same CLI.
 
+> [!NOTE]
+> **Start with the simplest useful repository memory.**
+>
+> A directory of concise Markdown lessons, a few lines in agent instructions to
+> consult and propose entries during non-routine work or unexpected issues, and
+> normal Git review may be all a project needs. Record where a lesson applies,
+> what it recommends, and its supporting evidence. This practice needs no CK
+> installation. Add structure and tooling when recurring problems warrant their
+> setup, context, review, and maintenance costs.
+>
+> CK's working engine and integrations provide a foundation to learn from. The
+> [initial outcome comparison](evaluation-results/legacy-orders-initial/README.md)
+> demonstrated relevant retrieval, while ordinary repository guidance was also
+> sufficient for every baseline task in that small sample. This informs
+> simplification, not abandonment: the aim is for CK to become a simpler,
+> lightweight knowledge and memory engine that earns its place. Further expansion
+> remains [parked](docs/agent-first-roadmap.md#direction) pending explicit human
+> direction; the existing implementation remains available below.
+
 ## Current status
 
 The v1 prototype is complete. The CLI initializes a Corpus and supports
