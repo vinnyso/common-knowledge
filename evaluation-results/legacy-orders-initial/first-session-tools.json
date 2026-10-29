@@ -1,0 +1,79 @@
+{
+  "run_id": "ck50-01-reference-baseline-final",
+  "source_sha256": "b09bbec8cd8012a73d9d41ee9eb554b119305955899ff0780689886fb62dcb57",
+  "scope": "Ordered started operations; exact command strings and file-change metadata. Shell command results are retained privately. Internal tool envelope parameters and patch payloads unavailable.",
+  "operations": [
+    {
+      "event_index": 3,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc \"pwd; rg --files -g 'AGENTS.md' -g '*README*' -g '*reference*' -g '*Reference*' -g 'package.json' -g 'pom.xml' -g 'build.gradle*' -g 'Makefile' -g 'pyproject.toml'\""
+    },
+    {
+      "event_index": 5,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc \"ls -la; rg --files -g 'AGENTS.md' /private/tmp/ck40-runs/ck50-01-reference-baseline-final; cat README.md; cat pom.xml; rg --files src\""
+    },
+    {
+      "event_index": 7,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc 'cat docs/architecture.md docs/adr/0002-customer-reference-contract.md docs/testing.md docs/incidents/reference-audit.md; cat src/main/java/com/northstar/orders/{application/*.java,domain/CustomerReference.java,domain/Order.java,persistence/*.java,legacy/web/ReferenceImportController.java,web/ReferenceAmendmentController.java,web/ApiErrors.java}; cat src/test/java/com/northstar/orders/{ReferenceAmendmentTest,ReferenceTransactionIT,ArchitectureIT,DatabaseTest,CustomerReferenceTest}.java; git status --short'"
+    },
+    {
+      "event_index": 9,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc 'cat docs/adr/0001-application-services.md; cat src/main/resources/db/{migration/*.sql,demo/*.sql}; cat src/main/java/com/northstar/orders/legacy/dao/OrderDao.java; java -version; node --version'"
+    },
+    {
+      "event_index": 12,
+      "tool": "file_change",
+      "changes": [
+        {
+          "path": "/private/tmp/ck40-runs/ck50-01-reference-baseline-final/app/src/main/java/com/northstar/orders/application/AmendReferenceService.java",
+          "kind": "update"
+        },
+        {
+          "path": "/private/tmp/ck40-runs/ck50-01-reference-baseline-final/app/src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java",
+          "kind": "update"
+        },
+        {
+          "path": "/private/tmp/ck40-runs/ck50-01-reference-baseline-final/app/src/main/java/com/northstar/orders/web/ApiErrors.java",
+          "kind": "update"
+        }
+      ]
+    },
+    {
+      "event_index": 14,
+      "tool": "file_change",
+      "changes": [
+        {
+          "path": "/private/tmp/ck40-runs/ck50-01-reference-baseline-final/app/src/test/java/com/northstar/orders/ReferenceImportTest.java",
+          "kind": "add"
+        },
+        {
+          "path": "/private/tmp/ck40-runs/ck50-01-reference-baseline-final/app/src/test/java/com/northstar/orders/ReferenceImportTransactionIT.java",
+          "kind": "add"
+        }
+      ]
+    },
+    {
+      "event_index": 16,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc './mvnw -Pconsole clean verify > ../full-gate.log 2>&1'"
+    },
+    {
+      "event_index": 17,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc 'tail -70 ../full-gate.log; git diff --stat; cat src/main/java/com/northstar/orders/web/OrderDetailsResponse.java; cat src/main/java/com/northstar/orders/config/BusinessClock.java'"
+    },
+    {
+      "event_index": 19,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc 'tail -25 ../full-gate.log; git status --short'"
+    },
+    {
+      "event_index": 22,
+      "tool": "command_execution",
+      "command": "/bin/zsh -lc \"rg 'Tests run:|BUILD |FAILURE|ERROR|Test Files|Tests ' ../full-gate.log | tail -25; git diff --check; git diff\""
+    }
+  ]
+}

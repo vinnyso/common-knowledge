@@ -1,7 +1,7 @@
 # Common Knowledge agent-first delivery roadmap
 
-**Status:** Active planning handoff; not implementation authority.
-**Reviewed:** 2026-10-24 after AF-03B merged in PR #56.
+**Status:** Further CK expansion is parked by driving-human direction.
+**Reviewed:** 2026-10-29 after the initial outcome comparison and direction check.
 
 The [agent-first specification](agent-first-spec.md) remains the product and
 design authority. GitHub Issues remain the implementation tracker. This roadmap
@@ -11,7 +11,15 @@ does not claim an issue, start scored trials, or authorize a new runtime route.
 
 ## Direction
 
-Finish one evidence-producing learning loop before expanding the product:
+The [six-session comparison](../evaluation-results/legacy-orders-initial/README.md)
+passed in both conditions without a scored CK outcome advantage. After reviewing
+the results and complexity concern, the driving human chose to park further CK
+expansion for now. Finish publication of #50's report; do not claim #41, packaging,
+or later expansion without explicit human direction to resume. No new experiment
+or process layer is commissioned by this decision. Existing capabilities and
+the evidence remain available.
+
+The prior candidate sequence is retained for possible human reconsideration:
 
 ```text
 safe proposal path -> minimal outcome check -> ordinary recall and Reflection
@@ -31,12 +39,12 @@ automatic commits, a second approval ceremony, or a generic evaluation platform.
 | [#39](https://github.com/vinnyso/common-knowledge/issues/39) AF-03A | Done in PR #52: separate pending proposals, inspection, revisions, and guarded draft operations. |
 | [#53](https://github.com/vinnyso/common-knowledge/issues/53) AF-03L | Done in PR #55 after the canonical lean-contract amendment in PR #54: bounded authored content and engine-derived guards/destinations. |
 | [#49](https://github.com/vinnyso/common-knowledge/issues/49) AF-03B | Done in PR #56, merged 2026-10-23 UTC at `078532627fba2becbea2e5ebf34ac0944b8222a5`. All four accepted operations, post-commit cleanup, and replay protection are delivered. |
-| [#40](https://github.com/vinnyso/common-knowledge/issues/40) AF-03E-P | Next claim: fully specified and labeled `ready-for-agent`; its only implementation dependency, #49, is complete. The explicit local bundle path and fresh preparation evidence are still required. |
-| [#50](https://github.com/vinnyso/common-knowledge/issues/50) AF-03E-R | Blocked on #40. Bind exact frozen manifest revisions and execution prerequisites before marking ready. |
-| [#41](https://github.com/vinnyso/common-knowledge/issues/41) AF-04 | Blocked on #50; use observed outcomes to bound recall/Reflection changes. |
-| [#42](https://github.com/vinnyso/common-knowledge/issues/42) AF-05P | Blocked on #41; packaging precedes the separate #51 two-session proof. |
-| [#51](https://github.com/vinnyso/common-knowledge/issues/51) AF-05D | Blocked on #42; bind packaged assets and prepared tasks before readiness. |
-| [#43](https://github.com/vinnyso/common-knowledge/issues/43) AF-06 | Blocked on #51 plus authorized participants and evidence handling. |
+| [#40](https://github.com/vinnyso/common-knowledge/issues/40) AF-03E-P | Done; the reviewed preparation and client amendments are frozen in #50. |
+| [#50](https://github.com/vinnyso/common-knowledge/issues/50) AF-03E-R | Six sessions and independent evaluation complete; report publication remains in delivery. Human direction check completed: park expansion. |
+| [#41](https://github.com/vinnyso/common-knowledge/issues/41) AF-04 | Parked; explicit human resume direction and #50 completion are required. |
+| [#42](https://github.com/vinnyso/common-knowledge/issues/42) AF-05P | Parked; retain the #41 dependency and prior packaging contract for reconsideration. |
+| [#51](https://github.com/vinnyso/common-knowledge/issues/51) AF-05D | Parked; retain the #42 dependency and prior reuse-proof contract for reconsideration. |
+| [#43](https://github.com/vinnyso/common-knowledge/issues/43) AF-06 | Parked; retain the #51 dependency and participant/evidence prerequisites for reconsideration. |
 
 PR #56 records passing preflight, full tests, package verification, exact-candidate
 CI, and independent review. Reuse that completed apply-and-cleanup evidence;
@@ -45,7 +53,7 @@ The historical lean-contract/start-pause gates are no longer outstanding AF-03
 prerequisites. Preserve normal issue claiming, dependency, review, and merge rules.
 Project status must be checked at claim time; labels alone do not establish it.
 
-## Immediate execution plan: #40 only
+## Historical preparation plan: #40 (completed)
 
 1. Confirm #40 has no competing claim, record the contract, and move its Project
    status to `In Progress` before implementation. Do not claim #50 or #41 early.

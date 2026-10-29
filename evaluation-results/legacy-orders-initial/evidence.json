@@ -1,0 +1,1131 @@
+{
+  "preparation_revision": "875922a6545be14d8e7f84ebe59e36a42adee2a8",
+  "freeze_sha256": "473496ae9623df551614c1632fd88ece17408207dfac76839786a20c9e970fc0",
+  "author_evidence_root": "/private/tmp/ck-issue40/issue50-campaign-20261028",
+  "event_index_convention": "zero-based JSONL line number",
+  "knowledge_classification": "Observed Entry delivery, first explicit plan or edit, saved candidate behavior and frozen evaluator. No inference of causality or internal cognition. Baseline knowledge fields refer to unavailable CK and are not_applicable. No stale/conflicting Entry was observed in this fixed checkout. Unrelated hits/reads count as noise.",
+  "bundled_system_skills": [
+    {
+      "name": "imagegen",
+      "scope": "system",
+      "sha256": "681ddb4ad6d06a2acc78a3535b583f8d0c1ea800ecda3d56370d3310fd2cd4ba"
+    },
+    {
+      "name": "openai-docs",
+      "scope": "system",
+      "sha256": "aa6829e21df2223167c85d2e49b6337a7345c84c1033f1ec10182c7882b36d45"
+    },
+    {
+      "name": "review-agent",
+      "scope": "system",
+      "sha256": "07079efd0dc76f05fade424e5dfb048dce1de2df7626e1a4f56292a4f3f92228"
+    },
+    {
+      "name": "skill-creator",
+      "scope": "system",
+      "sha256": "6656e54755638e8efcf275a472b9672eaa8a9a1b9e59dc210e275b03b59e1e66"
+    },
+    {
+      "name": "skill-installer",
+      "scope": "system",
+      "sha256": "d68b77e5bbb34dedab89d134da52855f140fc4b4299b80104f534e3b9e98f8ee"
+    }
+  ],
+  "runs": [
+    {
+      "order": 1,
+      "run_id": "ck50-01-reference-baseline-final",
+      "candidate": "55cda5a493b6b9bf32bf1d01378251924c4d373f",
+      "started_at": "2026-10-29T13:39:22Z",
+      "ended_at": "2026-10-29T13:41:10Z",
+      "execution_seconds": 108.835,
+      "first_file_change_event_index": 12,
+      "mcp_calls": [],
+      "observable_messages": [
+        {
+          "event_index": 2,
+          "excerpt": "I\u2019ll inspect the import workflow, service boundary and repository guidance, then make the correction, add regression coverage and run the documented application gate.\n"
+        },
+        {
+          "event_index": 11,
+          "excerpt": "The import currently writes through the legacy DAO, enforces the old 20-character limit and omits the audit event. I\u2019ll route it through the existing amendment service and ports, and add strict JSON type validation because Jackson can coerce numeric values into strings by default.\n"
+        }
+      ],
+      "gate_evidence": {
+        "public": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 10.332,
+          "reports": [
+            {
+              "name": "com.northstar.orders.AccountingTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CollectionTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CustomerReferenceTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.FulfilmentTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderDetailsTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderEntryTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceAmendmentTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceImportTest",
+              "tests": "18",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ArchitectureIT",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.MigrationIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceImportTransactionIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceTransactionIT",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "functional": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.777,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKReferenceTest",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "architectural": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.609,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKBoundaryTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        }
+      },
+      "partial_preparation_seconds": {
+        "preparation_seconds": 33.809,
+        "authentication_resume_seconds": 2.995
+      },
+      "hashes": {
+        "tool_events": "b09bbec8cd8012a73d9d41ee9eb554b119305955899ff0780689886fb62dcb57",
+        "candidate_diff": "91ed6861c5cc1ec3fcfed81356fea29220723c928fd99025f411d31441806019",
+        "candidate_bundle": "9b17e3f6dd154fb781371fae1f766fb1891747ebc8a09add7543d515e9b9367b",
+        "evaluator": "78fbe6981dffb5a672d11e548afe8c2325c76f541a3cfe360a494e65e7f9e0de",
+        "execution": "b2ef648b2242f9411b0179016283a1e0120ef5f1e32242304b311ca82e1408ae",
+        "preparation": "debdee12093b017d928e9fbe4084590aa38347e3923d6b2ced752d72bf767ec6",
+        "client_inventory": "0d83f52b029b976b13420ed452b3ae8461e1c08a2176eb5679540fdcca3d6bc2",
+        "isolation": "6afac4b2c7bcee395f94347aa206cb1a2a1045222cf7fb6680275ab111b24b0a"
+      }
+    },
+    {
+      "order": 2,
+      "run_id": "ck50-02-reference-ck",
+      "candidate": "9bbdac6e66a357991fe44a8dac33d103f9c16eef",
+      "started_at": "2026-10-29T13:46:03Z",
+      "ended_at": "2026-10-29T13:48:33Z",
+      "execution_seconds": 149.815,
+      "first_file_change_event_index": 22,
+      "mcp_calls": [
+        {
+          "completed_event_index": 6,
+          "tool": "search",
+          "arguments": {
+            "query": "reference import customer-reference application service port transaction audit",
+            "path": "src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java"
+          },
+          "status": "ok",
+          "result_ids": [
+            "application-boundary",
+            "reference-contract",
+            "dispatch-contract"
+          ],
+          "error": null
+        },
+        {
+          "completed_event_index": 11,
+          "tool": "read",
+          "arguments": {
+            "id": "reference-contract"
+          },
+          "status": "ok",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 12,
+          "tool": "read",
+          "arguments": {
+            "id": "application-boundary"
+          },
+          "status": "ok",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 21,
+          "tool": "search",
+          "arguments": {
+            "query": "Jackson customerReference non-string coercion JsonNode",
+            "path": "src/main/java/com/northstar/orders/legacy/web/ReferenceImportController.java"
+          },
+          "status": "ok",
+          "result_ids": [
+            "reference-contract",
+            "application-boundary",
+            "dispatch-contract"
+          ],
+          "error": null
+        }
+      ],
+      "observable_messages": [
+        {
+          "event_index": 2,
+          "excerpt": "I\u2019ll inspect the import and amendment paths, check Common Knowledge, then implement the fix and run the documented application gate.\n"
+        },
+        {
+          "event_index": 17,
+          "excerpt": "The current import writes through the legacy DAO, enforces the old 20-character limit, and skips the audit event. The accepted ADR and existing v2 implementation support reusing the application service and its transactional ports. I\u2019ll also reject non-string JSON values explicitly, since Jackson can coerce them to strings.\n"
+        },
+        {
+          "event_index": 33,
+          "excerpt": "The focused endpoint tests passed, covering normalization, 400/404 responses without writes, preservation of order fields, the supplied clock time, and rollback after a real audit insert failure. The existing v2 tests passed too. I\u2019ve added a boundary check for the corrected controller, and the full application gate is now running.\n"
+        }
+      ],
+      "gate_evidence": {
+        "public": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 10.451,
+          "reports": [
+            {
+              "name": "com.northstar.orders.AccountingTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CollectionTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CustomerReferenceTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.FulfilmentTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderDetailsTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderEntryTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceAmendmentTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceImportArchitectureTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceImportTest",
+              "tests": "19",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ArchitectureIT",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.MigrationIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceTransactionIT",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "functional": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.815,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKReferenceTest",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "architectural": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 3.065,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKBoundaryTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        }
+      },
+      "partial_preparation_seconds": {
+        "preparation_seconds": 62.746,
+        "resume_seconds": 4.11
+      },
+      "hashes": {
+        "tool_events": "d26dc40b5866d5bf0b9c23a26b74f709abf159281da7ada8f5343f2ff70da7c6",
+        "candidate_diff": "c4b142cac13e2cb931612de423136e9865ff5f96ccd2576bb75e11238dc55fa1",
+        "candidate_bundle": "f9aa9fd677bd8e49f8e5a5c6056201a017c34959b0a797029f2f1159f48b0813",
+        "evaluator": "b50186cc0d3e76ebcec2ae1ff814382f788e757e49ce4d20131d651765eb51a5",
+        "execution": "dab24ccf86aebef0f18d555375b4345c1b7404909042596212c5298a4bf09d65",
+        "preparation": "0a4cba80d3308d67f25cebfdadfd5c84ee39dda6c93a6d298934baccd93b8da5",
+        "client_inventory": "3b9aabf82acd2be2f641251f74ec565b57b2a7f8862ca7e8aae4bcf09b1127ee",
+        "isolation": "3949a7ef60c2e6d86268b3c00a12e5655cbd9666aeb6e64c7d2df5337ff7cd9a"
+      }
+    },
+    {
+      "order": 3,
+      "run_id": "ck50-03-dispatch-ck",
+      "candidate": "99af3332a185a5aa027df588a94eff78a9107057",
+      "started_at": "2026-10-29T13:51:02Z",
+      "ended_at": "2026-10-29T13:53:50Z",
+      "execution_seconds": 167.49,
+      "first_file_change_event_index": 26,
+      "mcp_calls": [
+        {
+          "completed_event_index": 6,
+          "tool": "search",
+          "arguments": {
+            "query": "dispatch warehouse account control businessDate export",
+            "path": "src"
+          },
+          "status": "no_match",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 12,
+          "tool": "search",
+          "arguments": {
+            "query": "dispatch cutoff warehouse account control",
+            "path": "src/main/java/com/northstar/orders/legacy/web/AccountingController.java"
+          },
+          "status": "ok",
+          "result_ids": [
+            "dispatch-contract",
+            "application-boundary",
+            "reference-contract"
+          ],
+          "error": null
+        },
+        {
+          "completed_event_index": 14,
+          "tool": "read",
+          "arguments": {
+            "id": "dispatch-contract"
+          },
+          "status": "ok",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 16,
+          "tool": "read",
+          "arguments": {
+            "id": "application-boundary"
+          },
+          "status": "ok",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 18,
+          "tool": "read",
+          "arguments": {
+            "id": "reference-contract"
+          },
+          "status": "ok",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 25,
+          "tool": "search",
+          "arguments": {
+            "query": "dispatch export application service port",
+            "path": "src/main/java/com/northstar/orders/persistence/JdbcDispatchOrders.java"
+          },
+          "status": "ok",
+          "result_ids": [
+            "application-boundary",
+            "dispatch-contract",
+            "reference-contract"
+          ],
+          "error": null
+        },
+        {
+          "completed_event_index": 44,
+          "tool": "search",
+          "arguments": {
+            "query": "Mockito self attaching mock maker test failure",
+            "path": "src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker"
+          },
+          "status": "no_match",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 46,
+          "tool": "search",
+          "arguments": {
+            "query": "customer reference VARCHAR 40 value too long",
+            "path": "src/test/java/com/northstar/orders/DispatchTest.java"
+          },
+          "status": "no_match",
+          "result_ids": [],
+          "error": null
+        }
+      ],
+      "observable_messages": [
+        {
+          "event_index": 2,
+          "excerpt": "I\u2019ll check the dispatch flow, repository guidance, and Common Knowledge contracts, then implement the correction and run the documented application gate.\n"
+        },
+        {
+          "event_index": 21,
+          "excerpt": "The current contracts confirm that dispatch needs both order and customer restrictions checked, with an inclusive 17:00 New York cutoff. The existing route uses UTC and filters only by allocation state. I\u2019ll move dispatch into a dedicated controller, application service, port, and SQL adapter, leaving invoice and discount operations in place.\n"
+        },
+        {
+          "event_index": 35,
+          "excerpt": "The implementation and regression tests are in place. Coverage includes all eligibility filters, exact cutoff inclusion, both daylight-saving transitions, reference preservation, and database snapshots to detect writes. I\u2019m running the dispatch tests with the JVM set to Tokyo time to check independence from the machine timezone, then I\u2019ll run the full application gate.\n"
+        },
+        {
+          "event_index": 58,
+          "excerpt": "All 17 dispatch regression cases passed with the JVM set to Tokyo time. The full application gate is now running, including frontend checks, backend tests, architecture checks, migration tests, and packaging.\n"
+        }
+      ],
+      "gate_evidence": {
+        "public": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 9.539,
+          "reports": [
+            {
+              "name": "com.northstar.orders.AccountingTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CollectionTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CustomerReferenceTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.DispatchTest",
+              "tests": "17",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.FulfilmentTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderDetailsTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderEntryTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceAmendmentTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ArchitectureIT",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.MigrationIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceTransactionIT",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "functional": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 3.159,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKDispatchTest",
+              "tests": "5",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "architectural": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.741,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKBoundaryTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        }
+      },
+      "partial_preparation_seconds": {
+        "preparation_seconds": 68.951
+      },
+      "hashes": {
+        "tool_events": "e77ec965c40c8f4953fe21afadfe9987dc3c95fa3e24f5caa21ae6331ea13bd2",
+        "candidate_diff": "b31decfbdd03b36260f5dba0bbdaea9acaa9ccb73cd66430bd84bfa55170ea54",
+        "candidate_bundle": "956ddf80fba0b95328b8f96c840824f86271cccf997a491f43850eb8709ad756",
+        "evaluator": "0d3d7a88b7c2ac857610a352a6bae1b06570fdadddf84dcc3363ed599559c362",
+        "execution": "041c2d1338288d2d3b39f972445dbdf70a853c26389a876dd61a17bfff9b90fc",
+        "preparation": "cc6f61a9159296cf8b242ab115b4aa7f9d35fb992ccb6dcb7e200b8385f6d773",
+        "client_inventory": "3b9aabf82acd2be2f641251f74ec565b57b2a7f8862ca7e8aae4bcf09b1127ee",
+        "isolation": "0bce4e83449bf156d563df2d50829e600e393d3d6fcae1e89174024ec99a9759"
+      }
+    },
+    {
+      "order": 4,
+      "run_id": "ck50-04-dispatch-baseline",
+      "candidate": "4cd709a2aa9657da2d8989874d904a7bea83f035",
+      "started_at": "2026-10-29T13:55:52Z",
+      "ended_at": "2026-10-29T13:58:19Z",
+      "execution_seconds": 147.044,
+      "first_file_change_event_index": 14,
+      "mcp_calls": [],
+      "observable_messages": [
+        {
+          "event_index": 2,
+          "excerpt": "I\u2019ll inspect the dispatch path and repository guidance, move the corrected workflow behind an application service and port, then add regression coverage and run the documented gate.\n"
+        },
+        {
+          "event_index": 11,
+          "excerpt": "The current export uses a UTC cutoff and only filters by allocation status. I\u2019ll move it to a new controller backed by an application service and persistence port, with SQL filters for warehouse mode, order holds and customer credit blocks. Invoice and discount operations will stay in their existing controller.\n"
+        },
+        {
+          "event_index": 22,
+          "excerpt": "The focused regressions pass. They cover winter and summer cutoffs, both DST transition dates, exact cutoff inclusion, eligibility filters, reference text and ID ordering, invalid dates, and unchanged database contents after repeated exports. I\u2019m running `./mvnw -Pconsole clean verify` now.\n"
+        }
+      ],
+      "gate_evidence": {
+        "public": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 9.779,
+          "reports": [
+            {
+              "name": "com.northstar.orders.AccountingTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CollectionTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CustomerReferenceTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.DispatchExportServiceTest",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.DispatchExportTest",
+              "tests": "16",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.FulfilmentTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderDetailsTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderEntryTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceAmendmentTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ArchitectureIT",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.MigrationIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceTransactionIT",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "functional": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.878,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKDispatchTest",
+              "tests": "5",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "architectural": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.518,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKBoundaryTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        }
+      },
+      "partial_preparation_seconds": {
+        "preparation_seconds": 66.455
+      },
+      "hashes": {
+        "tool_events": "1fe1f429c6a34d52c0ef2c929c07d33a85ead6392725ab1229b097119d25409c",
+        "candidate_diff": "270b41149bc305df2078c0f1d8c9350f69b7f9d3b765daf8ebe5465a5a3f9cf2",
+        "candidate_bundle": "ad748a11d2b816533f32f402f08c05dc1ceb280ceaeec4335e34cbbf8f0489eb",
+        "evaluator": "21ee8b2f13e08c3b281ebda982139fb0ad0c65f3398f331149c824ab3a48abdc",
+        "execution": "d195bbd5248c7812147db11c5ff5705b435b50da7d8a258d6ab04929935aa7f9",
+        "preparation": "e2fc6e49ff20c6b3b115d0324448ae39e32a7fae447c30cf4f2d12755aa3053a",
+        "client_inventory": "0d83f52b029b976b13420ed452b3ae8461e1c08a2176eb5679540fdcca3d6bc2",
+        "isolation": "498203ea59c01e34edd7d0d3a5cd544f64143570c0bf95806bd33e000e58ef26"
+      }
+    },
+    {
+      "order": 5,
+      "run_id": "ck50-05-csv-baseline",
+      "candidate": "1a70eba9ab64ce2d5d4e188b16aa3ca886cdb252",
+      "started_at": "2026-10-29T14:01:09Z",
+      "ended_at": "2026-10-29T14:02:25Z",
+      "execution_seconds": 76.886,
+      "first_file_change_event_index": 11,
+      "mcp_calls": [],
+      "observable_messages": [
+        {
+          "event_index": 2,
+          "excerpt": "I\u2019ll check the writer and repository guidance, add escaping and focused regression tests, then run the documented full application gate."
+        },
+        {
+          "event_index": 14,
+          "excerpt": "The writer now quotes fields containing comma, double quote, CR or LF and doubles embedded quotes. The new tests cover text preservation, empty fields and lists, mixed rows, and invoice header and column order. Frontend checks have passed; the Java gate is still running."
+        }
+      ],
+      "gate_evidence": {
+        "public": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 10.132,
+          "reports": [
+            {
+              "name": "com.northstar.orders.AccountingTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CollectionTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CsvWriterTest",
+              "tests": "12",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CustomerReferenceTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.FulfilmentTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.InvoiceCsvTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderDetailsTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderEntryTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceAmendmentTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ArchitectureIT",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.MigrationIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceTransactionIT",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "functional": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.98,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKCsvEndpointTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CKCsvTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "architectural": null
+      },
+      "partial_preparation_seconds": {
+        "preparation_seconds": 66.581
+      },
+      "hashes": {
+        "tool_events": "a8230eb92956a59615e62d3df5097eb989faf807311968f18122469f129dbae7",
+        "candidate_diff": "cea31b8809f26938e8b4eab0550c89faf6b7466c396f2051bd7441e109465a89",
+        "candidate_bundle": "3baf828c56a3f3adbefe13d743ae523884206f68a8e97ffe8871af7124d7e17d",
+        "evaluator": "675b01a8628afce510031a8810d41ca3133b73f7bfe83f72f966997b512a6645",
+        "execution": "c73c578b742a60a2233217254a486bb4f29ad95049a1589f4c267221bf7e2c83",
+        "preparation": "fc93e95abd3d64adc7c4e27925a5007c2b2119bc2ad2260567a6b9779719230a",
+        "client_inventory": "0d83f52b029b976b13420ed452b3ae8461e1c08a2176eb5679540fdcca3d6bc2",
+        "isolation": "a14d44cb9bd4a366ea4f6bc63572b7daf5cec6bc1165bb04ce6eceb45c0da0b5"
+      }
+    },
+    {
+      "order": 6,
+      "run_id": "ck50-06-csv-ck",
+      "candidate": "48848e5ba8fc5bf4f0fdde3289b53bb10b222c4e",
+      "started_at": "2026-10-29T14:04:53Z",
+      "ended_at": "2026-10-29T14:07:04Z",
+      "execution_seconds": 130.776,
+      "first_file_change_event_index": 20,
+      "mcp_calls": [
+        {
+          "completed_event_index": 6,
+          "tool": "search",
+          "arguments": {
+            "query": "CsvWriter row invoice CSV escaping regression full application gate",
+            "path": "src/main/java/com/northstar/orders/accounting/CsvWriter.java"
+          },
+          "status": "no_match",
+          "result_ids": [],
+          "error": null
+        },
+        {
+          "completed_event_index": 14,
+          "tool": "search",
+          "arguments": {
+            "query": "CSV invoice export accounting",
+            "path": "src/main/java/com/northstar/orders/accounting"
+          },
+          "status": "no_match",
+          "result_ids": [],
+          "error": null
+        }
+      ],
+      "observable_messages": [
+        {
+          "event_index": 2,
+          "excerpt": "I\u2019ll check the CSV writer, repository guidance and Common Knowledge, then add regression tests, fix the escaping and run the documented full gate.\n"
+        },
+        {
+          "event_index": 17,
+          "excerpt": "The writer currently joins fields without escaping. Common Knowledge returned no matches, and the endpoint already uses the writer in the required column order. I\u2019ll add exact-output tests for quoting and text preservation, plus an endpoint regression test that checks the header and column order.\n"
+        },
+        {
+          "event_index": 33,
+          "excerpt": "The new tests failed on the original writer as expected. The fix now quotes fields containing comma, quote, CR or LF, doubles their quotes and appends one CRLF terminator. The full application gate is running; the endpoint code is unchanged.\n"
+        }
+      ],
+      "gate_evidence": {
+        "public": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 9.898,
+          "reports": [
+            {
+              "name": "com.northstar.orders.AccountingTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CollectionTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CsvWriterTest",
+              "tests": "5",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CustomerReferenceTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.FulfilmentTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.InvoiceCsvTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderDetailsTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.OrderEntryTest",
+              "tests": "3",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceAmendmentTest",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ArchitectureIT",
+              "tests": "4",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.MigrationIT",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.ReferenceTransactionIT",
+              "tests": "2",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "functional": {
+          "exit_code": 0,
+          "evidence_valid": true,
+          "seconds": 2.665,
+          "reports": [
+            {
+              "name": "com.northstar.orders.CKCsvEndpointTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            },
+            {
+              "name": "com.northstar.orders.CKCsvTest",
+              "tests": "1",
+              "failures": "0",
+              "errors": "0",
+              "skipped": "0"
+            }
+          ]
+        },
+        "architectural": null
+      },
+      "partial_preparation_seconds": {
+        "preparation_seconds": 68.3
+      },
+      "hashes": {
+        "tool_events": "303244df905c169e3aa65c17177b0ccde279f85507933e5e95250cf52a9e8c69",
+        "candidate_diff": "f696d31c92ac888790c45d8bbf376a26c66f22d612c3d8a2fc056cfafe5952a7",
+        "candidate_bundle": "3213c4fc4369d5e26613273cb3171aa8095650a9d72b8b5a178ecce1911910da",
+        "evaluator": "02ae4a6e6dcdd94b68fdf3ea61c9ae8d9eca07f702d77a9efc0a83ed6783f515",
+        "execution": "bc87ab738d83942bc90269dcbe4353dd08967295db1f35b5a41ec6e0559192dc",
+        "preparation": "7822ed05b0b1e45fbb2a4dac64d257c4e20de352be8bcff4261b3ab216cef3fd",
+        "client_inventory": "3b9aabf82acd2be2f641251f74ec565b57b2a7f8862ca7e8aae4bcf09b1127ee",
+        "isolation": "74fbe00a526b17bf1cb5150c859e0c537c71be7148ae8dc04e403871bea05739"
+      }
+    }
+  ]
+}
