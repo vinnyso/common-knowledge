@@ -37,7 +37,9 @@ def main():
     exclusions=sorted([p.resolve() for p in Path("/private/tmp").iterdir() if p.name!="ck40-runs"]+[p.resolve() for p in root.parent.iterdir() if p!=root])
     # Preserve ancestor metadata needed by getcwd/cd and deny each other subtree.
     denies="".join(json.dumps(str(p))+' = "deny"\n' for p in exclusions)
-    config=f'default_permissions = "ck40"\napproval_policy = "never"\nweb_search = "disabled"\n[permissions.ck40.filesystem]\n":root" = "read"\n"/Users" = "deny"\n"/Volumes" = "deny"\n"/private/var/folders" = "deny"\n{denies}"{root}" = "write"\n[permissions.ck40.network]\nenabled = false\n'
+    conditions=json.loads((Path(__file__).resolve().parent/"conditions.json").read_text())
+    features="".join(name+' = false\n' for name in conditions["common"]["disabled_features"])
+    config=f'default_permissions = "ck40"\napproval_policy = "never"\nweb_search = "disabled"\n[features]\n{features}[permissions.ck40.filesystem]\n":root" = "read"\n"/Users" = "deny"\n"/Volumes" = "deny"\n"/private/var/folders" = "deny"\n{denies}"{root}" = "write"\n[permissions.ck40.network]\nenabled = false\n'
     (root/"codex/config.toml").write_text(config)
     probes=[]
     def probe(name,command,allow):
