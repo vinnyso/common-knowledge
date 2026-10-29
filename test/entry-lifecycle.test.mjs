@@ -4,15 +4,18 @@ import { chmod, mkdir, mkdtemp, readFile, readdir, rename, rm, symlink, writeFil
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { afterEach, test } from "node:test";
+import { after, afterEach, test } from "node:test";
 import { parse } from "yaml";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const cliPath = join(projectRoot, "dist", "cli.js");
 const temporaryDirectories = [];
+const fixtureParent = await mkdtemp(join(tmpdir(), "common-knowledge-lifecycle-suite-"));
 const activityLogPreamble =
   "# Common Knowledge Activity Log\n\n" +
   "Entry activity is appended below, grouped by UTC date. Git remains the authoritative audit trail.\n";
+
+after(() => rm(fixtureParent, { recursive: true, force: true }));
 
 afterEach(async () => {
   await Promise.all(
@@ -23,7 +26,7 @@ afterEach(async () => {
 });
 
 async function makeRepository() {
-  const cwd = await mkdtemp(join(tmpdir(), "common-knowledge-lifecycle-"));
+  const cwd = await mkdtemp(join(fixtureParent, "repository-"));
   temporaryDirectories.push(cwd);
   const initialized = await invoke(["init"], cwd);
   assert.equal(initialized.exitCode, 0);
