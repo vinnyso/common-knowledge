@@ -39,7 +39,7 @@
       "multi_agent",
       "skill_search"
     ],
-    "client_audit_source_sha256": "ff47187e9281f7c998d9abc6472d6b9dce1c96b14fa6677f2b4c03fbb8e45254",
+    "client_audit_source_sha256": "e18c6fa85494be20c87def07153996e04077249b72bdd0d19b00522d7c3188c9",
     "authenticated_baseline": {
       "record_type": "client-inventory",
       "scored": false,
@@ -47,7 +47,8 @@
       "condition": "baseline",
       "authentication": {
         "type": "chatgpt",
-        "token_refresh_requested": true
+        "token_refresh_requested": true,
+        "backend_authenticated_read": "account/rateLimits/read"
       },
       "mcp": [],
       "bundled_system_skills": [
@@ -86,7 +87,8 @@
       "condition": "current_ck",
       "authentication": {
         "type": "chatgpt",
-        "token_refresh_requested": true
+        "token_refresh_requested": true,
+        "backend_authenticated_read": "account/rateLimits/read"
       },
       "mcp": [
         {
@@ -144,6 +146,17 @@
       "temporary_authentication_copies_removed": true,
       "model_calls": 0,
       "operational_evidence_reused": "Unchanged native isolation, full application gate and installed CK operations from the initial amendment check; authenticated inventories repeated for R1."
+    },
+    "backend_authentication_followup": {
+      "fixed_point": "176494bec367fd3d6a26e8657cf146237dcd5344",
+      "reason": "Human review: nominal ChatGPT account metadata must not stand in for backend acceptance after a refresh request.",
+      "pinned_source": "openai/codex rust-v0.165.0: account/read discards refresh outcome; account/rateLimits/read performs an authenticated backend GET and propagates failures.",
+      "check": "Require nonempty rate-limit snapshot before inventory discovery; request excludes reset-credit details.",
+      "baseline_record_sha256": "0d83f52b029b976b13420ed452b3ae8461e1c08a2176eb5679540fdcca3d6bc2",
+      "current_ck_record_sha256": "3b9aabf82acd2be2f641251f74ec565b57b2a7f8862ca7e8aae4bcf09b1127ee",
+      "temporary_authentication_copies_removed": true,
+      "model_calls": 0,
+      "limits": "Backend accepted the credential for this read; refresh success, model entitlement and future inference availability are not certified. Quota values are not retained."
     }
   },
   "operational_checks": {

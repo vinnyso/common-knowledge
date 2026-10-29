@@ -6,26 +6,29 @@ import { resolve, join } from "node:path";
 import test from "node:test";
 import Ajv from "ajv";
 
-test("an auth file with a logged-out client stops before inventory discovery", () => {
+test("client authentication failures stop before inventory discovery", () => {
   const probe = spawnSync("python3", ["-c", `
 import json,os,sys,tempfile
 from pathlib import Path
 sys.path.insert(0,str(Path("evaluation/legacy-orders").resolve()))
 from client_audit import audit
-with tempfile.TemporaryDirectory(prefix="ck50-client-test-") as scratch:
-    root=Path(scratch)
-    for name in ["app","home","codex","tmp","bin"]:
-        (root/name).mkdir()
-    features=json.loads(Path("evaluation/legacy-orders/conditions.json").read_text())["common"]["disabled_features"]
-    config='default_permissions = "ck40"'+chr(10)+'approval_policy = "never"'+chr(10)+'web_search = "disabled"'+chr(10)+'[features]'+chr(10)
-    config+=''.join(name+' = false'+chr(10) for name in features)
-    (root/"codex/config.toml").write_text(config)
-    (root/"codex/auth.json").write_text('{"OPENAI_API_KEY": null}')
-    executable=root/"bin/codex"
-    executable.write_text('#!'+sys.executable+chr(10)+'''
+features=json.loads(Path("evaluation/legacy-orders/conditions.json").read_text())["common"]["disabled_features"]
+for case in ["logged_out","account_error","backend_error","backend_empty","backend_missing","backend_unavailable","active"]:
+    with tempfile.TemporaryDirectory(prefix="ck50-client-test-") as scratch:
+        root=Path(scratch).resolve()
+        for name in ["app","home","codex","tmp","bin"]:
+            (root/name).mkdir()
+        (root/"case").write_text(case)
+        config='default_permissions = "ck40"'+chr(10)+'approval_policy = "never"'+chr(10)+'web_search = "disabled"'+chr(10)+'[features]'+chr(10)
+        config+=''.join(name+' = false'+chr(10) for name in features)
+        (root/"codex/config.toml").write_text(config)
+        (root/"codex/auth.json").write_text('{"OPENAI_API_KEY": null}')
+        executable=root/"bin/codex"
+        executable.write_text('#!'+sys.executable+chr(10)+'''
 import json,sys
 from pathlib import Path
 root=Path.cwd().parent
+case=(root/"case").read_text()
 for line in sys.stdin:
     message=json.loads(line)
     with (root/"requests.jsonl").open("a") as log:
@@ -34,25 +37,48 @@ for line in sys.stdin:
     if "id" not in message:
         continue
     result={}
+    error=False
     if method=="account/read":
-        result={"account":None,"requiresOpenaiAuth":True}
+        result={"account":None if case=="logged_out" else {"type":"chatgpt","email":"private","planType":"pro"},"requiresOpenaiAuth":True}
+        error=case=="account_error"
+    elif method=="account/rateLimits/read":
+        error=case=="backend_error"
+        result={"rateLimits":{"limitId":"codex"}} if case=="active" else {"rateLimits":{}}
+        if case=="backend_missing":
+            result={}
+        elif case=="backend_unavailable":
+            result=None
     elif method=="mcpServerStatus/list":
         result={"data":[],"nextCursor":None}
     elif method=="skills/list":
         result={"data":[{"cwd":str(root/"app"),"skills":[],"errors":[]}]}
-    print(json.dumps({"id":message["id"],"result":result}),flush=True)
+    response={"id":message["id"]}
+    response.update({"error":{"code":-32000,"message":"synthetic rejected credential"}} if error else {"result":result})
+    print(json.dumps(response),flush=True)
 ''')
-    executable.chmod(0o755)
-    os.environ["PATH"]=str(root/"bin")+os.pathsep+os.environ["PATH"]
-    try:
-        audit(root,"baseline")
-    except ValueError as error:
-        assert "authenticated ChatGPT account" in str(error)
-    else:
-        raise AssertionError("logged-out file accepted")
-    requests=[json.loads(line) for line in (root/"requests.jsonl").read_text().splitlines()]
-    assert [request["method"] for request in requests]==["initialize","initialized","account/read"]
-    assert requests[-1]["params"]=={"refreshToken":True}
+        executable.chmod(0o755)
+        original_path=os.environ["PATH"]
+        os.environ["PATH"]=str(root/"bin")+os.pathsep+original_path
+        try:
+            try:
+                result=audit(root,"baseline")
+            except (ValueError,RuntimeError):
+                assert case!="active",case
+            else:
+                assert case=="active","unsafe authentication accepted: "+case
+                assert result["authentication"]=={"type":"chatgpt","token_refresh_requested":True,"backend_authenticated_read":"account/rateLimits/read"}
+        finally:
+            os.environ["PATH"]=original_path
+        requests=[json.loads(line) for line in (root/"requests.jsonl").read_text().splitlines()]
+        expected=["initialize","initialized","account/read"]
+        if case not in ["logged_out","account_error"]:
+            expected+=["account/rateLimits/read"]
+        if case=="active":
+            expected+=["mcpServerStatus/list","skills/list"]
+        assert [request["method"] for request in requests]==expected,(case,requests)
+        assert requests[2]["params"]=={"refreshToken":True}
+        if len(requests)>3:
+            assert requests[3]["params"]=={"excludeResetCreditDetails":True}
 `], { encoding: "utf8" });
   assert.equal(probe.status, 0, probe.stderr);
 });

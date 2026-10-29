@@ -21,6 +21,14 @@ def validate_authentication(response):
     return {"type":"chatgpt", "token_refresh_requested":True}
 
 
+def validate_backend_authentication(response):
+    if not isinstance(response,dict) or not isinstance(response.get("rateLimits"),dict) or not response["rateLimits"]:
+        raise ValueError("authenticated backend read returned no rate-limit snapshot")
+    # The pinned client makes an authenticated GET and propagates backend errors.
+    # Retain no usage, account identifiers or token material.
+    return {"backend_authenticated_read":"account/rateLimits/read"}
+
+
 def validate_inventory(condition, mcp, skills, run):
     if mcp.get("nextCursor"):
         raise ValueError("incomplete MCP inventory")
@@ -87,8 +95,9 @@ def audit(run, condition):
         request(1,"initialize",{"clientInfo":{"name":"ck50_inventory","version":"1"}})
         send({"method":"initialized","params":{}})
         authentication=validate_authentication(request(2,"account/read",{"refreshToken":True}))
-        mcp=request(3,"mcpServerStatus/list",{"detail":"toolsAndAuthOnly","limit":100})
-        skills=request(4,"skills/list",{"cwds":[str(run/"app")],"forceReload":True})
+        authentication.update(validate_backend_authentication(request(3,"account/rateLimits/read",{"excludeResetCreditDetails":True})))
+        mcp=request(4,"mcpServerStatus/list",{"detail":"toolsAndAuthOnly","limit":100})
+        skills=request(5,"skills/list",{"cwds":[str(run/"app")],"forceReload":True})
         return {"authentication":authentication, **validate_inventory(condition,mcp,skills,run)}
     finally:
         process.terminate()
