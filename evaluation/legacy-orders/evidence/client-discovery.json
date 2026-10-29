@@ -39,12 +39,16 @@
       "multi_agent",
       "skill_search"
     ],
-    "client_audit_source_sha256": "3c565012116d500d192294afee02c1acdd6ba208ade4ab31770c1f172d6b1f29",
+    "client_audit_source_sha256": "ff47187e9281f7c998d9abc6472d6b9dce1c96b14fa6677f2b4c03fbb8e45254",
     "authenticated_baseline": {
       "record_type": "client-inventory",
       "scored": false,
       "model_calls": 0,
       "condition": "baseline",
+      "authentication": {
+        "type": "chatgpt",
+        "token_refresh_requested": true
+      },
       "mcp": [],
       "bundled_system_skills": [
         {
@@ -80,6 +84,10 @@
       "scored": false,
       "model_calls": 0,
       "condition": "current_ck",
+      "authentication": {
+        "type": "chatgpt",
+        "token_refresh_requested": true
+      },
       "mcp": [
         {
           "server": "common_knowledge",
@@ -120,7 +128,23 @@
       "passed": true
     },
     "completion_record_sha256": "01d52268185dbeb090e2c6967bb59b43c08a76309e846dfb299df7a8717fc12e",
-    "temporary_authentication_copy_removed": true
+    "temporary_authentication_copy_removed": true,
+    "authentication_correction": {
+      "finding": "R1: auth-file existence did not prove authenticated client state",
+      "account_check": "account/read with refreshToken=true; require ChatGPT account state before inventories; reject errors or unavailable state",
+      "logged_out_file_probe": {
+        "record_type": "client-inventory",
+        "scored": false,
+        "model_calls": 0,
+        "condition": "baseline",
+        "passed": false,
+        "error": "client rejected inventory request: account/read"
+      },
+      "completion_record_sha256": "2fa11c115e24c3d0b658350096a67517a35362f10631091dee4df7fb1ed6cb7f",
+      "temporary_authentication_copies_removed": true,
+      "model_calls": 0,
+      "operational_evidence_reused": "Unchanged native isolation, full application gate and installed CK operations from the initial amendment check; authenticated inventories repeated for R1."
+    }
   },
   "operational_checks": {
     "native_isolation": {

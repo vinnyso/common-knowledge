@@ -13,6 +13,14 @@ import tomllib
 ROOT = Path(__file__).resolve().parent
 
 
+def validate_authentication(response):
+    account=response.get("account")
+    if not isinstance(account,dict) or account.get("type") != "chatgpt":
+        raise ValueError("authenticated ChatGPT account is required")
+    # Do not retain the email, account identifier or token material.
+    return {"type":"chatgpt", "token_refresh_requested":True}
+
+
 def validate_inventory(condition, mcp, skills, run):
     if mcp.get("nextCursor"):
         raise ValueError("incomplete MCP inventory")
@@ -78,9 +86,10 @@ def audit(run, condition):
     try:
         request(1,"initialize",{"clientInfo":{"name":"ck50_inventory","version":"1"}})
         send({"method":"initialized","params":{}})
-        mcp=request(2,"mcpServerStatus/list",{"detail":"toolsAndAuthOnly","limit":100})
-        skills=request(3,"skills/list",{"cwds":[str(run/"app")],"forceReload":True})
-        return validate_inventory(condition,mcp,skills,run)
+        authentication=validate_authentication(request(2,"account/read",{"refreshToken":True}))
+        mcp=request(3,"mcpServerStatus/list",{"detail":"toolsAndAuthOnly","limit":100})
+        skills=request(4,"skills/list",{"cwds":[str(run/"app")],"forceReload":True})
+        return {"authentication":authentication, **validate_inventory(condition,mcp,skills,run)}
     finally:
         process.terminate()
         try:
